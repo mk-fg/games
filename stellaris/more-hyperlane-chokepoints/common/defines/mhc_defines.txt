@@ -1,0 +1,13 @@
+	NGameplay = {
+
+		## Remove X% of the longest edges
+		HYPERLANE_GEN_REMOVE_PERC = 0.40   # stellaris 2.0 default = 0.20
+
+		## Don't remove an edge if you have to travel more than X stars to reach the same position
+		# HYPERLANE_GEN_REMOVED_MAX_DIST = 30   # stellaris 2.0 default
+
+		## Remove edges if having 4 or more edges
+		## Lower values (e.g. 3) affect how resulting map will look *a lot*
+		# HYPERLANE_GEN_REMOVE_TOO_MANY_EDGES = 4   # stellaris 2.0 default
+
+	}

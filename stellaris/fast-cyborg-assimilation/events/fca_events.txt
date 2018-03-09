@@ -1,0 +1,21 @@
+# Assimilate pops *monthly* for ascended cyborg empires
+# Rationale is that it'd probably be too OP for hiveminds and robot empires, esp. in early-game
+
+namespace = fca
+
+event = {
+	id = fca.1
+	hide_window = yes
+	# Triggered from on_monthly_pulse in on_actions/fca_actions.txt
+	is_triggered_only = yes
+
+	immediate = {
+		every_playable_country = {
+			limit = { has_ascension_perk = ap_the_flesh_is_weak }
+			every_owned_planet = {
+				# action.65 is the default "Assimilate Pops" event in on_action_events.txt
+				planet_event = { id = action.65 }
+			}
+		}
+	}
+}

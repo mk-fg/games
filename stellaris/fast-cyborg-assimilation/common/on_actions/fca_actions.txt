@@ -1,0 +1,6 @@
+# Assimilate pops *monthly* for ascended cyborg empires
+# ap_the_flesh_is_weak checked in fca.1 event
+
+on_monthly_pulse = {
+	events = { fca.1 }
+}

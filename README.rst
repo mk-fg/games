@@ -7,10 +7,43 @@ Misc game-related tweaks and tools that I tend to write
 Just a collection of accumulated stuff in no particular order, to be able to
 link or remember stuff occasionally.
 
-Pretty much always have some -h/--help output, with purpose and options
-documented there, as I tend to write these to avoid forgetting them myself.
+Scripts here pretty much always have some -h/--help option/output, with
+purpose/usage and all options documented there, as tend to write these down to
+avoid forgetting them myself.
 
 Likely to be out of date to a various degree for most games/mods that get updates.
+
+
+`Stellaris`_
+------------
+
+Sometimes needs a bunch of fixes and/or balancing tweaks for whatever weird and
+unexpected game scenario you end up with, though extra content mods are nice too.
+
+Mods for latest 2.0.x playthrough:
+
+- `More Hyperlane Chokepoints
+  <https://steamcommunity.com/sharedfiles/filedetails/?id=1310625695>`_
+
+  Since game version 2.0 FTL went hyperlane-only (oh well), but options to tweak
+  layout of these for galaxy generation are still kinda rudimentary, hence the
+  mod to get it "just right".
+
+- `Fast Cyborg Assimilation
+  <https://steamcommunity.com/sharedfiles/filedetails/?id=1322434314>`_
+
+  Cybernetic assimilation mechanics were clearly developed for either gestalt
+  consciousness empires which have no politics, or egalitarian ones that have
+  all species rights granted by default.
+
+  Don't work well for authoritarian/xenophobe slavers, as this sets all
+  assimilating pops "free" for a long time, and keep resetting rights for
+  assimilated pops to "full citizenship" for no good reason.
+
+  Simple workaround implemented in this mod is to make process fast enough to be
+  less painful - more of a quick disruption than decades-long PITA.
+
+.. _Stellaris: http://www.stellariswiki.com/
 
 
 `Factorio`_
@@ -26,9 +59,9 @@ Easy to fix with mods though, which are one of the best parts of the game.
 
 - ReducedResearchX
 
-  Mod to reduce all research costs by somewhat complicated formula, designed to
-  keep early-game tech costs pretty-much as-is, but have massive reductions for
-  late-game techs.
+  Local mod to reduce all research costs by somewhat complicated formula,
+  designed to keep early-game tech costs pretty-much as-is, but have massive
+  reductions for late-game techs.
 
   Formula (python3): ``cost = lambda v: (a + max(0,v-a)*b**(v/(v+c)))``
 
@@ -130,6 +163,7 @@ game, plus pretty graphics ofc.
 
   | City layout templates, probably nicked from wikia.
   | For early techs this is kinda important, as costs are quite high there.
+  | Usually use large corridor layout for sprawling non-tech cities.
 
 - production-chains-best.{png,xcf}
 
@@ -140,7 +174,7 @@ game, plus pretty graphics ofc.
 .. _Anno 2070: http://anno2070.wikia.com/
 
 
-`OpenXCOM: X-PirateZ mod`_: pirate-melee-calc.py
+`OpenXCOM XPirateZ mod`_: piratez-melee-calc.py
 ------------------------------------------------
 
 Curses tool to examine/compare stats per TU and various buffs for hundreds of
@@ -196,4 +230,4 @@ each run (as cache-file contains all the info).
 
 Fair Warning: art/text in that mod can get weird.
 
-.. _OpenXCOM\: X-Piratez mod: https://www.ufopaedia.org/index.php/Piratez
+.. _OpenXCOM XPirateZ mod: https://www.ufopaedia.org/index.php/Piratez
