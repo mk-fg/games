@@ -13,6 +13,55 @@ documented there, as I tend to write these to avoid forgetting them myself.
 Likely to be out of date to a various degree for most games/mods that get updates.
 
 
+`Factorio`_
+-----------
+
+Great game, but found large-scale production required in late-game a bit too
+slow or tedious to setup or debug without lots of boring unimaginative repetition.
+
+Easy to fix with mods though, which are one of the best parts of the game.
+
+- mod-list.yaml - list of mods from when I last played (should include base game
+  version number) and backed it up.
+
+- ReducedResearchX
+
+  Mod to reduce all research costs by somewhat complicated formula, designed to
+  keep early-game tech costs pretty-much as-is, but have massive reductions for
+  late-game techs.
+
+  Formula (python3): ``cost = lambda v: (a + max(0,v-a)*b**(v/(v+c)))``
+
+  a, b and c there are tweakable via config.lua, and can be tested like this::
+
+    % python3
+    cost = lambda v: (a + max(0,v-a)*b**(v/(v+c)))
+    a,b,c=50,0.2,200
+    list(map(int, [cost(100),cost(200),cost(300),cost(500),cost(1000),cost(2000),cost(5000)]))
+    # output: [100=79, 200=117, 300=145, 500=192, 1000=298, 2000=501, 5000=1103]
+
+  Shows how late-game techs that cost 1k/2k/5k research units get down to
+  ~300/500/1k, while early-game ones get much smaller reductions.
+
+  | Does not change research time by default, as it's not a bottleneck anyway.
+  | Based on very simple "ReducedResearch" mod (~10 lines of lua), which was a
+    bit too linear for me.
+
+- blueprints.yaml - misc blueprints I came up with, esp. for defence units or
+  stuff like circuit logic parts.
+
+Useful companion links for the game:
+
+- https://doomeer.com/factorio/ - production chain calculator, simpliest.
+- https://rubyruy.github.io/factorio-calc/ - same as above, but found it harder to use.
+
+Best use for production chain calculators (that I've found) is to know in
+advance how much basic resources (like copper and steel) to put into main belts
+for some desired output level, and how many assemblers/throughput it'd require.
+
+.. _Factorio: http://factorio.com/
+
+
 `Darkest Dungeon`_: darkest-dungeon-save-manager.py
 ---------------------------------------------------
 

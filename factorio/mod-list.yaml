@@ -1,0 +1,42 @@
+version: 0.15.34
+mods:
+  - enabled: true
+    name: base
+  - enabled: true
+    name: advanced-logistics-system
+  - enabled: false
+    name: auto-research
+  - enabled: true
+    name: beltSorter
+  - enabled: true
+    name: Big_Brother
+  - enabled: true
+    name: Bottleneck
+  - enabled: true
+    name: EvoGUI
+  - enabled: true
+    name: FARL
+  - enabled: true
+    name: Honk
+  - enabled: true
+    name: Laser_Beam_Turrets
+  - enabled: true
+    name: longer-belts-redux
+  - enabled: true
+    name: nixie-tubes
+  - enabled: true
+    name: 'Orbital Ion Cannon'
+  - enabled: true
+    name: ReducedResearchX
+  - enabled: true
+    name: research-queue
+  - enabled: false
+    name: rso-mod
+  - enabled: true
+    name: 'Side Inserters'
+  - enabled: false
+    name: TheFatController
+  - enabled: true
+    name: themightygugi_longreach
+  - enabled: true
+    name: YARM
