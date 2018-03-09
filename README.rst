@@ -39,8 +39,28 @@ Usage:
 .. _Satellite Reign: http://satellitereign.com/
 
 
+`Anno 2070`_
+------------
+
+City layouts and production chains, as that's pretty much all there is in that
+game, plus pretty graphics ofc.
+
+- layout-\*.png
+
+  | City layout templates, probably nicked from wikia.
+  | For early techs this is kinda important, as costs are quite high there.
+
+- production-chains-best.{png,xcf}
+
+  Production chain ratios, space requirements (production "field" count/size),
+  and numbers for how much demand they satisfy, as getting them right through
+  trial and error is very wasteful and hard to remember them all.
+
+.. _Anno 2070: http://anno2070.wikia.com/
+
+
 `OpenXCOM: X-PirateZ mod`_: pirate-melee-calc.py
---------------------------------------------
+------------------------------------------------
 
 Curses tool to examine/compare stats per TU and various buffs for hundreds of
 weapons that are in that mod, which are not particulary well-documented.
