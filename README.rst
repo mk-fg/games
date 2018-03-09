@@ -13,6 +13,38 @@ documented there, as I tend to write these to avoid forgetting them myself.
 Likely to be out of date to a various degree for most games/mods that get updates.
 
 
+`Darkest Dungeon`_: darkest-dungeon-save-manager.py
+---------------------------------------------------
+
+Cheat tool to backup DD save games, as it's too hardcore, random-bs and grindy
+for my tastes.
+
+So simple fix is just to allow some (minor) save-scumming, which is what this
+tool does - allows to copy saved game state to multiple slots, like with any
+less hardcore game.
+
+Usage::
+
+  % ./darkest-dungeon-sm save
+  % ./darkest-dungeon-sm save some-slot-name
+
+  % ./darkest-dungeon-sm list
+  % ./darkest-dungeon-sm   # same thing
+
+  % ./darkest-dungeon-sm restore   # latest slot
+  % ./darkest-dungeon-sm restore some-slot-name
+  % ./darkest-dungeon-sm restore any-name-part
+  % ./darkest-dungeon-sm restore .5.
+
+  % ./darkest-dungeon-sm remove -n10   # show 10 oldest slots to cleanup
+  % ./darkest-dungeon-sm remove -n10 -x   # actually remove stuff
+
+Remove some tension from the game for sure, if you know that the save is not
+that far-off, but at least it's playable that way.
+
+.. _Darkest Dungeon: http://www.darkestdungeon.com/
+
+
 `Satellite Reign`_: sat-reign-pick-clone
 ----------------------------------------
 
