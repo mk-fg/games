@@ -127,8 +127,8 @@ that far-off, but at least it's playable that way.
 .. _Darkest Dungeon: http://www.darkestdungeon.com/
 
 
-`Satellite Reign`_: sat-reign-pick-clone
-----------------------------------------
+`Satellite Reign`_: sat-reign-pick-clone.py
+-------------------------------------------
 
 Simple script to find clone id in savegame xml by specified parameters.
 
@@ -172,6 +172,14 @@ game, plus pretty graphics ofc.
   trial and error is very wasteful and hard to remember them all.
 
 .. _Anno 2070: http://anno2070.wikia.com/
+
+
+`Kerbal Space Program`_ (ksp)
+-----------------------------
+
+Bunch of delta-V and aerobraking maps, along with some outdated mod tweaks.
+
+.. _Kerbal Space Program: https://kerbalspaceprogram.com/
 
 
 `OpenXCOM XPirateZ mod`_: piratez-melee-calc.py
