@@ -14,6 +14,10 @@ avoid forgetting them myself.
 Likely to be out of date to a various degree for most games/mods that get updates.
 
 
+.. contents::
+  :backlinks: none
+
+
 `Stellaris`_
 ------------
 
@@ -239,3 +243,24 @@ each run (as cache-file contains all the info).
 Fair Warning: art/text in that mod can get weird.
 
 .. _OpenXCOM XPirateZ mod: https://www.ufopaedia.org/index.php/Piratez
+
+
+Misc Scripts
+------------
+
+Helper scripts not related to specific games.
+
+gog-unpack.sh
+~~~~~~~~~~~~~
+
+Script to unpack GoG (gog.com) linux archives without running makeself and
+mojosetup.
+
+They seem to have ``[ N lines of makeself script ] || mojosetup.tar.gz ||
+game.zip`` format, and script creates \*.mojosetup.tar.gz and \*.zip in the
+current directory from specified .sh pack, using only grep/head/tail coreutils.
+
+Usage: ``./gog-unpack.sh /path/to/gog-game.sh``
+
+Note that zip can have configuration and post-install instructions for mojosetup
+in it (under "scripts/"), plus misc assets like icons and such.
