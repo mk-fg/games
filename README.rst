@@ -18,6 +18,22 @@ Likely to be out of date to a various degree for most games/mods that get update
   :backlinks: none
 
 
+`Surviving Mars`_
+-----------------
+
+Great sci-fi city builder, like Outpost games of old,
+but with much lighter tone, and on Mars.
+
+- `console.lua <surviving-mars/console.lua>`_
+
+  Adds in-game lua testing and introspection console.
+
+  Has built-in docs, but created mostly to dump info on any object under cursor
+  (in json/text formats), or run arbitrary lua code.
+
+.. _Surviving Mars: https://www.survivingmars.com/
+
+
 `Stellaris`_
 ------------
 
