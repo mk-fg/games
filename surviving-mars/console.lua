@@ -10,10 +10,7 @@ Console.Exec = function(self, text)
 	local fun, err = load(text, nil, nil, _G)
 	if err then
 		fun, err2 = load('return ' .. text, nil, nil, _G)
-		if err2 then
-			AddConsoleLog(err, true)
-			return
-		end
+		if err2 then AddConsoleLog(err, true) return end
 	end
 
 	res = print_format(fun())
@@ -27,15 +24,12 @@ local delayedStart = function()
 	AddConsoleLog('*** [hit enter, type h(), enter]', true)
 
 	local Actions = {
-		{
-			key = 'Enter',
+		{ key = 'Enter',
 			description = 'Show Lua Console',
 			action = function()
 				ShowConsoleLog(true)
 				ShowConsole(true)
-			end
-		}
-	}
+			end } }
 	UserActions.AddActions(Actions)
 end
 
@@ -134,7 +128,7 @@ function po(r)
 	function(err)
 		if err == 'Not in a thread or within a pcall' then return false end
 		WaitCustomPopupNotification(
-			'ERROR when running Autorun hook',
+			'ERROR running po() hook',
 			F('----- Details:\n%s\n%s\n----- :end\n', err, debug.traceback()),
 			{'Oops!'})
 		return false
