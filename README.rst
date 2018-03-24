@@ -21,8 +21,29 @@ Likely to be out of date to a various degree for most games/mods that get update
 `Surviving Mars`_
 -----------------
 
-Great sci-fi city builder, like Outpost games of old,
-but with much lighter tone, and on Mars.
+Great sci-fi city builder, like Outpost games of old, but with much lighter tone, and on Mars.
+
+Minor quality-of-life lua tweaks for early versions:
+
+- `cheaper-consumer-items <https://www.nexusmods.com/survivingmars/mods/4>`_
+
+  70% cheaper Art and Electronics shop consumables for crowded domes, as they
+  really slow production down needlessly otherwise.
+
+- `no-border-scrolling <https://www.nexusmods.com/survivingmars/mods/5>`_
+
+  For some reason it's extremely sensitive and annoying here, though maybe
+  because I tend to move cursor from the window to tweak more lua too often.
+
+- `university-entrance-exams <https://www.nexusmods.com/survivingmars/mods/6>`_
+
+  Bars mentally challenged colonists from studying in Martian University,
+  leaving them in service jobs forever, where they can do relatively little harm.
+
+- polymers-production-buff
+
+  Alternative to "cheaper-consumer-items" hack to just boost a-bit-too-slow
+  resource production on that sanity-breaking outdoors factory instead.
 
 - `console.lua <surviving-mars/console.lua>`_
 
@@ -266,17 +287,16 @@ Misc Scripts
 
 Helper scripts not related to specific games.
 
-gog-unpack.sh
-~~~~~~~~~~~~~
+- gog-unpack.sh
 
-Script to unpack GoG (gog.com) linux archives without running makeself and
-mojosetup.
+  Script to unpack GoG (gog.com) linux archives without running makeself and
+  mojosetup.
 
-They seem to have ``[ N lines of makeself script ] || mojosetup.tar.gz ||
-game.zip`` format, and script creates \*.mojosetup.tar.gz and \*.zip in the
-current directory from specified .sh pack, using only grep/head/tail coreutils.
+  They seem to have ``[ N lines of makeself script ] || mojosetup.tar.gz ||
+  game.zip`` format, and script creates \*.mojosetup.tar.gz and \*.zip in the
+  current directory from specified .sh pack, using only grep/head/tail coreutils.
 
-Usage: ``./gog-unpack.sh /path/to/gog-game.sh``
+  Usage: ``./gog-unpack.sh /path/to/gog-game.sh``
 
-Note that zip can have configuration and post-install instructions for mojosetup
-in it (under "scripts/"), plus misc assets like icons and such.
+  Note that zip can have configuration and post-install instructions for
+  mojosetup in it (under "scripts/"), plus misc assets like icons and such.
