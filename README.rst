@@ -49,8 +49,8 @@ Minor quality-of-life lua tweaks for early versions:
 
   Adds in-game lua testing and introspection console.
 
-  Has built-in docs, but created mostly to dump info on any object under cursor
-  (in json/text formats), or run arbitrary lua code.
+  Has built-in docs, and created mostly to dump info on any selected /
+  around-cursor objects (in json/text formats) or test arbitrary lua calls.
 
 .. _Surviving Mars: https://www.survivingmars.com/
 
