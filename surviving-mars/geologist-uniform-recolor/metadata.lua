@@ -3,7 +3,7 @@ return PlaceObj('ModDef', {
 	'tags', "",
 	'id', "Fh4wwgZ",
 	'author', "mk-fg",
-	'version', 2,
+	'version', 3,
 	'lua_revision', 228184,
 	'code', {
 		"Code/geologist-uniform-recolor.lua",
