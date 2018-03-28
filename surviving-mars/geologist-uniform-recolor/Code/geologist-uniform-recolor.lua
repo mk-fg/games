@@ -12,11 +12,7 @@ local icon_replace_map = {
 	['UI/Icons/Colonists/IP/IP_Geologist_Female.tga'] = mod_path..'UI/ip-geo-f.tga',
 	['UI/Icons/Colonists/Pin/Geologist_Male.tga'] = mod_path..'UI/pin-geo-m.tga',
 	['UI/Icons/Colonists/Pin/Geologist_Female.tga'] = mod_path..'UI/pin-geo-f.tga' }
-
-if revert_icons then for k,v in pairs(icon_replace_map) do
-	-- Flip icon_replace_map to replace all existing icons in the opposite direction
-	icon_replace_map[v], icon_replace_map[k] = icon_replace_map[k], nil
-end end
+if revert_icons then icon_replace_map = {} end
 
 local ColonistGSI_base = Colonist.GetSpecializationIcons
 function Colonist:GetSpecializationIcons()

@@ -47,6 +47,11 @@ Minor quality-of-life lua tweaks for early versions:
 
   Really hard to tell icons for these apart otherwise, such a weird UI choice.
 
+- `full-uniform-recolor <https://www.nexusmods.com/survivingmars/mods/15>`_
+
+  Optional version of geologist-uniform-recolor mod above,
+  with few other color tweaks to make icons even more distinctive.
+
 - polymers-production-buff
 
   Alternative to "cheaper-consumer-items" hack to just boost a-bit-too-slow

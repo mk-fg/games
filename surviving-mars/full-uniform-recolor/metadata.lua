@@ -1,12 +1,12 @@
 return PlaceObj('ModDef', {
-	'title', "Geologist Uniform Recolor",
+	'title', "Full Uniform Recolor",
 	'tags', "",
-	'id', "Fh4wwgZ",
+	'id', "Fh4vwgZ",
 	'author', "mk-fg",
 	'version', 4,
 	'lua_revision', 228184,
 	'code', {
-		"Code/geologist-uniform-recolor.lua",
+		"Code/full-uniform-recolor.lua",
 	},
 	'saved', 1522203553,
 })
