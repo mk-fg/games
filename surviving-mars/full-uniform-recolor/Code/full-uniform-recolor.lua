@@ -15,7 +15,7 @@ local function make_icon_replace_map()
 	if revert_icons then return map end
 	local specs, genders, templates =
 		{Geologist='geo', Botanist='botan', Medic='medic'}, {Female='f', Male='m'},
-		{['UI/Icons/Colonists/IP/IP_%s_%s.tga'] = mod_path..'UI/ip-%s-%s.tga',
+		{ ['UI/Icons/Colonists/IP/IP_%s_%s.tga'] = mod_path..'UI/ip-%s-%s.tga',
 			['UI/Icons/Colonists/Pin/%s_%s.tga'] = mod_path..'UI/pin-%s-%s.tga' }
 	for spec_src, spec_dst in pairs(specs) do
 		for g_src, g_dst in pairs(genders) do
