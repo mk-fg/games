@@ -6,11 +6,14 @@
 local revert_icons = false
 -- local revert_icons = true
 
-local mod_path = 'AppData/Mods/full-uniform-recolor/'
+-- mod_id is used to get mod path, and is listed in metadata.lua
+local mod_id = 'Fh4vwgZ'
+local mod_path_fallback = 'AppData/Mods/full-uniform-recolor/'
 
 -- icon_replace_map looks like e.g.:
 --   'UI/Icons/Colonists/IP/IP_Medic_Female.tga' -> '{mod}/UI/ip-medic-f.tga'
-local function make_icon_replace_map()
+local icon_replace_map = {}
+local function make_icon_replace_map(mod_path)
 	local map = {}
 	if revert_icons then return map end
 	local specs, genders, templates =
@@ -25,7 +28,6 @@ local function make_icon_replace_map()
 	end end end
 	return map
 end
-local icon_replace_map = make_icon_replace_map()
 
 local ColonistGSI_base = Colonist.GetSpecializationIcons
 function Colonist:GetSpecializationIcons()
@@ -36,6 +38,11 @@ function Colonist:GetSpecializationIcons()
 end
 
 function OnMsg.LoadGame()
+	local mod_path
+	if Mods[mod_id] then mod_path = Mods[mod_id]:GetModRootPath()
+	else mod_path = mod_path_fallback end -- fallback option
+	icon_replace_map = make_icon_replace_map(mod_path)
+
 	for _,c in ipairs(GetObjects{class='Colonist', area='realm'}) do
 		c.ip_specialization_icon, c.pin_specialization_icon = c:GetSpecializationIcons()
 end end
