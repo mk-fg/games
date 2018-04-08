@@ -96,6 +96,16 @@ Mods for latest 2.0.x playthrough:
   Simple workaround implemented in this mod is to make process fast enough to be
   less painful - more of a quick disruption than decades-long PITA.
 
+- combine-music-packs.py
+
+  Script to parse all .asset/.txt/.yml files in music mods and combine all
+  tracks from these into one mod, with track names having "mod-name :: title"
+  format in in-game player.
+
+  Using that with hundreds of tracks from mods will break in-game music player,
+  as it turns out (will render overflow as blank playlist) - definitely not
+  designed for that many :)
+
 .. _Stellaris: http://www.stellariswiki.com/
 
 
