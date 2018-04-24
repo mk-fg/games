@@ -1,0 +1,27 @@
+# Adds "High-Value Mining Targets Cleanup" special project
+#  for player empires that have mineral_planet_chain started
+
+namespace = hvmtc
+
+event = {
+	id = hvmtc.1
+	hide_window = yes
+	is_triggered_only = yes
+
+	immediate = {
+		every_country = {
+			limit = {
+				is_ai = no
+				has_event_chain = "mineral_planet_chain"
+				NOT = { has_special_project = hvmtc_project }
+			}
+			capital_scope = {
+				enable_special_project = {
+					name = hvmtc_project
+					location = this
+					owner = prev
+				}
+			}
+		}
+	}
+}

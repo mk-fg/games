@@ -96,6 +96,12 @@ Mods for latest 2.0.x playthrough:
   Simple workaround implemented in this mod is to make process fast enough to be
   less painful - more of a quick disruption than decades-long PITA.
 
+- `High-Value Mining Targets Cleanup
+  <https://steamcommunity.com/sharedfiles/filedetails/?id=1369692613>`_
+
+  | Removes event chain that usually can't be completed from Event Log.
+  | Easy fix for event bug that will probably get fixed in future game patches.
+
 - `Shadowrun Name List
   <https://steamcommunity.com/sharedfiles/filedetails/?id=1363348791>`_
 
