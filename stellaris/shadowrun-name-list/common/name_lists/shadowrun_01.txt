@@ -12,6 +12,10 @@ SR01 = {
 	ship_names = {
 		generic = {
 
+			## Important: must be at most 26 characters long
+			# Anything longer will log errors like this:
+			#  [05:01:31][namelist.cpp:591]: Ship name is too long: Fincantieri Land Shark Super
+
 			# ./name-list.py -l 80 sr.runners.txt
 			"Liquid" "Flak" "Crusher Piranha" "Null Iceberg" "Whiplash" "Carbon" "Rampage"
 			"Houdini Blindfold" "Cairo" "String" "Altitude" "Freefall" "Paladin Mercury"
@@ -43,18 +47,18 @@ SR01 = {
 			# ./name-list.py -n 100 -l 80 -x 30 sr.weapons.txt
 			"DocWagon Viper Meta" "Diehl Predator Sweeper" "Relator"
 			"Destroyer" "Boeing Guard 30 LX 100" "Yakashima Thunder" "BAE Systems Viper"
-			"Moog Land Shark System 01T" "Yakashima Action M08" "Barton Thinker A09"
-			"Lusiada Land Shark 73" "Fincantieri Land Shark Super" "Moog Atomizer Power"
+			"Moog Space Shark 01T" "Yakashima Action M08" "Barton Thinker A09"
+			"Lusiada Space Shark 73" "Fincantieri Space Shark" "Moog Atomizer Power"
 			"Apep Silencer XXL" "Manadyne Force" "Defender QPE" "Embraer Peacemaker AV-7000"
 			"QinetiQ Thor AV-7000" "Mitsubishi Freedom Fighter" "Thunderbolt Mark II"
 			"AAR Action" "Renraku Executive Definite" "Nexter Tiger" "Navantia Vigilance 75"
 			"Aztechnology Scout 7" "Testament ZVM Multi" "Teledyne King 75 83" "Hammer Power"
-			"King 01T" "LIG Nex1 Hammer Carbine XXL" "Rockwell Collins Terrorizer" "Styx PYO"
+			"King 01T" "LIG Nex1 Hammer XXL" "RC Terrorizer" "Styx PYO"
 			"Global Jaguar" "Ork Ordnance Redline Meta" "Baron MG 200" "Horizon Terror"
-			"Global Phalanx XL-34" "ESUS Liberty" "Peacemaker" "Barton Relator XO Five 1080P"
+			"Global Phalanx XL-34" "ESUS Liberty" "Peacemaker" "Barton Relator XO Five"
 			"Fincantieri Equalizer" "Terrorizer Maximum FB7" "FN Dragon 300" "Agility Future"
 			"Barton Soldier 3/Y/F" "Vigilance" "Cobham Hunter" "HK Dragon QV" "Dragon LAN 23"
-			"Shiawase Cerberus XL-34" "Northrop Grumman Liberator 80" "GKN Ninja" "Guard U9P"
+			"Shiawase Cerberus XL-34" "NG Liberator 80" "GKN Ninja" "Guard U9P"
 			"Harris Annihilator VPE" "Hunter Multi" "Legion HVAR" "Indra Liberty"
 			"Arbalest NC-9" "Rafael Stopper Mark II 4" "Negotiator System" "Silencer UW5"
 			"Rafael Peacemaker 5" "Shiawase Messenger Mark IV" "ManTech Striker Multi"
@@ -66,7 +70,7 @@ SR01 = {
 			"Destroyer Power" "Global Panther 2100" "Thor Mark V R500" "Yakashima Enforcer"
 			"Lusiada Silencer XL-34" "Saeder-Krupp Striker QPE" "Boeing Eraser 83"
 			"FN Eraser HVAR Definite" "ManTech Styx Ultra" "HK Victory Mark III"
-			"Liberty 300 64" "Moog Terror 7 A09" "Eastern Tiger Dragonforce XXL"
+			"Liberty 300 64" "Moog Terror 7 A09" "Eastern Tiger Dragonforce"
 			"Ares Neo Vengeance FB7" "Gaeatronics Relator QV" "Genesi Destroyer 300"
 			"Ultra Electronics Viper" "Indra Guard Definite XXL"
 
@@ -136,11 +140,11 @@ SR01 = {
 			"Dragonforce LAN 23" "Patria Tiger EJZ" "Ares Neo Vengeance FB7" "Nexter Tiger"
 			"Harris Security" "Destroyer Power" "Raytheon Stopper Super" "Yakashima Enforcer"
 			"Gun Nut Thinker VPE" "Terrorizer Maximum FB7" "HK Freedom SAC" "Eviscerator 16"
-			"DynCorp Future 7P7-1000" "Winter Atomizer XPF-13" "Rafael Peacemaker 5"
+			"DynCorp Future 7P7-1000" "Winter Atomizer XPF-19" "Rafael Peacemaker 5"
 			"Negotiator System" "Gaeatronics Relator QV" "Dragonforce" "Yakashima Action M08"
-			"Ruger Ninja M08" "Mitsuhama Fire XPF-13" "FN Soldier" "Dragon LAN 23"
+			"Ruger Ninja M08" "Mitsuhama Fire XPF-15" "FN Soldier" "Dragon LAN 23"
 			"Liberator" "Legion PYO" "Executive 0" "FN Dragon 300" "Testament ZVM Multi"
-			"Global Panther 2100" "Gen Protector XPF-13 XPF-13" "Relator A09 92Z"
+			"Global Panther 2100" "Gen Protector XPF-13" "Relator A09 92Z"
 			"Agility Future" "Thunderbolt Maximum U9P" "Ork Ordnance Annihilator"
 			"Proteus Vigilance Power" "Rafael Destroyer HVAR" "Gun Nut Vigil"
 			"Lockheed Martin Deliverator" "Shiawase Cerberus XL-34"
