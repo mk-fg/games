@@ -102,6 +102,12 @@ Mods are for post-2.0 era.
   | Removes event chain that usually can't be completed from Event Log.
   | Easy fix for event bug that will probably get fixed in future game patches.
 
+- `Free Sector Resource Drain
+  <https://steamcommunity.com/sharedfiles/filedetails/?id=1372032752>`_
+
+  Another simple (and likely temporary) tweak to fix weird cost on clicking
+  "transfer resources" button for AI-managed sectors, making them less of a nuisance.
+
 - `Shadowrun Name List
   <https://steamcommunity.com/sharedfiles/filedetails/?id=1363348791>`_
 

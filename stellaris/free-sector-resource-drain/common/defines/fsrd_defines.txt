@@ -1,0 +1,6 @@
+	NGameplay = {
+
+		DRAIN_SECTOR_RESOURCES_INFLUENCE_COST = 0   # stellaris 2.0 default = 100
+		DRAIN_SECTOR_FRACTION = 0.90   # stellaris 2.0 default = 0.75
+
+	}
