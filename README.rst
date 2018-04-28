@@ -96,6 +96,13 @@ Mods are for post-2.0 era.
   Simple workaround implemented in this mod is to make process fast enough to be
   less painful - more of a quick disruption than decades-long PITA.
 
+- `Strike Craft as Fleet Support
+  <https://steamcommunity.com/sharedfiles/filedetails/?id=1372641051>`_
+
+  Rebalance mod for strike craft in Stellaris 2.0, making them into general
+  "jack of all trades, master of none" fleet support weapon, good against all
+  ship types without straight-up countering anything.
+
 - `High-Value Mining Targets Cleanup
   <https://steamcommunity.com/sharedfiles/filedetails/?id=1369692613>`_
 

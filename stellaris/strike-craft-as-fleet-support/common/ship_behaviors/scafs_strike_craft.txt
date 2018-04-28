@@ -1,0 +1,48 @@
+## Strike Craft as Fleet Support
+# reload command: reload behavior
+
+ship_behavior = {
+	name = "scafs_fighters_behavior"
+	preferred_attack_range = 5
+	formation_distance = 80
+	return_to_formation_distance = 100
+
+	attack_move_pattern = follow
+	passive_move_pattern = charge
+}
+
+ship_behavior = {
+	name = "scafs_bombers_behavior"
+
+	# Default distances are very small, but pretty much whole system here
+	# This will not cause engagement to start from across the system anyway
+	preferred_attack_range = max
+	formation_distance = 250
+	return_to_formation_distance = 300
+
+	attack_move_pattern = charge
+	passive_move_pattern = charge
+
+	# Doesn't seem to affect outcomes noticeably in testing, so better to leave as-is
+	# See:
+	#  https://stellaris.paradoxwikis.com/index.php?title=Ship_modding&oldid=20246
+	#  https://steamcommunity.com/sharedfiles/filedetails/?id=799999383
+	#  https://forum.paradoxplaza.com/forum/index.php?threads/mod-advanced-ship-behaviour-modules.979070/
+	# targeting = {
+	# 	low_health_bonus = 5000
+	# 	keep_previous_target_bonus = 200
+	# 	# damage_value = 5
+	# 	# shield_focus_value = 5
+	# 	# armor_focus_value = 5
+	# 	# distance_to_fleet_penalty = 20
+	# 	transport_target_penalty = 50000
+	# 	civilian_target_penalty = 100000
+	# 	# angle_to_target_penalty
+	# 	# size_difference_penalty
+	# 	# already_incoming_damage_penalty
+	# }
+
+	# Can be used to prioritize specific ship classes, e.g. corvettes
+	# target_weights = {
+
+}
