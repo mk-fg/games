@@ -1,5 +1,5 @@
-l_english:
+﻿l_english:
 
 	SCOUT_HANGAR_1:0 "Defensive Fighter Wing"
-	SCOUT_HANGAR_1_DESC:1 "Provides defensive strike craft capability, harrassing enemy strike craft and shooting down incoming missiles, as well as engaging ships at close range."
+	SCOUT_HANGAR_1_DESC:0 "Provides defensive strike craft capability, harrassing enemy strike craft and shooting down incoming missiles, as well as engaging ships at close range."
 	LARGE_SCOUT_HANGAR_1:0 "Defensive Fighter Wing"
