@@ -49,7 +49,7 @@ strike_craft_component_template = {
 	entity = "fighter_entity"
 
 	weapon_type = point_defence
-	projectile_gfx = "stormfire_auto_cannons_s"
+	projectile_gfx = "scout_laser_1"
 	power = -20
 	cost = 40
 
