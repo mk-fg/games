@@ -4,6 +4,14 @@
 # Variables apply to all strike craft
 # There is only one fighter class, which have all tweaks specific to it there
 
+# Orthogonal balancing aspects:
+# - T1 vs T2 vs T3 - used against different stuff
+# - dps vs heavy ships via cooldown
+# - dps vs corvettes via tracking
+# - health/shield/evasion vs flaks (high tracking)
+# - evasion vs pd (low tracking)
+# Can be tested separately, probably in that order.
+
 @attack_range = 8
 @launch_time = 0.1
 @count = 8
@@ -13,20 +21,19 @@
 @acceleration = 2.0
 @rotation = 0.5
 
-# Use cooldown to scale damage for all strike craft
 @attack_shield_pen = 1
 @attack_armor = 1
 @attack_hull = 1.3
 
 @health1 = 30
 @health2 = 35
-@health3 = 40
-@shield1 = 30
-@shield2 = 35
-@shield3 = 30
+@health3 = 35
+@shield1 = 10
+@shield2 = 20
+@shield3 = 20
 @evasion1 = 0.60
 @evasion2 = 0.70
-@evasion3 = 0.75
+@evasion3 = 0.70
 
 @cost1 = 50
 @cost2 = 60
