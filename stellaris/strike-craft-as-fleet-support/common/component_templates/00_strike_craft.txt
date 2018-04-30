@@ -60,7 +60,7 @@ strike_craft_component_template = {
 	launch_time = @launch_time
 
 	damage = { min = 2 max = 7 }
-	cooldown = 5.0
+	cooldown = 2.0
 	accuracy = 1.00
 	tracking = 0.90
 	range = @attack_range
@@ -71,10 +71,10 @@ strike_craft_component_template = {
 	evasion = 0.90
 
 	speed = @speed
-	rotation_speed = @rotation
+	rotation_speed = 1.0
 	acceleration = @acceleration
 
-	shield_penetration = @attack_shield_pen
+	shield_penetration = 1
 	armor_damage = 0.5
 	hull_damage = 1
 
