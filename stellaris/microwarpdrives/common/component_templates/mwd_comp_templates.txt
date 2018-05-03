@@ -1,0 +1,28 @@
+
+utility_component_template = {
+	key = "MWD"
+	size = aux
+	icon = "GFX_ship_part_microwarpdrive"
+	icon_frame = 1
+	power = -20
+	cost = 6
+
+	modifier = {
+		ship_speed_mult = 3.00
+		ship_evasion_mult = -1.0
+		ship_shield_mult = -0.1
+	}
+	ship_modifier = {
+		ship_accuracy_add = -10
+		ship_fire_rate_mult = -0.20
+	}
+
+	size_restriction = { corvette destroyer cruiser }
+	class_restriction = { shipclass_military }
+	prerequisites = { "tech_microwarpdrives" }
+	component_set = "MWD"
+
+	ai_weight = {
+		weight = 0 # won't know how to use these properly
+	}
+}

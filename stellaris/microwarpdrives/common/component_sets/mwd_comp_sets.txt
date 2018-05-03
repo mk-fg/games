@@ -1,0 +1,5 @@
+component_set = {
+	key = "MWD"
+	icon = "GFX_ship_part_microwarpdrive"
+	icon_frame = 1
+}

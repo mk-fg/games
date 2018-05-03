@@ -1,0 +1,11 @@
+﻿l_english:
+
+ tech_microwarpdrives:0 "Microwarpdrives"
+ tech_microwarpdrives_desc:0 "Extreme take on afterburners, increasing ship speed beyond any reason at the expense of combat potential."
+
+ MWD:0 "Microwarpdrives"
+ MWD_DESC:0 "Greatly increase ship speed at the expense of its combat potential."
+
+ # Not used as a prereq for anything, but in case any other mods might...
+ TECH_UNLOCK_MWD_TITLE:0 "§HUnlocks Component:§! Microwarpdrives"
+ TECH_UNLOCK_MWD_DESC:0 "§HMicrowarpdrives§!\nExtreme take on afterburners, increasing ship speed beyond any reason at the expense of combat potential."

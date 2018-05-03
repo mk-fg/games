@@ -103,6 +103,15 @@ Mods are for post-2.0 era.
   "jack of all trades, master of none" fleet support weapon, good against all
   ship types without straight-up countering anything.
 
+- `Microwarpdrives
+  <https://steamcommunity.com/sharedfiles/filedetails/?id=1376483538>`_
+
+  Adds technology and ship module similar to MWDs in EVE Online - hypercharged
+  afterburners that have some combat penalties at the expense of even higher speed.
+
+  Here they're mostly for logistical purposes - redeploy support ships faster
+  between starbases or chase down pirates with an overwhelming fleet of lighter ships.
+
 - `High-Value Mining Targets Cleanup
   <https://steamcommunity.com/sharedfiles/filedetails/?id=1369692613>`_
 

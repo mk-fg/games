@@ -1,0 +1,36 @@
+@tier3cost1 = 4000
+@tier3weight2 = 60
+
+tech_microwarpdrives = {
+	area = engineering
+	cost = @tier3cost1
+	tier = 3
+	category = { propulsion }
+	ai_update_type = all
+	prerequisites = { "tech_afterburners_1" "tech_thrusters_3" }
+	weight = @tier3weight2
+
+	weight_modifier = {
+		factor = 1.25
+		modifier = {
+			factor = 1.25
+			research_leader = {
+				area = engineering
+				has_trait = "leader_trait_expertise_propulsion" } }
+		modifier = {
+			factor = 2
+			has_technology = tech_afterburners_2 }
+	}
+
+	# Not used as a prereq for anything, but in case any other mods might...
+	prereqfor_desc = {
+		component = {
+			title = "TECH_UNLOCK_MWD_TITLE"
+			desc = "TECH_UNLOCK_MWD_DESC"
+		}
+	}
+
+	ai_weight = {
+		factor = 0 # won't know how to use these properly
+	}
+}
