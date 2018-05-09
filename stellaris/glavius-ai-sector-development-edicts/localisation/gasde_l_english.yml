@@ -1,0 +1,13 @@
+﻿l_english:
+
+	edict_gasde_country_disable_redev_on:0 "§RGAI: Disable Scripted Sector Redevelopment§!"
+	edict_gasde_country_disable_redev_on_desc:0 "Disable scripted redevelopment with important buildings (like clinic, nexus, mineral/slave processing, etc) in sectors using empire resources for all sectors and planets."
+
+	edict_gasde_country_disable_redev_off:0 "§GGAI: Enable Scripted Sector Redevelopment§!"
+	edict_gasde_country_disable_redev_off_desc:0 "Re-enable default Glavius AI behavior for scripted sector development empire-wide. Can still be disabled on specific planets via planetary edicts."
+
+	edict_gasde_planet_disable_redev_on:0 "§RGAI: Disable Redevelopment§!"
+	edict_gasde_planet_disable_redev_on_desc:0 "Disable all scripted redevelopment with important buildings (like clinic, nexus, mineral/slave processing, etc) using empire resources on this planet."
+
+	edict_gasde_planet_disable_redev_off:0 "§GGAI: Enable Redevelopment§!"
+	edict_gasde_planet_disable_redev_off_desc:0 "Re-enable default Glavius AI behavior for scripted development on this planet. Can still be disabled via empire-wide edict."

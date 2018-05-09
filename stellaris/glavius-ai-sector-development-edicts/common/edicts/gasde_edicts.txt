@@ -1,0 +1,51 @@
+# Glavius AI Sector Development Edicts
+# Only set-reset country/planetary flags for Glavius AI mod to use in its logic
+
+@edict_country = gai_player_disable_critical_buildings
+@edict_planet = gai_player_disable_critical_buildings
+
+
+country_edict = {
+	name = gasde_country_disable_redev_on
+	length = 0
+	cost = { }
+	potential = { is_ai = no }
+	ai_weight = { weight = 0 }
+
+	potential = { not = { has_country_flag = @edict_country } }
+	effect = { set_country_flag = @edict_country }
+}
+
+country_edict = {
+	name = gasde_country_disable_redev_off
+	length = 0
+	cost = { }
+	potential = { is_ai = no }
+	ai_weight = { weight = 0 }
+
+	potential = { has_country_flag = @edict_country }
+	effect = { remove_country_flag = @edict_country }
+}
+
+
+planet_edict = {
+	name = gasde_planet_disable_redev_on
+	length = 0
+	cost = { }
+	potential = { owner = { is_ai = no } }
+	ai_weight = { weight = 0 }
+
+	potential = { not = { has_planet_flag = @edict_planet } }
+	effect = { set_planet_flag = @edict_planet }
+}
+
+planet_edict = {
+	name = gasde_planet_disable_redev_off
+	length = 0
+	cost = { }
+	potential = { owner = { is_ai = no } }
+	ai_weight = { weight = 0 }
+
+	potential = { has_planet_flag = @edict_planet }
+	effect = { remove_planet_flag = @edict_planet }
+}

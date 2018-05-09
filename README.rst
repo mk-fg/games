@@ -112,6 +112,13 @@ Mods are for post-2.0 era.
   Here they're mostly for logistical purposes - redeploy support ships faster
   between starbases or chase down pirates with an overwhelming fleet of lighter ships.
 
+- `Glavius AI Sector Development Edicts
+  <https://steamcommunity.com/sharedfiles/filedetails/?id=1380893289>`_
+
+  Tweak for `Glavius's Ultimate AI Megamod
+  <https://steamcommunity.com/sharedfiles/filedetails/?id=1140543652>`_ to allow
+  more control over some annoying Sector AI decisions via empire/planetary edicts.
+
 - `High-Value Mining Targets Cleanup
   <https://steamcommunity.com/sharedfiles/filedetails/?id=1369692613>`_
 
