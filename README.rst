@@ -131,6 +131,11 @@ Mods are for post-2.0 era.
   Another simple (and likely temporary) tweak to fix weird cost on clicking
   "transfer resources" button for AI-managed sectors, making them less of a nuisance.
 
+- `Tech Tier Numbers on Laser Icons
+  <https://steamcommunity.com/sharedfiles/filedetails/?id=1383042040>`_
+
+  Also a tiny graphics fix for tech icons on one branch missing proper tech tier identifiers.
+
 - `Shadowrun Name List
   <https://steamcommunity.com/sharedfiles/filedetails/?id=1363348791>`_
 
