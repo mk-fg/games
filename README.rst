@@ -75,13 +75,6 @@ unexpected game scenario you end up with, though extra content mods are nice too
 
 Mods are for post-2.0 era.
 
-- `More Hyperlane Chokepoints
-  <https://steamcommunity.com/sharedfiles/filedetails/?id=1310625695>`_
-
-  Since game version 2.0 FTL went hyperlane-only (oh well), but options to tweak
-  layout of these for galaxy generation are still kinda rudimentary, hence the
-  mod to get it "just right".
-
 - `Fast Cyborg Assimilation
   <https://steamcommunity.com/sharedfiles/filedetails/?id=1322434314>`_
 
@@ -118,12 +111,6 @@ Mods are for post-2.0 era.
   Tweak for `Glavius's Ultimate AI Megamod
   <https://steamcommunity.com/sharedfiles/filedetails/?id=1140543652>`_ to allow
   more control over some annoying Sector AI decisions via empire/planetary edicts.
-
-- `High-Value Mining Targets Cleanup
-  <https://steamcommunity.com/sharedfiles/filedetails/?id=1369692613>`_
-
-  | Removes event chain that usually can't be completed from Event Log.
-  | Easy fix for event bug that will probably get fixed in future game patches.
 
 - `Free Sector Resource Drain
   <https://steamcommunity.com/sharedfiles/filedetails/?id=1372032752>`_

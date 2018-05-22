@@ -1,6 +1,0 @@
-# Action to create "High-Value Mining Targets Cleanup" special project
-# Runs event that checks if player empire has mineral_planet_chain every month
-
-on_monthly_pulse = {
-	events = { hvmtc.1 }
-}

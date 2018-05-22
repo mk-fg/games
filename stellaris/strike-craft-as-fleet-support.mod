@@ -6,4 +6,4 @@ tags={
 }
 picture="scafs-thumb.png"
 remote_file_id="1372641051"
-supported_version="2.0.*"
+supported_version="2.1.*"

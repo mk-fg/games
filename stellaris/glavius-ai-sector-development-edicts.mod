@@ -7,4 +7,4 @@ tags={
 }
 picture="gasde-thumb.png"
 remote_file_id="1380893289"
-supported_version="2.0.*"
+supported_version="2.1.*"
