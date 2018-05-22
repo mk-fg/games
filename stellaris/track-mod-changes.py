@@ -12,15 +12,20 @@ except ImportError:
 		name.encode('ascii', 'replace').decode()
 
 
-mod_path_default = '~/.local//share/Paradox Interactive/Stellaris/mod'
+path_home = pl.Path('~/.local//share/Paradox Interactive/Stellaris').expanduser()
+path_mod = path_home / 'mod'
+path_settings = path_home / 'settings.txt'
 
 mm_mod = tx.metamodel_from_str('''
 Model: items *= Item;
 Comment: '#' /.*\\n/;
 Item: Entry | Comment;
-Entry: Val | Subblock;
-Val: k=ID '=' v=STRING;
-Subblock: sb=ID '=' '{' /[^}]+/ '}';
+Entry: Val | Subblock | StringList;
+Val: k=ID '=' v=Value;
+Subblock: k=ID '=' '{' items*=Item '}';
+StringList: k=ID '=' '{' strings*=STRING '}';
+Value: STRING | ID | FLOAT | Bool;
+Bool: 'yes' | 'no';
 ''')
 
 
@@ -68,20 +73,57 @@ def get_dir_mtime(p_dir):
 
 
 def main(args=None):
-	import argparse
+	import argparse, textwrap
+
+	dedent = lambda text: (textwrap.dedent(text).strip('\n') + '\n').replace('\t', '  ')
+	class SmartHelpFormatter(argparse.HelpFormatter):
+		def __init__(self, *args, **kws):
+			return super().__init__(*args, **kws, width=100)
+		def _fill_text(self, text, width, indent):
+			if '\n' not in text: return super()._fill_text(text, width, indent)
+			return ''.join(indent + line for line in text.splitlines(keepends=True))
+		def _split_lines(self, text, width):
+			return super()._split_lines(text, width)\
+				if '\n' not in text else dedent(text).splitlines()
+
 	parser = argparse.ArgumentParser(
+		formatter_class=SmartHelpFormatter,
 		description='Unpack all mods and commit any updates to these into git repo.')
 	parser.add_argument('repo_dir', help='Git repo directory. Be sure to run "git init" there.')
-	parser.add_argument('-p', '--mod-dir',
-		default=mod_path_default, metavar='path',
-		help='Path to look for *.mod files in. Not the steam-path with *.zip stuff.')
+	parser.add_argument('-d', '--stellaris-local-dir', metavar='path',
+		help=f'''
+			Base for dir mod/settings paths, to avoid
+			  setting each of them separately can also be set separately.
+			Default: {path_home}''')
+	parser.add_argument('-p', '--mod-dir', metavar='path',
+		help=f'''
+			Path to look for *.mod files in. Not the steam-path with *.zip stuff.
+			Default: {path_mod}''')
+	parser.add_argument('-s', '--settings-file', metavar='path',
+		help=f'''
+			Path to game settings.txt file for a list of enabled mods.
+			Can be set to "-" to disable tracking enabled mod list.
+			Default: {path_settings}''')
 	opts = parser.parse_args(sys.argv[1:] if args is None else args)
 
 	p_repo = pl.Path(opts.repo_dir).resolve()
 	assert (p_repo / '.git').is_dir(), p_repo
+	p_home = ( pl.Path(opts.stellaris_local_dir).expanduser()
+		if opts.stellaris_local_dir else None )
+	p_mod_dir = ( pl.Path(opts.mod_dir).expanduser()
+		if opts.mod_dir else (p_home / 'mod' if p_home else path_mod) )
+	p_settings = ( pl.Path(opts.settings_file).expanduser()
+		if opts.settings_file else (p_home / 'settings.txt' if p_home else path_settings) )
+	if not p_home: p_home = path_home
 
-	mod_dir = pl.Path(opts.mod_dir).expanduser()
-	mods = parse_mod_files(mod_dir.glob('*.mod'))
+	mods = parse_mod_files(p_mod_dir.glob('*.mod'))
+
+	with p_settings.open(encoding='utf-8-sig') as src:
+		model = mm_mod.model_from_str(src.read())
+	mod_list, = ( val for val in
+		tx.model.children_of_type('StringList', model) if val.k == 'last_mods' )
+	mod_list = sorted(mod_list.strings)
+	(p_repo / 'mod_list.txt').write_text('\n'.join(mod_list + ['']))
 
 	for mod_name, mod in mods.items():
 		p_zip = mod.get('archive')
@@ -95,7 +137,7 @@ def main(args=None):
 					['bsdtar', '-xf', p_zip, '--cd', p_mod],
 					stderr=subprocess.DEVNULL, check=False )
 			else:
-				p_mod = mod_dir / pl.Path(mod.path).name
+				p_mod = p_mod_dir / pl.Path(mod.path).name
 			subprocess.run(['rsync', '-rc', '--delete', f'{p_mod}/.', p_dst], check=True)
 
 	os.chdir(p_repo)
