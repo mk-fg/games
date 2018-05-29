@@ -7,7 +7,7 @@ Mod_Name = "__ReducedResearchX__"
 --   a,b,c=50,0.2,200
 --   list(map(int, [cost(100),cost(200),cost(300),cost(500),cost(1000),cost(2000),cost(5000)]))
 --   [100=79, 200=117, 300=145, 500=192, 1000=298, 2000=501, 5000=1103]
-reduction_a = 50
+reduction_a = 50 -- reduction only applies to cost part that's above this amount
 reduction_b = 0.2
 reduction_c = 200
 

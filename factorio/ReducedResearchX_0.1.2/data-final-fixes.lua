@@ -1,6 +1,6 @@
 require("config")
 
-local technologies = data.raw["technology"]
+local technologies = data.raw.technology
 
 for _, tech in pairs(technologies) do
 
@@ -8,7 +8,7 @@ for _, tech in pairs(technologies) do
 	if cost ~= nil then
 		tech.unit.count = math.ceil(
 			reduction_a + math.max(0, cost - reduction_a)
-				* reduction_b ^ (cost / (cost + reduction_c)) )
+			* reduction_b ^ (cost / (cost + reduction_c)) )
 	end
 
 	local time = tech.unit.time
