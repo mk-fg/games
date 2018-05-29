@@ -1,0 +1,9 @@
+{
+  "name": "Burner_Drill_4x4_Area",
+  "description": "Changes Burmer Mining Drills to have 4x4 drilling area instead of default 2x2 (right under)",
+  "version": "0.0.1",
+  "title": "Burner Drill 4x4 Area",
+  "author": "mk-fg",
+  "dependencies": ["base"],
+  "factorio_version": "0.16"
+}

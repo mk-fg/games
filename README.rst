@@ -156,12 +156,15 @@ Mods are for post-2.0 era.
 -----------
 
 Great game, but found large-scale production required in late-game a bit too
-slow or tedious to setup or debug without lots of boring unimaginative repetition.
+slow or tedious to setup or debug without bunch of repetition.
 
 Easy to fix with mods though, which are one of the best parts of the game.
 
-- mod-list.yaml - list of mods from when I last played (should include base game
-  version number) and backed it up.
+- `Burner Drill 4x4 Area
+  <https://mods.factorio.com/mod/Burner_Drill_4x4_Area>`_
+
+  Changes Burmer Mining Drills to have 4x4 drilling area instead of default 2x2
+  (right under), and nothing else.
 
 - ReducedResearchX
 
@@ -185,6 +188,9 @@ Easy to fix with mods though, which are one of the best parts of the game.
   | Does not change research time by default, as it's not a bottleneck anyway.
   | Based on very simple "ReducedResearch" mod (~10 lines of lua), which was a
     bit too linear for me.
+
+- mod-list.yaml - list of mods from when I last played (should include base game
+  version number) and backed it up.
 
 - blueprints.yaml - misc blueprints I came up with, esp. for defence units or
   stuff like circuit logic parts.
