@@ -199,6 +199,7 @@ Useful companion links for the game:
 
 - https://doomeer.com/factorio/ - production chain calculator, simpliest.
 - https://rubyruy.github.io/factorio-calc/ - same as above, but found it harder to use.
+- https://dddgamer.github.io/factorio-cheat-sheet/ - good cheatsheet for numbers/ratios.
 
 Best use for production chain calculators (that I've found) is to know in
 advance how much basic resources (like copper and steel) to put into main belts
