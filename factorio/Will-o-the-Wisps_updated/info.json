@@ -1,0 +1,10 @@
+{
+	"name": "Will-o-the-Wisps_updated",
+	"version": "0.0.1",
+	"factorio_version": "0.16",
+	"dependencies": ["base >= 0.16.0"],
+	"title": "Will-o'-the-Wisps updated",
+	"author": "mk-fg",
+	"authors": ["mk-fg", "Betep3akata"],
+	"description": "A glowing and moderately aggressive life form was found in the alien world as soon as night came. Based on the original mod by Betep3akata, updated to work with 0.16.0."
+}

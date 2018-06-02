@@ -18,55 +18,6 @@ Likely to be out of date to a various degree for most games/mods that get update
   :backlinks: none
 
 
-`Surviving Mars`_
------------------
-
-Great sci-fi city builder, like Outpost games of old, but with much lighter tone, and on Mars.
-
-Minor quality-of-life lua tweaks for early versions:
-
-- `cheaper-consumer-items <https://www.nexusmods.com/survivingmars/mods/4>`_
-
-  70% cheaper Art and Electronics shop consumables for crowded domes, as they
-  really slow production down needlessly otherwise.
-
-- `no-border-scrolling <https://www.nexusmods.com/survivingmars/mods/5>`_
-
-  For some reason it's extremely sensitive and annoying here, though maybe
-  because I tend to move cursor from the window to tweak more lua too often.
-
-- `university-entrance-exams <https://www.nexusmods.com/survivingmars/mods/6>`_
-
-  Bars mentally challenged colonists from studying in Martian University,
-  leaving them in service jobs forever, where they can do relatively little harm.
-
-- `geologist-uniform-recolor <https://www.nexusmods.com/survivingmars/mods/15>`_
-
-  Changes uniform color on all Geologist icons from same Sahara Yellow to an
-  unique Spring Green, to be distinct from Engineers and Botanists.
-
-  Really hard to tell icons for these apart otherwise, such a weird UI choice.
-
-- `full-uniform-recolor <https://www.nexusmods.com/survivingmars/mods/15>`_
-
-  Optional version of geologist-uniform-recolor mod above,
-  with few other color tweaks to make icons even more distinctive.
-
-- polymers-production-buff
-
-  Alternative to "cheaper-consumer-items" hack to just boost a-bit-too-slow
-  resource production on that sanity-breaking outdoors factory instead.
-
-- `console.lua <surviving-mars/console.lua>`_
-
-  Adds in-game lua testing and introspection console.
-
-  Has built-in docs, and created mostly to dump info on any selected /
-  around-cursor objects (in json/text formats) or test arbitrary lua calls.
-
-.. _Surviving Mars: https://www.survivingmars.com/
-
-
 `Stellaris`_
 ------------
 
@@ -163,8 +114,16 @@ Easy to fix with mods though, which are one of the best parts of the game.
 - `Burner Drill 4x4 Area
   <https://mods.factorio.com/mod/Burner_Drill_4x4_Area>`_
 
-  Changes Burmer Mining Drills to have 4x4 drilling area instead of default 2x2
-  (right under), and nothing else.
+  Changes Burner Mining Drills to have 4x4 resource search area instead of
+  default 2x2 (right under), and nothing else.
+
+- `Will-o'-the-Wisp updated
+  <https://mods.factorio.com/mod/Will-o-the-Wisp_updated>`_
+
+  Compatibility update (for Factorio 0.16.x) and minor tweaks to nice
+  `Will-o'-the-Wisp mod <https://mods.factorio.com/mod/Will-o-the-Wisps_updated>`_
+  by Betep3akata, which seem to be abandoned since 0.15.x.
+  License: `CC BY-NC-SA <https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode>`_
 
 - ReducedResearchX
 
@@ -206,6 +165,55 @@ advance how much basic resources (like copper and steel) to put into main belts
 for some desired output level, and how many assemblers/throughput it'd require.
 
 .. _Factorio: http://factorio.com/
+
+
+`Surviving Mars`_
+-----------------
+
+Great sci-fi city builder, like Outpost games of old, but with much lighter tone, and on Mars.
+
+Minor quality-of-life lua tweaks for early versions:
+
+- `cheaper-consumer-items <https://www.nexusmods.com/survivingmars/mods/4>`_
+
+  70% cheaper Art and Electronics shop consumables for crowded domes, as they
+  really slow production down needlessly otherwise.
+
+- `no-border-scrolling <https://www.nexusmods.com/survivingmars/mods/5>`_
+
+  For some reason it's extremely sensitive and annoying here, though maybe
+  because I tend to move cursor from the window to tweak more lua too often.
+
+- `university-entrance-exams <https://www.nexusmods.com/survivingmars/mods/6>`_
+
+  Bars mentally challenged colonists from studying in Martian University,
+  leaving them in service jobs forever, where they can do relatively little harm.
+
+- `geologist-uniform-recolor <https://www.nexusmods.com/survivingmars/mods/15>`_
+
+  Changes uniform color on all Geologist icons from same Sahara Yellow to an
+  unique Spring Green, to be distinct from Engineers and Botanists.
+
+  Really hard to tell icons for these apart otherwise, such a weird UI choice.
+
+- `full-uniform-recolor <https://www.nexusmods.com/survivingmars/mods/15>`_
+
+  Optional version of geologist-uniform-recolor mod above,
+  with few other color tweaks to make icons even more distinctive.
+
+- polymers-production-buff
+
+  Alternative to "cheaper-consumer-items" hack to just boost a-bit-too-slow
+  resource production on that sanity-breaking outdoors factory instead.
+
+- `console.lua <surviving-mars/console.lua>`_
+
+  Adds in-game lua testing and introspection console.
+
+  Has built-in docs, and created mostly to dump info on any selected /
+  around-cursor objects (in json/text formats) or test arbitrary lua calls.
+
+.. _Surviving Mars: https://www.survivingmars.com/
 
 
 `Darkest Dungeon`_: darkest-dungeon-save-manager.py
