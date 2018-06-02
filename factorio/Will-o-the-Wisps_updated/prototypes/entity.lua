@@ -79,17 +79,6 @@ data:extend({
 			axially_symmetrical = false,
 			direction_count = 1,
 			shift = {-0.03125, 0},
-			hr_version = {
-				filename = "__Will-o-the-Wisps_updated__/graphics/entity/wisp-orange-beam/beam-start.png",
-				line_length = 4,
-				width = 94,
-				height = 66,
-				frame_count = 16,
-				axially_symmetrical = false,
-				direction_count = 1,
-				shift = {0.53125, 0},
-				scale = 0.5,
-			}
 		},
 		ending =
 		{
@@ -101,17 +90,6 @@ data:extend({
 			axially_symmetrical = false,
 			direction_count = 1,
 			shift = {-0.046875, 0},
-			hr_version = {
-				filename = "__Will-o-the-Wisps_updated__/graphics/entity/wisp-orange-beam/beam-end.png",
-				line_length = 4,
-				width = 91,
-				height = 93,
-				frame_count = 16,
-				axially_symmetrical = false,
-				direction_count = 1,
-				shift = {-0.078125, -0.046875},
-				scale = 0.5,
-			}
 		},
 		head =
 		{
