@@ -471,12 +471,15 @@ local function on_chunk_generated(event)
 	end
 end
 
+
+
 ------------------------------------------------------------
 -- Init
 ------------------------------------------------------------
-local function updateRecipes(withReset)
+
+local function update_recipes(with_reset)
 	for _, force in pairs(game.forces) do
-		if withReset then force.reset_recipes() end
+		if with_reset then force.reset_recipes() end
 		if force.technologies['alien-bio-technology'].researched then
 			force.recipes['alien-flora-sample'].enabled = true
 			force.recipes['wisp-yellow'].enabled = true
@@ -490,7 +493,7 @@ local function updateRecipes(withReset)
 	end
 end
 
-local function initRefs()
+local function init_refs()
 	-- XXX: make this stuff configurable via mod options
 	utils.log('Sanity checks...')
 	if ( conf.wisp_purple_spawn_chance +
@@ -517,13 +520,6 @@ local function initRefs()
 	StepDTCT = global.stepDTCT
 end
 
-local function on_savegame_load()
-	utils.log('Loading game...')
-	initRefs()
-end
-
-
-
 local function apply_version_updates(old_v, new_v)
 	if utils.version_less_than(old_v, '0.0.3') then
 		utils.log('    - Updating TTL/TTU keys in global objects')
@@ -538,7 +534,14 @@ local function apply_version_updates(old_v, new_v)
 	end
 end
 
-local function on_config_changed(data) -- new game/mod version
+
+script.on_load(function()
+	utils.log('Loading game...')
+	init_refs()
+end)
+
+
+script.on_configuration_changed(function(data) -- new game/mod version
 	utils.log('Reconfiguring...')
 
 	utils.log(' - Refreshing chunks...')
@@ -557,16 +560,17 @@ local function on_config_changed(data) -- new game/mod version
 			local oldVer = data.mod_changes[mod_name].old_version
 			local newVer = data.mod_changes[mod_name].new_version
 			utils.log(' - Will-o-the-Wisps updated: '..oldVer..' -> '..newVer)
-			updateRecipes(true)
+			update_recipes(true)
 			apply_version_updates(oldVer, newVer)
 		else
 			utils.log(' - Init Will-o-the-Wisps mod on existing game.')
-			updateRecipes()
+			update_recipes()
 		end
 	end
-end
+end)
 
-local function on_mod_first_init()
+
+script.on_init(function()
 	utils.log('Init globals...')
 	global.wisps = {}
 	global.chunks = {}
@@ -593,19 +597,15 @@ local function on_mod_first_init()
 	game.forces['wisps'].set_cease_fire(game.forces.enemy, true)
 	game.forces['enemy'].set_cease_fire(game.forces.wisps, true)
 
-	initRefs()
-end
+	init_refs()
+end)
 
 
-script.on_init(on_mod_first_init)
-script.on_load(on_savegame_load)
-script.on_configuration_changed(on_config_changed)
-
-script.on_event(defines.events.on_chunk_generated, on_chunk_generated)
+script.on_event(defines.events.on_tick, on_tick)
 script.on_event(defines.events.on_entity_died, on_death)
 script.on_event(defines.events.on_pre_player_mined_item, on_mined_entity)
 script.on_event(defines.events.on_robot_pre_mined, on_mined_entity)
-script.on_event(defines.events.on_tick, on_tick)
-script.on_event(defines.events.on_robot_built_entity, on_built_entity)
 script.on_event(defines.events.on_built_entity, on_built_entity)
+script.on_event(defines.events.on_robot_built_entity, on_built_entity)
+script.on_event(defines.events.on_chunk_generated, on_chunk_generated)
 script.on_event(defines.events.on_trigger_created_entity, on_trigger_created)
