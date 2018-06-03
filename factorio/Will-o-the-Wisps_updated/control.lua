@@ -25,13 +25,23 @@ local RecentDayTime
 -- Wisp utils
 ------------------------------------------------------------
 
-function isDark()
+local function entity_is_tree(e) return e.type == 'tree' end
+local function entity_is_rock(e)
+	-- Match any entities with separate "rock" word in it, and not e.g. "rocket"
+	return e.name == 'rock' or (
+		e.name:match('rock') and e.name:match('%W?rock%W?') ~= 'rock' )
+end
+local function entity_is_wisp(e)
+	return e.name == 'wisp-red' or e.name == 'wisp-yellow'
+end
+
+local function isDark()
 	return game.surfaces.nauvis.darkness > conf.min_darkness
 end
-function isCold()
+local function isCold()
 	return utils.check_chance(1 - conf.min_darkness * 2)
 end
-function isFullOfTerrors()
+local function isFullOfTerrors()
 	return isDark() and
 		utils.check_chance(game.surfaces.nauvis.darkness - conf.min_darkness * 8)
 end
@@ -81,10 +91,7 @@ local function createWisp(wispName, surface, position, ttl)
 end
 
 local function setWispsAggression(state)
-	if (state) then
-		game.forces['wisps'].set_cease_fire(game.forces.player, false)
-		return
-	end
+	if state then return game.forces['wisps'].set_cease_fire(game.forces.player, false) end
 	game.forces['wisps'].set_cease_fire(game.forces.player, true)
 end
 
@@ -133,13 +140,13 @@ end
 
 local function getCircuitInput(entity, signal)
 	return getCircuitInputByWire(entity, signal, defines.wire_type.red) or
-				getCircuitInputByWire(entity, signal, defines.wire_type.green)
+		getCircuitInputByWire(entity, signal, defines.wire_type.green)
 end
 
 ------------------------------------------------------------
 -- Creating new wisps
 ------------------------------------------------------------
--- Try to create yellow wisp near entity
+
 local function tryToCreateYellowWisp(entity)
 	if entity and entity.valid then
 		if isFullOfTerrors() then
@@ -149,7 +156,7 @@ local function tryToCreateYellowWisp(entity)
 		end
 	end
 end
--- Try to create purple wisp near entity
+
 local function tryToCreatePurpleWisp(entity)
 	if entity and entity.valid then
 		if isFullOfTerrors() then
@@ -157,7 +164,7 @@ local function tryToCreatePurpleWisp(entity)
 		end
 	end
 end
--- Try to create red wisp near entity
+
 local function tryToCreateRedWisp(entity)
 	if entity and entity.valid then
 		if isFullOfTerrors() then
@@ -169,48 +176,23 @@ local function tryToCreateRedWisp(entity)
 end
 
 ------------------------------------------------------------
--- Handle events
+-- Event handlers
 ------------------------------------------------------------
+
 local function onDeathHandler(event)
 	if not GlobalEnabled then return end
-
-	if event.entity.type == 'tree' then
-		tryToCreateYellowWisp(event.entity)
-	end
-
-	if event.entity.name == 'stone-rock' then
-		tryToCreateRedWisp(event.entity)
-	end
-
-	--echo('Destroyed by: '..event.force.name)
-
-	if event.force == game.forces['wisps'] then
-		if event.entity.type == 'electric-pole' then
-			--utils.log('pole destroyed by wisps!')
-			--poleDestroyedByWisps(event.entity)
-		end
-	end
-
-	if (event.entity.name == 'wisp-yellow') or (event.entity.name == 'wisp-red') then
-		-- peaceful wisps - off
+	if entity_is_tree(event.entity) then tryToCreateYellowWisp(event.entity) end
+	if entity_is_rock(event.entity) then tryToCreateRedWisp(event.entity) end
+	if entity_is_wisp(event.entity) then
 		setWispsAggression(true)
-		-- create spore
 		createWisp('wisp-purple', event.entity.surface, event.entity.position, conf.wisp_ttl_purple)
 	end
 end
 
 local function onMinedHandler(event)
 	if not GlobalEnabled then return end
-
-	if event.entity.type == 'tree' then
-		tryToCreateYellowWisp(event.entity)
-	end
-
-	-- Match any entities with separate "rock" word in it, and not e.g. "rocket"
-	if event.entity.name == 'rock'
-			or event.entity.name:match('%W?rock%W?') ~= 'rock' then
-		tryToCreateRedWisp(event.entity)
-	end
+	if entity_is_tree(event.entity) then tryToCreateYellowWisp(event.entity) end
+	if entity_is_rock(event.entity) then tryToCreateRedWisp(event.entity) end
 end
 
 local function onTickHandler(event)
@@ -267,9 +249,7 @@ local function onTickHandler(event)
 			-- wisp spawning near players
 			if #Wisps < conf.wisp_max_count then
 				local trees = targeting.getTreesNearPlayers()
-				for _, tree in pairs(trees) do
-					tryToCreateYellowWisp(tree)
-				end
+				for _, tree in pairs(trees) do tryToCreateYellowWisp(tree) end
 			end
 			-- wisp spawning in random forests
 			if #Wisps < conf.wisp_max_count * conf.wisp_wandering_percent then
