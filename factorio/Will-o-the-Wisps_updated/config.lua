@@ -1,11 +1,18 @@
+-- Initial config for the mod
+-- Values here can be overidden via Mod Options menu
+
 local conf = {}
-	-- XXX: make this stuff configurable via mod options
 
 -- Note: all *_interval values are in ticks
 local time_gameday = 417 -- seconds
 local time_sec = 60
 local time_min = 3600
 
+
+-- Disables aggression between wisps and player factions.
+conf.peaceful_wisps = false
+conf.peaceful_defences = false
+conf.peaceful_spores = false
 
 -- Minimal darkness value when the wisps appearing (0; 1)
 -- Chances of wisps appearing increase in reverse to this value.
@@ -20,7 +27,7 @@ conf.wisp_purple_dmg = 1
 conf.wisp_purple_area = 2
 
 -- Disable glow of the purple wisps to increase performance (set to false)
-conf.wisp_purple_emit_light = true
+conf.wisp_spore_emit_light = true
 
 -- These values will affect number of the wisps which rise from forests on their own
 -- All values should be in 0-1 range, and sum up to <=1 (<1 will mean more rare spawns)

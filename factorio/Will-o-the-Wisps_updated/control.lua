@@ -46,28 +46,33 @@ local function night_is_full_of_terrors() -- chance of wisps appearing
 		utils.pick_chance(game.surfaces.nauvis.darkness - conf.min_darkness * 8)
 end
 
+local wisp_spore_proto = 'wisp-purple'
+local function wisp_spore_proto_check(name) return name:match('^wisp%-purple') end
+
 local wisp_init_ttl_values = {
 	['wisp-purple']=conf.wisp_ttl_purple,
+	['wisp-purple-harmless']=conf.wisp_ttl_purple,
 	['wisp-yellow']=conf.wisp_ttl_yellow,
 	['wisp-red']=conf.wisp_ttl_red }
 
-local function wisp_init(entity, ttl)
+local function wisp_init(entity, ttl, key)
 	if not ttl then
 		ttl = wisp_init_ttl_values[entity.name]
 		if not ttl then return end -- not a wisp
 		ttl = utils.add_jitter(ttl, conf.wisp_ttl_jitter_sec)
 	end
-	entity.force = game.forces['wisps']
-	table.insert(Wisps, {entity=entity, ttl=ttl})
+	entity.force = game.forces.wisps
+	local wisp = {entity=entity, ttl=ttl}
+	if not key then table.insert(Wisps, wisp) else Wisps[key] = wisp end
 end
 
-local function wisp_create(name, surface, position, ttl)
+local function wisp_create(name, surface, position, ttl, key)
 	local max_distance, step, wisp = 6, 0.3, nil
 	local pos = surface.find_non_colliding_position(name, position, max_distance, step)
 	if pos then
 		wisp = surface.create_entity{
-			name=name, position=pos, force=game.forces['wisps'] }
-		wisp_init(wisp, ttl)
+			name=name, position=pos, force=game.forces.wisps }
+		wisp_init(wisp, ttl, key)
 	end
 	return wisp
 end
@@ -77,7 +82,7 @@ local function wisp_create_at_random(name, near_entity)
 	local e = near_entity
 	if not (e and e.valid and night_is_full_of_terrors()) then return end
 	e = wisp_create(name, e.surface, e.position)
-	if e and name ~= 'wisp-purple' then
+	if e and not wisp_spore_proto_check(name) then
 		e.set_command{
 			type=defines.command.wander,
 			distraction=defines.distraction.by_damage }
@@ -89,8 +94,10 @@ local function wisp_flash(pos)
 end
 
 local function wisp_aggression_set(state)
-	if state then return game.forces['wisps'].set_cease_fire(game.forces.player, false) end
-	game.forces['wisps'].set_cease_fire(game.forces.player, true)
+	if not conf.peaceful_wisps and state then
+		return game.forces.wisps.set_cease_fire(game.forces.player, false)
+	end
+	game.forces.wisps.set_cease_fire(game.forces.player, true)
 end
 
 local function wisp_group_create_or_join(unit, name, radius)
@@ -108,10 +115,10 @@ local function wisp_group_create_or_join(unit, name, radius)
 		end
 		if leader then
 			local newGroup = game.surfaces.nauvis
-				.create_unit_group{position=pos, force=game.forces['wisps']}
+				.create_unit_group{position=pos, force=game.forces.wisps}
 			newGroup.add_member(unit)
 			for _, unitNear in pairs(unitsNear) do newGroup.add_member(unitNear) end
-			if game.forces['wisps'].get_cease_fire('player') == false then
+			if game.forces.wisps.get_cease_fire('player') == false then
 				newGroup.set_autonomous()
 				newGroup.start_moving()
 			end
@@ -161,7 +168,7 @@ local function on_death(event)
 	if entity_is_rock(event.entity) then wisp_create_at_random('wisp-red', event.entity) end
 	if entity_is_wisp(event.entity) then
 		wisp_aggression_set(true)
-		wisp_create('wisp-purple', event.entity.surface, event.entity.position)
+		wisp_create(wisp_spore_proto, event.entity.surface, event.entity.position)
 	end
 end
 
@@ -231,7 +238,7 @@ local function on_tick(event) -- god function
 				if trees then
 					for _, tree in pairs(trees) do
 						local name = utils.pick_chance{
-							['wisp-purple']=conf.wisp_purple_spawn_chance,
+							[wisp_spore_proto]=conf.wisp_purple_spawn_chance,
 							['wisp-yellow']=conf.wisp_yellow_spawn_chance,
 							['wisp-red']=conf.wisp_red_spawn_chance }
 						if name then wisp_create_at_random(name, tree) end
@@ -272,14 +279,14 @@ local function on_tick(event) -- god function
 								end
 							end
 							sporesCount = game.surfaces.nauvis.count_entities_filtered{
-								name='wisp-purple', area=utils.get_area(detector.position, range) }
+								name=wisp_spore_proto, area=utils.get_area(detector.position, range) }
 						end
 
 						local wispsCount = redCount + yellowCount + sporesCount
-						local params =  {parameters={
-							{index=1,signal={type='item',name='wisp-red'},count=redCount},
-							{index=2,signal={type='item',name='wisp-yellow'},count=yellowCount},
-							{index=3,signal={type='item',name='wisp-purple'},count=sporesCount} }}
+						local params = {parameters={
+							{index=1, signal={type='item', name='wisp-red'}, count=redCount},
+							{index=2, signal={type='item', name='wisp-yellow'}, count=yellowCount},
+							{index=3, signal={type='item', name=wisp_spore_proto}, count=sporesCount} }}
 
 						detector.get_control_behavior().parameters = params
 					else table.remove(Detectors, key) end
@@ -299,8 +306,8 @@ local function on_tick(event) -- god function
 			if tick % conf.wisp_light_interval == 0 then
 				StepLIGTH = next_work_fragment(StepLIGTH, conf.wisp_light_fragm)
 				for key, wisp in pairs(Wisps) do
-					if ( (key % conf.wisp_light_fragm == StepLIGTH) and wisp.entity.valid )
-						and ( conf.wisp_purple_emit_light or wisp.entity.name ~= 'wisp-purple' )
+					if ((key % conf.wisp_light_fragm == StepLIGTH) and wisp.entity.valid)
+						and (conf.wisp_spore_emit_light or not wisp_spore_proto_check(wisp.entity.name))
 						and wisp.ttl > 64 then wisp_flash(wisp.entity.position) end
 				end
 			end
@@ -458,8 +465,7 @@ local function on_built_entity(event)
 
 	if entity.name == 'wisp-purple' then
 		-- Recreate wisp to change damage values
-		local pos = entity.position
-		local surface = entity.surface
+		local surface, pos = entity.surface, entity.position
 		entity.destroy()
 		local wisp =  wisp_create('wisp-purple', surface, pos)
 	else wisp_init(entity) end
@@ -534,10 +540,49 @@ local function apply_version_updates(old_v, new_v)
 	end
 end
 
+local function apply_runtime_settings(event)
+	local key, knob = event and event.setting, nil
+	utils.log('Updating runtime settings (change=%s)...', key or '[init]')
+	local function key_update(k) return key and key == k and settings.global[k] end
+
+	knob = key_update('wisps-can-attack')
+	if knob then
+		conf.peaceful_wisps = not knob.value
+		if conf.peaceful_wisps then
+			game.forces.wisps.set_cease_fire(game.forces.player, true)
+		end
+	end
+
+	knob = key_update('defences-shoot-wisps')
+	if knob then
+		conf.peaceful_defences = not knob.value
+		game.forces.player.set_cease_fire(game.forces.wisps, conf.peaceful_defences)
+	end
+
+	knob = key_update('purple-wisp-damage')
+	if knob then
+		local v_old, v = conf.peaceful_spores, not knob.value
+		conf.peaceful_spores = v
+		if v_old ~= v then
+			-- Replace all existing spores with harmless/corroding variants
+			wisp_spore_proto = v and 'wisp-purple-harmless' or 'wisp-purple'
+			for key, wisp in pairs(Wisps) do
+				if not wisp.entity.valid
+						or not wisp_spore_proto_check(wisp.entity.name)
+					then goto skip end
+				local surface, pos = wisp.entity.surface, wisp.entity.position
+				wisp.entity.destroy()
+				wisp = wisp_create(wisp_spore_proto, surface, pos, wisp.ttl, key)
+			::skip:: end
+		end
+	end
+end
+
 
 script.on_load(function()
 	utils.log('Loading game...')
 	init_refs()
+	apply_runtime_settings()
 end)
 
 
@@ -588,16 +633,17 @@ script.on_init(function()
 	global.recentDayTime = 0
 
 	utils.log('Init wisps force...')
-	if not game.forces['wisps'] then
+	if not game.forces.wisps then
 		game.create_force('wisps')
-		game.forces['wisps'].ai_controllable = true
+		game.forces.wisps.ai_controllable = true
 	end
-	game.forces['wisps'].set_cease_fire(game.forces.player, true)
-	game.forces['player'].set_cease_fire(game.forces.wisps, false)
-	game.forces['wisps'].set_cease_fire(game.forces.enemy, true)
-	game.forces['enemy'].set_cease_fire(game.forces.wisps, true)
+	game.forces.wisps.set_cease_fire(game.forces.player, true)
+	game.forces.player.set_cease_fire(game.forces.wisps, conf.peaceful_defences)
+	game.forces.wisps.set_cease_fire(game.forces.enemy, true)
+	game.forces.enemy.set_cease_fire(game.forces.wisps, true)
 
 	init_refs()
+	apply_runtime_settings()
 end)
 
 
@@ -609,3 +655,4 @@ script.on_event(defines.events.on_built_entity, on_built_entity)
 script.on_event(defines.events.on_robot_built_entity, on_built_entity)
 script.on_event(defines.events.on_chunk_generated, on_chunk_generated)
 script.on_event(defines.events.on_trigger_created_entity, on_trigger_created)
+script.on_event(defines.events.on_runtime_mod_setting_changed, apply_runtime_settings)
