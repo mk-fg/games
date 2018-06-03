@@ -10,27 +10,82 @@ if conf.debug_log then
 		'Will-o-the-wisps_updated', 'debug', true, {log_ticks=true} )
 end
 
-function utils.log(msg, ...)
-	if debug_logger then
-		local args, fmt_args = table.pack(...), {}
-		if #args > 0 then
-			for n,v in pairs(args) do
-				if type(v) ~= 'string' then v = serpent.line(v, {nocode=true, sparse=true}) end
-				fmt_args[n] = v
+function utils.f(msg, ...)
+	-- Format message using string.format if extra args are passed
+	-- Non-string arguments are formatted via serpent.line
+	local args, fmt_args = table.pack(...), {}
+	if #args > 0 then
+		for n = 1,args.n do
+			local v = args[n]
+			if type(v) ~= 'string' then
+				if serpent then v = serpent.line(v, {nocode=true, sparse=true})
+				else v = tostring(v) end
 			end
-			debug_logger.log(string.format(msg, table.unpack(fmt_args)))
-		else debug_logger.log(msg) end
+			fmt_args[n] = v
+		end
+		msg = string.format(msg, table.unpack(fmt_args))
 	end
 	return msg
 end
 
+function utils.log(msg, ...) if debug_logger then debug_logger.log(utils.f(msg, ...)) end end
+function utils.error(msg, ...) error(utils.f(msg, ...)) end
+
+
+
+function utils.version_to_num(ver, padding)
+	local ver_nums = {}
+	ver:gsub('(%d+)', function(v) ver_nums[#ver_nums+1] = tonumber(v) end)
+	ver = 0
+	for n,v in pairs(ver_nums)
+		do ver = ver + v * math.pow(10, ((#ver_nums-n)*(padding or 3))) end
+	return ver
+end
+function utils.version_less_than(v1, v2)
+	if utils.version_to_num(v1) < utils.version_to_num(v2) then
+		utils.log('  - Update from pre-'..v2)
+		return true
+	end
+	return false
+end
 
 function utils.t(v)
-	-- Helper to make lookup table from string of keys
+	-- Helper to make lookup table from a string of keys
 	if type(v) == 'table' then return v end
 	local t = {}
 	v:gsub('(%S+)', function(k) t[k] = true end)
 	return t
+end
+
+function utils.pick_weight(...)
+	-- Returns key for randomly-picked weight value from args/table
+	-- E.g. pick_weight{a=0.3, b=0.7} will return 'b' with 70% chance
+	local args, sum, dice = {...}, 0, math.random()
+	if #args == 1 and type(args[1]) == 'table' then args = args[1] end
+	for _,v in pairs(args) do sum = sum + v end
+	dice, sum = dice * sum, 0
+	for k,v in pairs(args) do
+		sum = sum + v
+		if dice <= sum then return k end
+	end
+end
+
+function utils.pick_chance(...)
+	-- Returns key for randomly-picked chance value from args/table or nil
+	-- All values are summed-up to [0,1] chance of returning non-nil
+	-- pick_chance(0.3, 0.2) will return nil 50% of the times, 1 - 30%, 2 - 20%
+	local args, sum = {...}, 0
+	if #args == 1 and type(args[1]) == 'table' then args = args[1] end
+	for _,v in pairs(args) do sum = sum + v end
+	if sum > 1 then utils.error('Sum of passed probability values must be <=1: %s', args) end
+	args['__none'] = 1 - sum
+	local res = utils.pick_weight(args)
+	if res == '__none' then res = nil end
+	return res
+end
+
+function utils.add_jitter(value, jitter_max)
+	return value + math.random(-jitter_max, jitter_max)
 end
 
 
@@ -38,16 +93,8 @@ function utils.game_seconds()
 	return game.tick / 60 --SEC
 end
 
-function utils.check_chance(chance)
-	return math.random() < chance
-end
-
 function utils.get_area(position, radius)
 	return {{position.x - radius, position.y - radius}, {position.x + radius, position.y + radius}}
-end
-
-function utils.get_deviation(value, deviation)
-	return value + math.random(-deviation, deviation)
 end
 
 function utils.getSafely(entity, key)

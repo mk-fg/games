@@ -1,4 +1,5 @@
 local conf = {}
+	-- XXX: make this stuff configurable via mod options
 
 -- Note: all *_interval values are in ticks
 local time_gameday = 417 -- seconds
@@ -7,6 +8,8 @@ local time_min = 3600
 
 
 -- Minimal darkness value when the wisps appearing (0; 1)
+-- Chances of wisps appearing increase in reverse to this value.
+-- Full daylight is 0 (wisps at daytime), max darkness is ~0.85.
 conf.min_darkness = 0.05
 
 -- Max number of wisps on the map
@@ -19,13 +22,12 @@ conf.wisp_purple_area = 2
 -- Disable glow of the purple wisps to increase performance (set to false)
 conf.wisp_purple_emit_light = true
 
--- These values affect on number of the wisps which rise from forests on their own [0; 1]
--- (Default: purple - 90% / yellow - 5% / red - 0.1%)
-conf.wisp_purple_spawn_chance = 0.9
----- this chance applied only if Purple was not spawned
-conf.wisp_yellow_spawn_chance = 0.5
----- this chance applied only if Purple and Yellow were not spawned
-conf.wisp_red_spawn_chance = 0.02
+-- These values will affect number of the wisps which rise from forests on their own
+-- All values should be in 0-1 range, and sum up to <=1 (<1 will mean more rare spawns)
+-- Defaults: purple=80%, yellow=9%, red=0.5%
+conf.wisp_purple_spawn_chance = 0.80
+conf.wisp_yellow_spawn_chance = 0.09
+conf.wisp_red_spawn_chance = 0.005
 
 -- Experimental features
 conf.experimental = false
@@ -43,7 +45,7 @@ conf.time_fake_day_mult = 3
 conf.time_fake_night_len = 3 * time_min
 
 ---- Skip the agreesive state of the wisps after every 12 minutes of night
----- Default val.: 12 = (fake_day_mult + 1) * fake_night_len
+---- Default value: 12 = (fake_day_mult + 1) * fake_night_len
 ---- (this works even if fake_day_mode = false)
 conf.reset_aggression_at_night = true
 

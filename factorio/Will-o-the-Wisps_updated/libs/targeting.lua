@@ -5,8 +5,9 @@ local utils = require('libs/utils')
 
 local Chunks
 local Forests
+
 function targeting.init(chunks, forests)
-	utils.log('Init targeting module')
+	utils.log('Init targeting module...')
 	Chunks = chunks
 	Forests = forests
 end
@@ -20,7 +21,6 @@ local function getChunk()
 		local currentTime = utils.game_seconds()
 		for i = 1, conf.targeting_attempts do
 			local chunk = Chunks[math.random(#Chunks)]
-			if not chunk.ttu or not currentTime then utils.log('currentTime=%s chunk=%s', currentTime, chunk) end
 			if chunk.ttu < currentTime then
 				chunk.ttu = currentTime + conf.targeting_chunk_update_interval
 				return chunk
