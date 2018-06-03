@@ -1,13 +1,13 @@
 data:extend({
 		{
-				type = "constant-combinator",
-				name = "wisp-detector",
-				icon = "__Will-o-the-Wisps_updated__/graphics/icons/wisp-detector.png",
+				type = 'constant-combinator',
+				name = 'wisp-detector',
+				icon = '__Will-o-the-Wisps_updated__/graphics/icons/wisp-detector.png',
 				icon_size = 32,
-				flags = {"placeable-neutral", "player-creation"},
-				minable = {hardness = 0.2, mining_time = 0.5, result = "wisp-detector"},
+				flags = {'placeable-neutral', 'player-creation'},
+				minable = {hardness = 0.2, mining_time = 0.5, result = 'wisp-detector'},
 				max_health = 50,
-				corpse = "small-remnants",
+				corpse = 'small-remnants',
 				collision_box = {{-0.35, -0.35}, {0.35, 0.35}},
 				selection_box = {{-0.5, -0.5}, {0.5, 0.5}},
 				item_slot_count = 3,
@@ -15,7 +15,7 @@ data:extend({
 				sprites =
 				{
 					north = {
-						filename = "__Will-o-the-Wisps_updated__/graphics/entity/wisp-detector/wisp-detector.png",
+						filename = '__Will-o-the-Wisps_updated__/graphics/entity/wisp-detector/wisp-detector.png',
 						x = 0,
 						y = 0,
 						width = 61,
@@ -24,7 +24,7 @@ data:extend({
 						shift = {0.140625, 0.140625},
 					},
 					east = {
-						filename = "__Will-o-the-Wisps_updated__/graphics/entity/wisp-detector/wisp-detector.png",
+						filename = '__Will-o-the-Wisps_updated__/graphics/entity/wisp-detector/wisp-detector.png',
 						x = 61,
 						y = 0,
 						width = 61,
@@ -33,7 +33,7 @@ data:extend({
 						shift = {0.140625, 0.140625},
 					},
 					south = {
-						filename = "__Will-o-the-Wisps_updated__/graphics/entity/wisp-detector/wisp-detector.png",
+						filename = '__Will-o-the-Wisps_updated__/graphics/entity/wisp-detector/wisp-detector.png',
 						x = 122,
 						y = 0,
 						width = 61,
@@ -42,7 +42,7 @@ data:extend({
 						shift = {0.140625, 0.140625},
 					},
 					west = {
-						filename = "__Will-o-the-Wisps_updated__/graphics/entity/wisp-detector/wisp-detector.png",
+						filename = '__Will-o-the-Wisps_updated__/graphics/entity/wisp-detector/wisp-detector.png',
 						x = 183,
 						y = 0,
 						width = 61,
@@ -54,28 +54,28 @@ data:extend({
 
 				activity_led_sprites = {
 					north = {
-						filename = "__Will-o-the-Wisps_updated__/graphics/entity/activity-leds/combinator-led-constant-north.png",
+						filename = '__Will-o-the-Wisps_updated__/graphics/entity/activity-leds/combinator-led-constant-north.png',
 						width = 11,
 						height = 10,
 						frame_count = 1,
 						shift = {0.296875, -0.40625},
 					},
 					east = {
-						filename = "__Will-o-the-Wisps_updated__/graphics/entity/activity-leds/combinator-led-constant-east.png",
+						filename = '__Will-o-the-Wisps_updated__/graphics/entity/activity-leds/combinator-led-constant-east.png',
 						width = 14,
 						height = 12,
 						frame_count = 1,
 						shift = {0.25, -0.03125},
 					},
 					south = {
-						filename = "__Will-o-the-Wisps_updated__/graphics/entity/activity-leds/combinator-led-constant-south.png",
+						filename = '__Will-o-the-Wisps_updated__/graphics/entity/activity-leds/combinator-led-constant-south.png',
 						width = 11,
 						height = 11,
 						frame_count = 1,
 						shift = {-0.296875, -0.078125},
 					},
 					west = {
-						filename = "__Will-o-the-Wisps_updated__/graphics/entity/activity-leds/combinator-led-constant-west.png",
+						filename = '__Will-o-the-Wisps_updated__/graphics/entity/activity-leds/combinator-led-constant-west.png',
 						width = 12,
 						height = 12,
 						frame_count = 1,

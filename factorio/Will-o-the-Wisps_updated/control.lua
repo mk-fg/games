@@ -1,73 +1,10 @@
--------------------------------------------------------------------------
--- Import constants
--------------------------------------------------------------------------
-local config = require("config")
-local const = require("libs/consts")
+-- Main entry point file, (re-)loaded on every new game start or savegame load.
 
-local MAX_WISPS_COUNT = config.MAX_WISPS_COUNT
-local PURPLE_WISPS_EMIT_LIGHT = config.PURPLE_WISPS_EMIT_LIGHT
+local conf = require('config')
+local utils = require('libs/utils')
+local targeting = require('libs/targeting')
 
-local WANDERING_WISP_PERCENT = const.WANDERING_WISP_PERCENT
-local TTL_DEVIATION = const.TTL_DEVIATION
-local YELLOW_TTL = const.YELLOW_TTL
-local PURPLE_TTL = const.PURPLE_TTL
-local REPLICATION_CHANCE = const.REPLICATION_CHANCE
-local PURPLE_SPAWN_CHANCE = config.PURPLE_SPAWN_CHANCE
-local YELLOW_SPAWN_CHANCE = config.YELLOW_SPAWN_CHANCE
-local RED_SPAWN_CHANCE = config.RED_SPAWN_CHANCE
 
-local ETERNAL_NIGHT = config.ETERNAL_NIGHT
-local FAKE_DAY_MODE = config.FAKE_DAY_MODE
-local FAKE_DAY_MULT = config.FAKE_DAY_MULT
-local SKIP_AGRESSION_AT_NIGHT = config.SKIP_AGRESSION_AT_NIGHT
-
-local SPAWN_PERIOD = const.SPAWN_PERIOD
-local TARGETING_PERIOD = const.TARGETING_PERIOD
-local EMIT_LIGHT_PERIOD = const.EMIT_LIGHT_PERIOD
-local EMIT_LIGHT_FRAGM = const.EMIT_LIGHT_FRAGM
-local TTL_CHECK_PERIOD = const.TTL_CHECK_PERIOD
-local TTL_CHECK_FRAGM = const.TTL_CHECK_FRAGM
-local GC_FRAGM = const.GC_FRAGM
-local UV_CHECK_PERIOD = const.UV_CHECK_PERIOD
-local UV_CHECK_FRAGM = const.UV_CHECK_FRAGM
-local DETECTION_PERIOD = const.DETECTION_PERIOD
-local DETECTION_FRAGM = const.DETECTION_FRAGM
-local TACTICAL_PERIOD = const.TACTICAL_PERIOD
-local SABOTAGE_PERIOD = const.SABOTAGE_PERIOD
-local SABOTAGE_RANGE = const.SABOTAGE_RANGE
-
-local EXPERIMANTAL = const.EXPERIMANTAL
-
-local UV_DMG = const.UV_DMG
-local UV_RANGE = const.UV_RANGE
-local DTCT_RANGE = const.DTCT_RANGE
-
--------------------------------------------------------------------------
--- Import utils
--------------------------------------------------------------------------
--- Common utils
-local commonUtils = require("libs/common")
-local echo = commonUtils.echo
-local log = commonUtils.log
-local getNauvis = commonUtils.getNauvis
-
-local utils = require("libs/utils")
-local isDark = utils.isDark
-local isFullOfTerrors = utils.isFullOfTerrors
-local isCold = utils.isCold
-local getArea = utils.getArea
-local getDeviation = utils.getDeviation
-local checkChance = utils.checkChance
-
--- Targeting utils
-local targeting = require("libs/targeting")
-local getTreesNearPlayers = targeting.getTreesNearPlayers
-local getTreesEverywhere = targeting.getTreesEverywhere
-local prepareTarget = targeting.prepareTarget
-
--------------------------------------------------------------------------
--- Vars
--------------------------------------------------------------------------
 -- local references to globals
 local Wisps
 local Chunks
@@ -82,13 +19,26 @@ local StepGC
 local StepUV
 local StepDTCT
 local RecentDayTime
+
+
 ------------------------------------------------------------
 -- Wisp utils
 ------------------------------------------------------------
 
-local function initWisp(entity, TTL)
+function isDark()
+	return game.surfaces.nauvis.darkness > conf.min_darkness
+end
+function isCold()
+	return utils.check_chance(1 - conf.min_darkness * 2)
+end
+function isFullOfTerrors()
+	return isDark() and
+		utils.check_chance(game.surfaces.nauvis.darkness - conf.min_darkness * 8)
+end
+
+local function initWisp(entity, ttl)
 	entity.force = game.forces['wisps']
-	table.insert(Wisps, { entity = entity, TTL = TTL } )
+	table.insert(Wisps, {entity=entity, ttl=ttl})
 end
 
 local function initUvLight(entity)
@@ -108,31 +58,29 @@ local function initDetector(entity)
 end
 
 local function flash(pos)
-	getNauvis().create_entity{name="wisp-flash", position=pos}
+	game.surfaces.nauvis.create_entity{name='wisp-flash', position=pos}
 end
 
 local function nextPortion(counter, fragmentation)
-	if counter < fragmentation then
-		return counter + 1
-	end
+	if counter < fragmentation then return counter + 1 end
 	return 0
 end
 
 -- Create new wisp
-local function createWisp(wispName, surface, position, TTL)
+local function createWisp(wispName, surface, position, ttl)
 		local maxDistance = 6
 		local step = 0.3
 		local pos = surface.find_non_colliding_position(wispName, position, maxDistance, step)
 		local newWisp
 		if position then
-			newWisp = surface.create_entity{name=wispName, position=pos, force = game.forces['wisps']}
-			local TTL = getDeviation(TTL, TTL_DEVIATION)
-			initWisp(newWisp, TTL)
+			newWisp = surface.create_entity{
+				name=wispName, position=pos, force = game.forces['wisps'] }
+			initWisp(newWisp, utils.get_deviation(ttl, conf.wisp_ttl_jitter_sec))
 		end
 	return newWisp
 end
 
-local function setWispsAgression(state)
+local function setWispsAggression(state)
 	if (state) then
 		game.forces['wisps'].set_cease_fire(game.forces.player, false)
 		return
@@ -142,7 +90,8 @@ end
 
 local function createOrJoinGroup(unit, name, radius)
 	local pos = unit.position
-	local unitsNear = getNauvis().find_entities_filtered{name = name, area = getArea(pos, radius)}
+	local unitsNear = game.surfaces.nauvis
+		.find_entities_filtered{name=name, area=utils.get_area(pos, radius)}
 	if next(unitsNear) ~= nil and #unitsNear > 1  then
 		local leader = true
 		for _, unitNear in pairs(unitsNear) do
@@ -153,12 +102,13 @@ local function createOrJoinGroup(unit, name, radius)
 			end
 		end
 		if leader then
-			local newGroup = getNauvis().create_unit_group{position=pos, force=game.forces['wisps']}
+			local newGroup = game.surfaces.nauvis
+				.create_unit_group{position=pos, force=game.forces['wisps']}
 			newGroup.add_member(unit)
 			for _, unitNear in pairs(unitsNear) do
 				newGroup.add_member(unitNear)
 			end
-			if game.forces['wisps'].get_cease_fire("player") == false then
+			if game.forces['wisps'].get_cease_fire('player') == false then
 				newGroup.set_autonomous()
 				newGroup.start_moving()
 			end
@@ -194,7 +144,7 @@ local function tryToCreateYellowWisp(entity)
 	if entity and entity.valid then
 		if isFullOfTerrors() then
 			local wander = {type = defines.command.wander, distraction = defines.distraction.by_damage}
-			local wisp = createWisp("wisp-yellow", entity.surface, entity.position, YELLOW_TTL)
+			local wisp = createWisp('wisp-yellow', entity.surface, entity.position, conf.wisp_ttl_yellow)
 			wisp.set_command(wander)
 		end
 	end
@@ -203,7 +153,7 @@ end
 local function tryToCreatePurpleWisp(entity)
 	if entity and entity.valid then
 		if isFullOfTerrors() then
-			createWisp("wisp-purple", entity.surface, entity.position, PURPLE_TTL)
+			createWisp('wisp-purple', entity.surface, entity.position, conf.wisp_ttl_purple)
 		end
 	end
 end
@@ -211,8 +161,8 @@ end
 local function tryToCreateRedWisp(entity)
 	if entity and entity.valid then
 		if isFullOfTerrors() then
-			local wander = {type = defines.command.wander, distraction = defines.distraction.by_damage}
-			local wisp = createWisp("wisp-red", entity.surface, entity.position, YELLOW_TTL)
+			local wander = {type=defines.command.wander, distraction=defines.distraction.by_damage}
+			local wisp = createWisp('wisp-red', entity.surface, entity.position, conf.wisp_ttl_yellow)
 			wisp.set_command(wander)
 		end
 	end
@@ -224,39 +174,41 @@ end
 local function onDeathHandler(event)
 	if not GlobalEnabled then return end
 
-	if event.entity.type == "tree" then
+	if event.entity.type == 'tree' then
 		tryToCreateYellowWisp(event.entity)
 	end
 
-	if event.entity.name == "stone-rock" then
+	if event.entity.name == 'stone-rock' then
 		tryToCreateRedWisp(event.entity)
 	end
 
-	--echo("Destroyed by: "..event.force.name)
+	--echo('Destroyed by: '..event.force.name)
 
 	if event.force == game.forces['wisps'] then
-		if event.entity.type == "electric-pole" then
-			--log("pole destroyed by wisps!")
+		if event.entity.type == 'electric-pole' then
+			--utils.log('pole destroyed by wisps!')
 			--poleDestroyedByWisps(event.entity)
 		end
 	end
 
-	if (event.entity.name == "wisp-yellow") or (event.entity.name == "wisp-red") then
+	if (event.entity.name == 'wisp-yellow') or (event.entity.name == 'wisp-red') then
 		-- peaceful wisps - off
-		setWispsAgression(true)
+		setWispsAggression(true)
 		-- create spore
-		createWisp("wisp-purple", event.entity.surface, event.entity.position, PURPLE_TTL)
+		createWisp('wisp-purple', event.entity.surface, event.entity.position, conf.wisp_ttl_purple)
 	end
 end
 
 local function onMinedHandler(event)
 	if not GlobalEnabled then return end
 
-	if event.entity.type == "tree" then
+	if event.entity.type == 'tree' then
 		tryToCreateYellowWisp(event.entity)
 	end
 
-	if event.entity.name == "stone-rock" then
+	-- Match any entities with separate "rock" word in it, and not e.g. "rocket"
+	if event.entity.name == 'rock'
+			or event.entity.name:match('%W?rock%W?') ~= 'rock' then
 		tryToCreateRedWisp(event.entity)
 	end
 end
@@ -277,22 +229,22 @@ local function onTickHandler(event)
 	end
 
 	local nightDuration = tick - RecentDayTime
-	local isFakeDayVal = nightDuration > ETERNAL_NIGHT
+	local isFakeDayVal = nightDuration > conf.time_fake_night_len
 	if isFakeDayVal then
-		if FAKE_DAY_MODE then
+		if conf.time_fake_day_mode then
 			-- fake day
 			isDarkVal = false
 			isColdVal = false
 			isFullOfTerrorsVal = false
 		end
 
-		if tick % 384 and (nightDuration > ETERNAL_NIGHT * (1 + FAKE_DAY_MULT)) then
+		if tick % 384 and (
+				nightDuration > conf.time_fake_night_len
+					* (1 + conf.time_fake_day_mult) ) then
 			-- reset fake day
 			RecentDayTime = tick
 			-- force reset the agressive state of the wisps
-			if SKIP_AGRESSION_AT_NIGHT then
-				setWispsAgression(false)
-			end
+			if conf.reset_aggression_at_night then setWispsAggression(false) end
 		end
 	end
 
@@ -303,9 +255,7 @@ local function onTickHandler(event)
 		--------------------------------------
 		-- Targeting at day
 		--------------------------------------
-		if tick % TARGETING_PERIOD == 0 then
-			prepareTarget()
-		end
+		if tick % conf.targeting_interval == 0 then targeting.prepareTarget() end
 	end
 
 	if isDarkVal then
@@ -313,26 +263,22 @@ local function onTickHandler(event)
 		-- Spawn at night
 		--------------------------------------
 		-- wisp creation routine
-		if tick % SPAWN_PERIOD == 0 then
+		if tick % conf.wisp_spawn_interval == 0 then
 			-- wisp spawning near players
-			if #Wisps < MAX_WISPS_COUNT then
-				local trees = getTreesNearPlayers()
+			if #Wisps < conf.wisp_max_count then
+				local trees = targeting.getTreesNearPlayers()
 				for _, tree in pairs(trees) do
 					tryToCreateYellowWisp(tree)
 				end
 			end
 			-- wisp spawning in random forests
-			if #Wisps < MAX_WISPS_COUNT * WANDERING_WISP_PERCENT then
-				local trees = getTreesEverywhere()
+			if #Wisps < conf.wisp_max_count * conf.wisp_wandering_percent then
+				local trees = targeting.getTreesEverywhere()
 				if trees then
 					for _, tree in pairs(trees) do
-						if checkChance(PURPLE_SPAWN_CHANCE) then
-							tryToCreatePurpleWisp(tree)
-						elseif checkChance(YELLOW_SPAWN_CHANCE) then
-							tryToCreateYellowWisp(tree)
-						elseif checkChance(RED_SPAWN_CHANCE) then
-							tryToCreateRedWisp(tree)
-						end
+						if utils.check_chance(conf.wisp_purple_spawn_chance) then tryToCreatePurpleWisp(tree)
+						elseif utils.check_chance(conf.wisp_yellow_spawn_chance) then tryToCreateYellowWisp(tree)
+						elseif utils.check_chance(conf.wisp_red_spawn_chance) then tryToCreateRedWisp(tree) end
 					end
 				end
 			end
@@ -343,45 +289,47 @@ local function onTickHandler(event)
 	-- Detectors
 	-------------------------------------
 	if next(Detectors) ~= nil then
-		if tick % DETECTION_PERIOD == 0 then
-			StepDTCT = nextPortion(StepDTCT, DETECTION_FRAGM)
+		if tick % conf.detection_interval == 0 then
+			StepDTCT = nextPortion(StepDTCT, conf.detection_fragm)
 			for key, detector in pairs(Detectors) do
-				if (key % DETECTION_FRAGM == StepDTCT) then
+				if (key % conf.detection_fragm == StepDTCT) then
 					if detector.valid then
 						local yellowCount = 0
 						local redCount = 0
 						local sporesCount = 0
 
-						local range = getCircuitInput(detector, "signal-R")
+						local range = getCircuitInput(detector, 'signal-R')
 						if range then
 							range = math.abs(range)
 							if range > 128 then
 								range = 128
 							end
 						else
-							range = DTCT_RANGE
+							range = conf.detection_range
 						end
 
 						if next(Wisps) ~= nil then
-							local wisps = getNauvis().find_entities_filtered{force= "wisps", area = getArea(detector.position, range)}
+							local wisps = game.surfaces.nauvis.find_entities_filtered{
+								force='wisps', area=utils.get_area(detector.position, range) }
 							if next(wisps) ~= nil then
 								for _, wisp in pairs(wisps) do
-									if wisp.name == "wisp-yellow" then
+									if wisp.name == 'wisp-yellow' then
 										yellowCount = yellowCount + 1
 									else
 										redCount = redCount + 1
 									end
 								end
 							end
-							sporesCount = getNauvis().count_entities_filtered{name= "wisp-purple", area = getArea(detector.position, range)}
+							sporesCount = game.surfaces.nauvis.count_entities_filtered{
+								name='wisp-purple', area=utils.get_area(detector.position, range) }
 						end
 
 						local wispsCount = redCount + yellowCount + sporesCount
 						local params =  {parameters=
 							{
-								{index=1,signal={type="item",name="wisp-red"},count=redCount},
-								{index=2,signal={type="item",name="wisp-yellow"},count=yellowCount},
-								{index=3,signal={type="item",name="wisp-purple"},count=sporesCount}
+								{index=1,signal={type='item',name='wisp-red'},count=redCount},
+								{index=2,signal={type='item',name='wisp-yellow'},count=yellowCount},
+								{index=3,signal={type='item',name='wisp-purple'},count=sporesCount}
 							}}
 
 						detector.get_control_behavior().parameters = params
@@ -401,17 +349,12 @@ local function onTickHandler(event)
 		-- Each wisp emits light
 		--------------------------------------
 		if isDarkVal or isFakeDayVal then
-			if tick % EMIT_LIGHT_PERIOD == 0 then
-				StepLIGTH = nextPortion(StepLIGTH, EMIT_LIGHT_FRAGM)
+			if tick % conf.wisp_light_interval == 0 then
+				StepLIGTH = nextPortion(StepLIGTH, conf.wisp_light_fragm)
 				for key, wisp in pairs(Wisps) do
-					if (key % EMIT_LIGHT_FRAGM == StepLIGTH) and wisp.entity.valid then
-						if PURPLE_WISPS_EMIT_LIGHT or wisp.entity.name ~= "wisp-purple" then
-							if wisp.TTL > 64 then
-								local pos = wisp.entity.position
-								flash(pos)
-							end
-						end
-					end
+					if ( (key % conf.wisp_light_fragm == StepLIGTH) and wisp.entity.valid )
+						and ( conf.wisp_purple_emit_light or wisp.entity.name ~= 'wisp-purple' )
+						and wisp.ttl > 64 then flash(wisp.entity.position) end
 				end
 			end
 		end
@@ -420,66 +363,64 @@ local function onTickHandler(event)
 		-- UV lights
 		--------------------------------------
 		if next(UvLights) ~= nil then
-			if tick % UV_CHECK_PERIOD == 0 then
-				StepUV = nextPortion(StepUV, UV_CHECK_FRAGM)
+			if tick % conf.uv_check_interval == 0 then
+				StepUV = nextPortion(StepUV, conf.uv_check_fragm)
 				for key, uv in pairs(UvLights) do
-					if (key % UV_CHECK_FRAGM == StepUV) then
+					if (key % conf.uv_check_fragm == StepUV) then
 						if uv.valid then
 							if isActive(uv) then
 								local energyPercent = uv.energy * 0.00007 -- /14222
+
 								if energyPercent > 0.2 then
-									local wisps = getNauvis().find_entities_filtered{force= "wisps", type = "unit", area = getArea(uv.position, UV_RANGE)}
+									local wisps = game.surfaces.nauvis.find_entities_filtered{
+										force='wisps', type='unit', area=utils.get_area(uv.position, conf.uv_range) }
 									if next(wisps) ~= nil then
-										local currentUvDmg = (UV_DMG + math.random(3)) * energyPercent
+										local currentUvDmg = (conf.uv_dmg + math.random(3)) * energyPercent
 										for _, wisp in pairs(wisps) do
-											wisp.damage(math.floor(currentUvDmg), game.forces.player, "fire")
+											wisp.damage(math.floor(currentUvDmg), game.forces.player, 'fire')
 										end
 									end
 
 									if energyPercent > 0.6 then
-										local spores = getNauvis().find_entities_filtered{name= "wisp-purple", area = getArea(uv.position, UV_RANGE)}
-										if next(spores) ~= nil then
-											for _, spore in pairs(spores) do
-												if checkChance(energyPercent - 0.55) then
-													spore.destroy()
-												end
-											end
-										end
+										local spores = game.surfaces.nauvis.find_entities_filtered{
+											name='wisp-purple', area=utils.get_area(uv.position, conf.uv_range) }
+										if next(spores) ~= nil then for _, spore in pairs(spores) do
+											if utils.check_chance(energyPercent - 0.55) then spore.destroy() end
+										end end
 									end
 								end
+
 							end
-						else
-							table.remove(UvLights, key)
-						end
+						else table.remove(UvLights, key) end
 					end
 				end --for
 				-- only one the low-priority routine per tick
 				return
 			end
-		end --next(UvLights) ~= nil
+		end -- next(UvLights) ~= nil
 
 		--------------------------------------
 		-- Wisp TTL routine
 		--------------------------------------
-		if tick % TTL_CHECK_PERIOD == 0 then
-			StepTTL = nextPortion(StepTTL, TTL_CHECK_FRAGM)
+		if tick % conf.ttl_check_interval == 0 then
+			StepTTL = nextPortion(StepTTL, conf.ttl_check_fragm)
 			for key, wisp in pairs(Wisps) do
-				if (key % TTL_CHECK_FRAGM == StepTTL) then
+				if (key % conf.ttl_check_fragm == StepTTL) then
 					if wisp.entity.valid then
-						if wisp.TTL  <= 0 then
+						if wisp.ttl  <= 0 then
 							-- remove wisps by TTL expiration
 							wisp.entity.destroy()
 							table.remove(Wisps, key)
 						else
 							-- TTL decrease with chance to skip iteration at night
 							if not isFullOfTerrorsVal then
-								wisp.TTL = wisp.TTL - TTL_CHECK_PERIOD
+								wisp.ttl = wisp.ttl - conf.ttl_check_interval
 							end
 							-- chance to nullify TTL at day
 							if not isDarkVal and not isColdVal then
-								wisp.TTL = 0
+								wisp.ttl = 0
 								-- peaceful wisps - on
-								setWispsAgression(false)
+								setWispsAggression(false)
 							end
 						end
 					else
@@ -495,15 +436,15 @@ local function onTickHandler(event)
 		--------------------------------------
 		-- Time to find a company!
 		--------------------------------------
-		if tick % TACTICAL_PERIOD == 0 then
+		if tick % conf.tactical_interval == 0 then
 			if isDarkVal then
 				local wisp = Wisps[math.random(#Wisps)]
-				if wisp.entity.valid and wisp.entity.type == "unit" then
-					if wisp.entity.unit_group == nil and wisp.TTL > TTL_CHECK_PERIOD then
-						if wisp.entity.name == "wisp-yellow" then
-							createOrJoinGroup(wisp.entity, "wisp-yellow", 16)
-						elseif wisp.entity.name == "wisp-red" then
-							createOrJoinGroup(wisp.entity, "wisp-red", 6)
+				if wisp.entity.valid and wisp.entity.type == 'unit' then
+					if wisp.entity.unit_group == nil and wisp.ttl > conf.ttl_check_interval then
+						if wisp.entity.name == 'wisp-yellow' then
+							createOrJoinGroup(wisp.entity, 'wisp-yellow', 16)
+						elseif wisp.entity.name == 'wisp-red' then
+							createOrJoinGroup(wisp.entity, 'wisp-red', 6)
 						end
 					end
 				end
@@ -512,38 +453,41 @@ local function onTickHandler(event)
 			return
 		end
 
-		if EXPERIMANTAL then
-		--------------------------------------
-		-- Sabotage
-		--------------------------------------
-		if tick % SABOTAGE_PERIOD ~= 0 then
-			local wisp = Wisps[math.random(#Wisps)]
-			if wisp.entity.valid and wisp.entity.name == "wisp-purple" then
-				local poles = getNauvis().find_entities_filtered{type= "electric-pole", area = getArea(wisp.entity.position, SABOTAGE_RANGE), limit = 1}
-				if next(poles) ~= nil then
-					local pos = poles[1].position
-					pos.x = pos.x + math.random(-4, 4) * 0.1
-					pos.y = pos.y + math.random(-5, 5) * 0.1
-					local wispAttached = getNauvis().create_entity{name = "wisp-attached", position = pos , force = "wisps"}
-					if wispAttached then
-						local oldEntity = wisp.entity
-						wisp.entity = wispAttached
-						oldEntity.destroy()
+		if conf.experimental then
+			--------------------------------------
+			-- Sabotage
+			--------------------------------------
+			if tick % conf.sabotage_interval ~= 0 then
+				local wisp = Wisps[math.random(#Wisps)]
+				if wisp.entity.valid and wisp.entity.name == 'wisp-purple' then
+					local poles = game.surfaces.nauvis.find_entities_filtered{
+						type='electric-pole', limit=1,
+						area=utils.get_area(wisp.entity.position, conf.sabotage_range) }
+					if next(poles) ~= nil then
+						local pos = poles[1].position
+						pos.x = pos.x + math.random(-4, 4) * 0.1
+						pos.y = pos.y + math.random(-5, 5) * 0.1
+						local wispAttached = game.surfaces.nauvis
+							.create_entity{name = 'wisp-attached', position = pos , force = 'wisps'}
+						if wispAttached then
+							local oldEntity = wisp.entity
+							wisp.entity = wispAttached
+							oldEntity.destroy()
+						end
 					end
 				end
+				-- only one the low-priority routine per tick
+				return
 			end
-			-- only one the low-priority routine per tick
-			return
 		end
 
-		end
 		--------------------------------------
 		-- GC
 		--------------------------------------
 		if tick % 16 ~= 0 then
-			StepGC = nextPortion(StepGC, GC_FRAGM)
+			StepGC = nextPortion(StepGC, conf.gc_fragm)
 			for key, wisp in pairs(Wisps) do
-				if (key % GC_FRAGM == StepGC) and not wisp.entity.valid then
+				if (key % conf.gc_fragm == StepGC) and not wisp.entity.valid then
 					-- remove forcibly destroyed wisps
 					table.remove(Wisps, key)
 				end
@@ -555,24 +499,21 @@ local function onTickHandler(event)
 end
 
 local function onCreatedHandler(entity)
-	if entity.name == "wisp-purple" then
-		local TTL = getDeviation(PURPLE_TTL, TTL_DEVIATION)
-		initWisp(entity, TTL)
+	if entity.name == 'wisp-purple' then
+		initWisp(entity, utils.get_deviation(conf.wisp_ttl_purple, conf.wisp_ttl_jitter_sec))
 		return
 	end
-	if entity.name == "wisp-yellow" then
-		local TTL = getDeviation(YELLOW_TTL, TTL_DEVIATION)
-		initWisp(entity, TTL)
+	if entity.name == 'wisp-yellow' then
+		initWisp(entity, utils.get_deviation(conf.wisp_ttl_yellow, conf.wisp_ttl_jitter_sec))
 		return
 	end
-	if entity.name == "wisp-red" then
-		local TTL = getDeviation(YELLOW_TTL, TTL_DEVIATION)
-		initWisp(entity, TTL)
+	if entity.name == 'wisp-red' then
+		initWisp(entity, utils.get_deviation(conf.wisp_ttl_yellow, conf.wisp_ttl_jitter_sec))
 	end
 end
 
 local function onTriggerCreatedHandler(event)
-	if checkChance(REPLICATION_CHANCE) then
+	if utils.check_chance(conf.wisp_replication_chance) then
 		local entity = event.entity
 		onCreatedHandler(entity)
 	else
@@ -582,30 +523,30 @@ end
 
 local function onBuiltHandler(event)
 	local entity = event.created_entity
-	if entity.name == "UV-lamp" then
+	if entity.name == 'UV-lamp' then
 		initUvLight(entity)
 		return
 	end
 
-	if entity.name == "wisp-detector" then
+	if entity.name == 'wisp-detector' then
 		initDetector(entity)
 		return
 	end
 
-	if entity.name == "wisp-purple" then
+	if entity.name == 'wisp-purple' then
 		-- recreate wisp to change force of damage
 		local pos = entity.position
 		local surface = entity.surface
 		entity.destroy()
-		local wisp =  createWisp("wisp-purple", surface, pos, PURPLE_TTL)
+		local wisp =  createWisp('wisp-purple', surface, pos, conf.wisp_ttl_purple)
 	else
 		onCreatedHandler(entity)
 	end
 end
 
 local function onChunkGeneratedHandler(event)
-	if (event.surface.index == 1) then
-		Chunks[#Chunks + 1] = {area = event.area, TTU = -1}
+	if event.surface.index == 1 then
+		Chunks[#Chunks + 1] = {area=event.area, ttu=-1}
 	end
 end
 
@@ -614,48 +555,45 @@ end
 ------------------------------------------------------------
 local function updateRecipes(withReset)
 	for _, force in pairs(game.forces) do
-		if withReset then
-			force.reset_recipes()
+		if withReset then force.reset_recipes() end
+		if force.technologies['alien-bio-technology'].researched then
+			force.recipes['alien-flora-sample'].enabled = true
+			force.recipes['wisp-yellow'].enabled = true
+			force.recipes['wisp-red'].enabled = true
+			force.recipes['wisp-purple'].enabled = true
+			force.recipes['wisp-detector'].enabled = true
 		end
-		if force.technologies["alien-bio-technology"].researched then
-			force.recipes["alien-flora-sample"].enabled = true
-			force.recipes["wisp-yellow"].enabled = true
-			force.recipes["wisp-red"].enabled = true
-			force.recipes["wisp-purple"].enabled = true
-			force.recipes["wisp-detector"].enabled = true
-		end
-		if force.technologies["solar-energy"].researched then
-			force.recipes["UV-lamp"].enabled = true
+		if force.technologies['solar-energy'].researched then
+			force.recipes['UV-lamp'].enabled = true
 		end
 	end
 end
 
 local function initWispsForce()
-	log("Init wisps force..")
+	utils.log('Init wisps force..')
 	if not game.forces['wisps'] then
 		game.create_force('wisps')
 		game.forces['wisps'].ai_controllable = true
 	end
-	game.forces['wisps'].set_cease_fire(game.forces.player, true) -- setWispsAgression(false)
+	game.forces['wisps'].set_cease_fire(game.forces.player, true) -- setWispsAggression(false)
 	game.forces['player'].set_cease_fire(game.forces.wisps, false)
 	game.forces['wisps'].set_cease_fire(game.forces.enemy, true)
 	game.forces['enemy'].set_cease_fire(game.forces.wisps, true)
 end
 
 local function initChunksMap()
-	log(" - reloading chunks..")
-	local surface = getNauvis()
+	utils.log(' - reloading chunks..')
+	local surface = game.surfaces.nauvis
 	for chunk in surface.get_chunks() do
-		onChunkGeneratedHandler({
+		onChunkGeneratedHandler{
 			surface = surface,
-			area={left_top = {chunk.x*32, chunk.y*32},
-						right_bottom = {(chunk.x+1)*32, (chunk.y+1)*32}}
-		})
+			area = { left_top={chunk.x*32, chunk.y*32},
+				right_bottom={(chunk.x+1)*32, (chunk.y+1)*32}} }
 	end
 end
 
 local function initRefs()
-	log("Init local references to globals..")
+	utils.log('Init local references to globals..')
 	Wisps = global.wisps
 	Chunks = global.chunks
 	Forests = global.forests
@@ -674,85 +612,64 @@ local function initRefs()
 end
 
 local function onLoad()
-	log("Just loading game..")
+	utils.log('Just loading game..')
 	initRefs()
 end
 
 local function verToNum(ver)
 	-- removes all non-digits
-	ver = string.gsub(ver, "%D", "")
+	ver = string.gsub(ver, '%D', '')
 	return tonumber(ver)
 end
 
 local function verLessThan(ver, lessThan)
 	if verToNum(ver) < verToNum(lessThan) then
-		log("[Old ver less than "..lessThan.."]")
+		utils.log('  - Update from pre-'..lessThan)
 		return true
 	end
 	return false
 end
 
 local function updateVersion(old_v, new_v)
-	if verLessThan(old_v, "14.22.9") then
-		log("   - remove: global.nextChunk")
-		global.nextChunk = nil
-
-		log("   - add: global.detectors")
-		global.detectors = global.detectors or {}
-		Detectors = global.detectors
-
-		log("   - add: global.step{LIGTH / TTL / GC / UV / DTCT}")
-		global.stepLIGTH = global.stepLIGTH or 0
-		global.stepTTL = global.stepTTL or 0
-		global.stepGC = global.stepGC or 0
-		global.stepUV = global.stepUV or 0
-		global.stepDTCT = global.stepDTCT or 0
-
-		StepLIGTH = global.stepLIGTH
-		StepTTL = global.stepTTL
-		StepGC = global.stepGC
-		StepUV = global.stepUV
-		StepDTCT = global.stepDTCT
-
-		log("   - add: global.recentTargetingTime")
-		global.recentTargetingTime = global.recentTargetingTime or 0
-		RecentTargetingTime = global.recentTargetingTime
-
-	end
-	if verLessThan(old_v, "14.22.11") then
-		log("   - rename: global.recentTargetingTime -> global.recentDayTime")
-		global.recentTargetingTime = nil
-		global.recentDayTime = global.recentDayTime or game.tick
-		RecentDayTime = global.recentDayTime
+	if verLessThan(old_v, '0.0.3') then
+		utils.log('    - Updating TTL/TTU keys in global objects')
+		local function remap_key(o, k_old, k_new, default)
+			if not o[k_new] then o[k_new], o[k_old] = o[k_old], nil end
+			if not o[k_new] then o[k_new] = default end
+			if not o[k_new] then utils.log('Empty value after remap [%s -> %s]: %s', k_old, k_new, o) end
+		end
+		for _,wisp in pairs(Wisps) do remap_key(wisp, 'TTL', 'ttl') end
+		for _,chunk in pairs(Chunks) do remap_key(chunk, 'TTU', 'ttu') end
+		for _,forest in pairs(Forests) do remap_key(forest, 'TTU', 'ttu') end
 	end
 end
 
 local function onConfigChanged(data)
-	log("Reconfiguring:")
+	utils.log('Reconfiguring:')
 	initChunksMap()
-	local this = "Will-o-the-Wisps_updated"
+	local this = 'Will-o-the-Wisps_updated'
 
 	if data.mod_changes then
 		if data.mod_changes[this] then
 			if data.mod_changes[this].old_version then
 				local oldVer = data.mod_changes[this].old_version
 				local newVer = data.mod_changes[this].new_version
-				log(" - Will-o-the-Wisps updated: "..oldVer.." -> "..newVer)
+				utils.log(' - Will-o-the-Wisps updated: '..oldVer..' -> '..newVer)
 				updateRecipes(true)
 				updateVersion(oldVer, newVer)
 			else
-				log(" - Init Will-o-the-Wisps mod on existing game.")
+				utils.log(' - Init Will-o-the-Wisps mod on existing game.')
 				updateRecipes()
 			end
 		else
 			-- some other mod was added, removed or modified
 		end
 	end
-	log("Done.")
+	utils.log('Done.')
 end
 
 local function onInit()
-	log("Init globals..")
+	utils.log('Init globals..')
 	global.wisps = {}
 	global.chunks = {}
 
@@ -770,7 +687,6 @@ local function onInit()
 
 	initRefs()
 	initWispsForce()
-
 end
 
 script.on_init(onInit)
