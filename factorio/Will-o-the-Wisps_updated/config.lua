@@ -27,6 +27,9 @@ conf.wisp_purple_area = 2
 -- Disable glow of the purple wisps to increase performance (set to false)
 conf.wisp_spore_emit_light = true
 
+-- Can be annoying and a performance hit as well
+conf.wisp_lights_dynamic = false
+
 -- These values will affect number of the wisps which rise from forests on their own
 -- All values should be in 0-1 range, and sum up to <=1 (<1 will mean more rare spawns)
 -- Defaults: purple=80%, yellow=9%, red=0.5%

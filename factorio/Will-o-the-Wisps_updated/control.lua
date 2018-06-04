@@ -84,8 +84,12 @@ local function wisp_create_at_random(name, near_entity)
 	end
 end
 
-local function wisp_flash(pos)
-	game.surfaces.nauvis.create_entity{name='wisp-flash', position=pos}
+local wisp_light_opts = {['wisp-yellow']=4, ['wisp-red']=3, ['wisp-purple']=4}
+local function wisp_light(name, pos)
+	if conf.wisp_lights_dynamic then
+		name = string.format('%s-light-%02d', name, math.random(wisp_light_opts[name]))
+	else name = 'wisp-light-generic' end
+	game.surfaces.nauvis.create_entity{name=name, position=pos}
 end
 
 local function wisp_aggression_set(state)
@@ -281,7 +285,7 @@ local function on_tick(event) -- god function
 				for key, wisp in pairs(Wisps) do
 					if (key % mod == step and wisp.entity.valid)
 						and (conf.wisp_spore_emit_light or not wisp_spore_proto_check(wisp.entity.name))
-						and wisp.ttl > 64 then wisp_flash(wisp.entity.position) end
+						and wisp.ttl > 64 then wisp_light(wisp.entity.name, wisp.entity.position) end
 				end
 			end
 		end
@@ -550,6 +554,10 @@ local function apply_runtime_settings(event)
 			::skip:: end
 		end
 	end
+
+	knob = key_update('dynamic-wisp-lights')
+	if knob then conf.wisp_lights_dynamic = knob.value end
+
 end
 
 
