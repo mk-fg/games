@@ -525,9 +525,15 @@ local function apply_runtime_settings(event)
 
 	knob = key_update('wisps-can-attack')
 	if knob then
-		conf.peaceful_wisps = not knob.value
-		if conf.peaceful_wisps then
-			game.forces.wisps.set_cease_fire(game.forces.player, true)
+		local v_old, v = conf.peaceful_wisps, not knob.value
+		conf.peaceful_wisps = v
+		if v_old ~= v then
+			if v then game.forces.wisps.set_cease_fire(game.forces.player, true) end
+			for key, wisp in pairs(Wisps) do
+				if not wisp.entity.valid or wisp_spore_proto_check(wisp.entity.name) then goto skip end
+				wisp.entity.set_command{ type=defines.command.wander,
+					distraction=v and defines.distraction.none or defines.distraction.by_damage }
+			::skip:: end
 		end
 	end
 

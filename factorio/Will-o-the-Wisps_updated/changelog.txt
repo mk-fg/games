@@ -1,0 +1,41 @@
+---------------------------------------------------------------------------------------------------
+Version: 0.0.9
+Date: 04. 06. 2018
+  Changes:
+    - Add ingame changelog file (this one).
+---------------------------------------------------------------------------------------------------
+Version: 0.0.8
+Date: 04. 06. 2018
+  Changes:
+    - Pacify in-combat wisps when disabling aggressiveness via menu.
+---------------------------------------------------------------------------------------------------
+Version: 0.0.7
+Date: 03. 06. 2018
+  Features:
+    - Add colored/flickering lighting mod option, off by default.
+---------------------------------------------------------------------------------------------------
+Version: 0.0.6
+Date: 03. 06. 2018
+  Changes:
+    - Add mod options for disabling wisp/turret aggression and spore corrosion damage.
+---------------------------------------------------------------------------------------------------
+Version: 0.0.5
+Date: 03. 06. 2018
+  Bugfixes:
+    - Fix memory leak on game/mod changes due to chunk info duplication in save files.
+---------------------------------------------------------------------------------------------------
+Version: 0.0.4
+Date: 02. 06. 2018
+  Changes:
+    - Lower red wisps health significantly (180 -> 30).
+    - Purple wisps do more damage to boilers/reactors in addition to solar panels.
+---------------------------------------------------------------------------------------------------
+Version: 0.0.2
+Date: 02. 06. 2018
+  Changes:
+    - Adjust UV lamps' electricity usage down 400kW -> 80kW.
+---------------------------------------------------------------------------------------------------
+Version: 0.0.1
+Date: 02. 06. 2018
+  Features:
+    - 0.16.x compatibility update and related fixes (events, entity names, etc).
