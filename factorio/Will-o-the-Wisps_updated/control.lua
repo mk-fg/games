@@ -13,12 +13,7 @@ local UvLights
 local GlobalEnabled
 local Detectors
 
-local StepLIGTH
-local StepTTL
-local StepGC
-local StepUV
-local StepDTCT
-local RecentDayTime
+local ws
 
 
 ------------------------------------------------------------
@@ -67,7 +62,7 @@ local function wisp_init(entity, ttl, key)
 end
 
 local function wisp_create(name, surface, position, ttl, key)
-	local max_distance, step, wisp = 6, 0.3, nil
+	local max_distance, step, wisp = 6, 0.3
 	local pos = surface.find_non_colliding_position(name, position, max_distance, step)
 	if pos then
 		wisp = surface.create_entity{
@@ -135,9 +130,15 @@ end
 
 local function detector_init(entity) table.insert(Detectors, entity) end
 
-local function next_work_fragment(counter, fragmentation)
-	if counter < fragmentation then return counter + 1 end
-	return 0
+local function next_work_step(key, tick)
+	local tick_match = true
+	if tick then tick_match = tick % conf.intervals[key] == 0 end
+	if tick_match then
+		local n, limit = (ws[key] or -1) + 1, conf.work_steps[key]
+		if n >= limit then n = 0 end
+		ws[key] = n
+		return tick_match, n, limit
+	else return tick_match end
 end
 
 ------------------------------------------------------------
@@ -181,52 +182,24 @@ end
 local function on_tick(event) -- god function
 	if not GlobalEnabled then return end
 
-	local tick = event.tick
 	local isColdVal = night_is_cold()
 	local isDarkVal = night_is_dark()
 	local isFullOfTerrorsVal = night_is_full_of_terrors()
 
-	--------------------------------------
-	-- Long night mods support
-	--------------------------------------
-	if tick % 256 and not isDarkVal then RecentDayTime = tick end
-
-	local nightDuration = tick - RecentDayTime
-	local isFakeDayVal = nightDuration > conf.time_fake_night_len
-	if isFakeDayVal then
-		if conf.time_fake_day_mode then
-			-- fake day
-			isDarkVal = false
-			isColdVal = false
-			isFullOfTerrorsVal = false
-		end
-
-		if tick % 384 and (
-				nightDuration > conf.time_fake_night_len
-					* (1 + conf.time_fake_day_mult) ) then
-			-- reset fake day
-			RecentDayTime = tick
-			-- force reset the agressive state of the wisps
-			if conf.reset_aggression_at_night then wisp_aggression_set(false) end
-		end
-	end
+	local tick, mark, step, mod = event.tick
 
 	--------------------------------------
 	-- Day/night cycle
 	--------------------------------------
-	if not isDarkVal or isFakeDayVal then
-		--------------------------------------
-		-- Targeting at day
-		--------------------------------------
-		if tick % conf.targeting_interval == 0 then targeting.prepareTarget() end
-	end
+	if not isDarkVal and tick % conf.intervals.targeting == 0
+		then targeting.prepareTarget() end
 
 	if isDarkVal then
 		--------------------------------------
 		-- Spawn at night
 		--------------------------------------
 		-- wisp creation routine
-		if tick % conf.wisp_spawn_interval == 0 then
+		if tick % conf.intervals.wisp_spawn == 0 then
 			-- wisp spawning near players
 			if #Wisps < conf.wisp_max_count then
 				local trees = targeting.getTreesNearPlayers()
@@ -252,10 +225,10 @@ local function on_tick(event) -- god function
 	-- Detectors
 	-------------------------------------
 	if next(Detectors) ~= nil then
-		if tick % conf.detection_interval == 0 then
-			StepDTCT = next_work_fragment(StepDTCT, conf.detection_fragm)
+		local mark, step, mod = next_work_step('detectors', tick)
+		if mark then
 			for key, detector in pairs(Detectors) do
-				if (key % conf.detection_fragm == StepDTCT) then
+				if key % mod == step then
 					if detector.valid then
 						local yellowCount = 0
 						local redCount = 0
@@ -303,10 +276,10 @@ local function on_tick(event) -- god function
 		-- Each wisp emits light
 		--------------------------------------
 		if isDarkVal or isFakeDayVal then
-			if tick % conf.wisp_light_interval == 0 then
-				StepLIGTH = next_work_fragment(StepLIGTH, conf.wisp_light_fragm)
+			local mark, step, mod = next_work_step('light', tick)
+			if mark then
 				for key, wisp in pairs(Wisps) do
-					if ((key % conf.wisp_light_fragm == StepLIGTH) and wisp.entity.valid)
+					if (key % mod == step and wisp.entity.valid)
 						and (conf.wisp_spore_emit_light or not wisp_spore_proto_check(wisp.entity.name))
 						and wisp.ttl > 64 then wisp_flash(wisp.entity.position) end
 				end
@@ -317,10 +290,10 @@ local function on_tick(event) -- god function
 		-- UV lights
 		--------------------------------------
 		if next(UvLights) ~= nil then
-			if tick % conf.uv_check_interval == 0 then
-				StepUV = next_work_fragment(StepUV, conf.uv_check_fragm)
+			local mark, step, mod = next_work_step('uv', tick)
+			if mark then
 				for key, uv in pairs(UvLights) do
-					if (key % conf.uv_check_fragm == StepUV) then
+					if key % mod == step then
 						if uv.valid then
 							if uv_light_active(uv) then
 								local energyPercent = uv.energy * 0.00007 -- /14222
@@ -356,10 +329,10 @@ local function on_tick(event) -- god function
 		--------------------------------------
 		-- Wisp TTL routine
 		--------------------------------------
-		if tick % conf.ttl_check_interval == 0 then
-			StepTTL = next_work_fragment(StepTTL, conf.ttl_check_fragm)
+		local mark, step, mod = next_work_step('ttl', tick)
+		if mark then
 			for key, wisp in pairs(Wisps) do
-				if (key % conf.ttl_check_fragm == StepTTL) then
+				if key % mod == step then
 					if wisp.entity.valid then
 						if wisp.ttl  <= 0 then
 							-- remove wisps by TTL expiration
@@ -367,9 +340,7 @@ local function on_tick(event) -- god function
 							table.remove(Wisps, key)
 						else
 							-- TTL decrease with chance to skip iteration at night
-							if not isFullOfTerrorsVal then
-								wisp.ttl = wisp.ttl - conf.ttl_check_interval
-							end
+							if not isFullOfTerrorsVal then wisp.ttl = wisp.ttl - conf.intervals.ttl end
 							-- Chance to nullify TTL at day
 							if not isDarkVal and not isColdVal then
 								wisp.ttl = 0
@@ -389,11 +360,11 @@ local function on_tick(event) -- god function
 		--------------------------------------
 		-- Time to find a company!
 		--------------------------------------
-		if tick % conf.tactical_interval == 0 then
+		if tick % conf.intervals.tactical == 0 then
 			if isDarkVal then
 				local wisp = Wisps[math.random(#Wisps)]
 				if wisp.entity.valid and wisp.entity.type == 'unit' then
-					if wisp.entity.unit_group == nil and wisp.ttl > conf.ttl_check_interval then
+					if wisp.entity.unit_group == nil and wisp.ttl > conf.intervals.ttl then
 						if wisp.entity.name == 'wisp-yellow' then
 							wisp_group_create_or_join(wisp.entity, 'wisp-yellow', 16)
 						elseif wisp.entity.name == 'wisp-red' then
@@ -410,7 +381,7 @@ local function on_tick(event) -- god function
 			--------------------------------------
 			-- Sabotage
 			--------------------------------------
-			if tick % conf.sabotage_interval ~= 0 then
+			if tick % conf.intervals.sabotage ~= 0 then
 				local wisp = Wisps[math.random(#Wisps)]
 				if wisp.entity.valid and wisp.entity.name == 'wisp-purple' then
 					local poles = game.surfaces.nauvis.find_entities_filtered{
@@ -437,10 +408,10 @@ local function on_tick(event) -- god function
 		--------------------------------------
 		-- GC
 		--------------------------------------
-		if tick % 16 ~= 0 then
-			StepGC = next_work_fragment(StepGC, conf.gc_fragm)
+		local mark, step, mod = next_work_step('gc', tick)
+		if mark then
 			for key, wisp in pairs(Wisps) do
-				if (key % conf.gc_fragm == StepGC) and not wisp.entity.valid then
+				if key % mod == step and not wisp.entity.valid then
 					-- remove forcibly destroyed wisps
 					table.remove(Wisps, key)
 				end
@@ -515,22 +486,16 @@ local function init_refs()
 	UvLights = global.uvLights
 	Detectors = global.detectors
 	GlobalEnabled = global.enabled
+	ws = global.workSteps
 
 	targeting.init(global.chunks, global.forests)
-	RecentDayTime = global.recentDayTime
-
-	StepLIGTH = global.stepLIGTH
-	StepTTL = global.stepTTL
-	StepGC = global.stepGC
-	StepUV = global.stepUV
-	StepDTCT = global.stepDTCT
 end
 
 local function apply_version_updates(old_v, new_v)
 	if utils.version_less_than(old_v, '0.0.3') then
 		utils.log('    - Updating TTL/TTU keys in global objects')
 		local function remap_key(o, k_old, k_new, default)
-			if not o[k_new] then o[k_new], o[k_old] = o[k_old], nil end
+			if not o[k_new] then o[k_new], o[k_old] = o[k_old] end
 			if not o[k_new] then o[k_new] = default end
 			if not o[k_new] then utils.log('Empty value after remap [%s -> %s]: %s', k_old, k_new, o) end
 		end
@@ -538,10 +503,19 @@ local function apply_version_updates(old_v, new_v)
 		for _,chunk in pairs(Chunks) do remap_key(chunk, 'TTU', 'ttu') end
 		for _,forest in pairs(Forests) do remap_key(forest, 'TTU', 'ttu') end
 	end
+
+	if utils.version_less_than(old_v, '0.0.7') then
+		for _,k in ipairs{
+				'stepLIGTH', 'stepTTL', 'stepGC',
+				'stepUV', 'stepDTCT', 'recentDayTime' }
+			do global[k] = nil end
+		if not global.workSteps then global.workSteps = {} end
+		ws = global.workSteps
+	end
 end
 
 local function apply_runtime_settings(event)
-	local key, knob = event and event.setting, nil
+	local key, knob = event and event.setting
 	utils.log('Updating runtime settings (change=%s)...', key or '[init]')
 	local function key_update(k) return key and key == k and settings.global[k] end
 
@@ -625,12 +599,7 @@ script.on_init(function()
 	global.detectors = {}
 	global.enabled = true
 
-	global.stepLIGTH = 0
-	global.stepTTL = 0
-	global.stepGC = 0
-	global.stepUV = 0
-	global.stepDTCT = 0
-	global.recentDayTime = 0
+	global.workSteps = {}
 
 	utils.log('Init wisps force...')
 	if not game.forces.wisps then
