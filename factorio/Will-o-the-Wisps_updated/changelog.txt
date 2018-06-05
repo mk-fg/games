@@ -5,6 +5,8 @@ Date: 05. 06. 2018
     - Smooth-out wisp expiration probabilities a bit.
     - Make on_tick scheduling never miss workloads, keeping backlog of these instead.
     - Replace (likely broken) dynamic lighting with random but constant light type per wisp.
+  Bugfixes:
+    - Fix runtime options not being applied on savegame load.
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.9
 Date: 04. 06. 2018

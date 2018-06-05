@@ -523,14 +523,17 @@ end
 
 local function apply_runtime_settings(event)
 	local key, knob = event and event.setting
-	utils.log('Updating runtime settings (change=%s)...', key or '[init]')
-	local function key_update(k) return key and key == k and settings.global[k] end
+	local function key_update(k)
+		if not (not key or key == k) then return end
+		utils.log('Updating runtime option: %s', k)
+		return settings.global[k]
+	end
 
 	knob = key_update('wisps-can-attack')
 	if knob then
 		local v_old, v = conf.peaceful_wisps, not knob.value
 		conf.peaceful_wisps = v
-		if v_old ~= v then
+		if game and v_old ~= v then
 			if v then game.forces.wisps.set_cease_fire(game.forces.player, true) end
 			for key, wisp in pairs(Wisps) do
 				if not wisp.entity.valid or wisp_spore_proto_check(wisp.entity.name) then goto skip end
@@ -543,14 +546,15 @@ local function apply_runtime_settings(event)
 	knob = key_update('defences-shoot-wisps')
 	if knob then
 		conf.peaceful_defences = not knob.value
-		game.forces.player.set_cease_fire(game.forces.wisps, conf.peaceful_defences)
+		if game then game.forces.player
+			.set_cease_fire(game.forces.wisps, conf.peaceful_defences) end
 	end
 
 	knob = key_update('purple-wisp-damage')
 	if knob then
 		local v_old, v = conf.peaceful_spores, not knob.value
 		conf.peaceful_spores = v
-		if v_old ~= v then
+		if game and v_old ~= v then
 			-- Replace all existing spores with harmless/corroding variants
 			wisp_spore_proto = v and 'wisp-purple-harmless' or 'wisp-purple'
 			for key, wisp in pairs(Wisps) do
