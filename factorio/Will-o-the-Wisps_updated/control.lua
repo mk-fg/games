@@ -71,12 +71,16 @@ local function wisp_create_at_random(name, near_entity)
 	end
 end
 
-local wisp_light_opts = {['wisp-yellow']=4, ['wisp-red']=3, ['wisp-purple']=4}
-local function wisp_emit_light(name, pos)
-	if conf.wisp_lights_dynamic then
-		name = string.format('%s-light-%02d', name, math.random(wisp_light_opts[name]))
-	else name = 'wisp-light-generic' end
-	game.surfaces.nauvis.create_entity{name=name, position=pos}
+local function wisp_emit_light(wisp)
+	local light = wisp.light
+	if not light then
+		light = wisp.entity.name
+		light = conf.wisp_light_aliases[light] or light
+		light = string.format( conf.wisp_light_name_fmt,
+			light, math.random(conf.wisp_light_counts[light]) )
+		wisp.light = light
+	end
+	game.surfaces.nauvis.create_entity{name=light, position=wisp.entity.position}
 end
 
 local function wisp_aggression_set(attack)
@@ -178,10 +182,9 @@ end
 local function task_light(iter_step)
 	if game.surfaces.nauvis.darkness < conf.min_darkness_to_emit_light then return end
 	for n, wisp in iter_step(Wisps) do
+		 -- XXX: move table.remove into some gc func?
 		if not wisp.entity.valid then table.remove(Wisps, n); goto skip end
-		if wisp.ttl > 64
-				and (not wisp_spore_proto_check(wisp.entity.name) or conf.wisp_spore_emit_light)
-			then wisp_emit_light(wisp.entity.name, wisp.entity.position) end
+		if wisp.ttl >= conf.wisp_light_min_ttl then wisp_emit_light(wisp) end
 	::skip:: end
 	-- Runs quite often, so doesn't increment workload here, but maybe it should
 end
@@ -189,6 +192,7 @@ end
 local function task_expire(iter_step)
 	local darkness = game.surfaces.nauvis.darkness
 	for n, wisp in iter_step(Wisps) do
+		 -- XXX: move table.remove into some gc func?
 		if not wisp.entity.valid then table.remove(Wisps, n); goto skip end
 		if wisp.ttl  <= 0 then
 			wisp.entity.destroy()
@@ -559,9 +563,6 @@ local function apply_runtime_settings(event)
 			::skip:: end
 		end
 	end
-
-	knob = key_update('dynamic-wisp-lights')
-	if knob then conf.wisp_lights_dynamic = knob.value end
 
 end
 

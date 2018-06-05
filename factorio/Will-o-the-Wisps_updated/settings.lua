@@ -18,10 +18,4 @@ data:extend{
 		type = 'bool-setting',
 		default_value = not conf.peaceful_spores },
 
-	-- { order = '0040',
-	-- 	setting_type = 'runtime-global',
-	-- 	name = 'dynamic-wisp-lights',
-	-- 	type = 'bool-setting',
-	-- 	default_value = conf.wisp_lights_dynamic },
-
 }

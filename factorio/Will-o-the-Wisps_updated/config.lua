@@ -50,13 +50,6 @@ conf.wisp_max_count = 1250
 conf.wisp_purple_dmg = 1
 conf.wisp_purple_area = 2
 
--- Disable glow of the purple wisps to increase performance (set to false)
-conf.wisp_spore_emit_light = true
-
--- Dynamic lights can be annoying and a performance hit as well
--- conf.wisp_lights_diverse = true
-conf.wisp_lights_dynamic = false
-
 -- These values will affect number of the wisps which rise from forests on their own
 -- All values should be in 0-1 range, and sum up to <=1 (<1 will mean more rare spawns)
 -- Defaults: purple=80%, yellow=9%, red=0.5%
@@ -120,13 +113,41 @@ conf.intervals = {
 	detectors=47, light=3, uv=53, expire=59 }
 conf.work_steps = {detectors=4, light=2, uv=5, expire=3}
 
+conf.work_limit_per_tick = 1 -- max 1 task function to run per tick
+
+
 -- wisp_light_anim_speed should be low enough for light to stay around until next update.
 -- animation_speed=1 is "display light for 1 tick only"
--- Formula here:
 -- Note: used in prototypes only, so re-read on factorio restart, not savegame load!
 conf.wisp_light_anim_speed = 1 / (conf.intervals['light'] * conf.work_steps['light'] + 1)
 
-conf.work_limit_per_tick = 1 -- max 1 task function to run per tick
+conf.wisp_light_min_ttl = 64
+
+-- Missing entity info here will mean "no light from this wisp"
+conf.wisp_light_entities = {
+	['wisp-yellow']={
+		{intensity=0.5, size=4},
+		{intensity=0.7, size=6, color={r=0.95, g=0.84, b=0.1}},
+		{intensity=0.4, size=10, color={r=0.7, g=0.5, b=0.3, a=0.7}},
+		{intensity=0.6, size=4, color={r=0.8, g=0.7, b=0.1, a=0.8}}
+	},
+	['wisp-red']={
+		{intensity=0.5, size=4},
+		{intensity=0.3, size=6, color={r=0.95, g=0.0, b=0.8}},
+		{intensity=0.2, size=12, color={r=0.95, g=0.0, b=0.3}}
+	},
+	['wisp-purple']={ -- light from these can be disabled to increase performance
+		{intensity=0.3, size=4, color={r=0.30, g=0.24, b=1.0, a=0.5}},
+		{intensity=0.2, size=10, color={r=0.36, g=0.15, b=0.82, a=0.8}},
+		{intensity=0.5, size=6, color={r=0.40, g=0.05, b=0.80, a=0.6}},
+		{intensity=0.4, size=3, color={r=0.15, g=0.02, b=0.88, a=0.7}}
+	},
+}
+conf.wisp_light_name_fmt = '%s-light-%02d'
+conf.wisp_light_aliases = {['wisp-purple-harmless']='wisp-purple'}
+conf.wisp_light_counts = {}
+for wisp_name, light_info_list in pairs(conf.wisp_light_entities) do
+	conf.wisp_light_counts[wisp_name] = #light_info_list end
 
 
 return conf
