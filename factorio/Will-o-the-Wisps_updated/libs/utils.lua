@@ -49,11 +49,12 @@ function utils.version_less_than(v1, v2)
 	return false
 end
 
-function utils.t(v)
-	-- Helper to make lookup table from a string of keys
-	if type(v) == 'table' then return v end
+function utils.t(s, value)
+	-- Helper to make padded table from other table keys or a string of keys
 	local t = {}
-	v:gsub('(%S+)', function(k) t[k] = true end)
+	if not value then value = true end
+	if type(s) == 'table' then for k,_ in pairs(s) do t[k] = value end
+	else s:gsub('(%S+)', function(k) t[k] = value end) end
 	return t
 end
 

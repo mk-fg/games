@@ -1,4 +1,10 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.0.10
+Date: 05. 06. 2018
+  Changes:
+    - Smooth-out wisp expiration probabilities a bit.
+    - Make on_tick scheduling never miss workloads, keeping backlog of these instead.
+---------------------------------------------------------------------------------------------------
 Version: 0.0.9
 Date: 04. 06. 2018
   Changes:
@@ -13,6 +19,8 @@ Version: 0.0.7
 Date: 03. 06. 2018
   Features:
     - Add colored/flickering lighting mod option, off by default.
+  Changes:
+    - Remove "fake day" mode - not sure how it works, and needs testing.
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.6
 Date: 03. 06. 2018
