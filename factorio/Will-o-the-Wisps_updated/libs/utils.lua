@@ -17,13 +17,22 @@ function utils.f(msg, ...)
 	if #args > 0 then
 		for n = 1,args.n do
 			local v = args[n]
-			if type(v) ~= 'string' then
-				if serpent then v = serpent.line(v, {nocode=true, sparse=true})
-				else v = tostring(v) end
-			end
+			if type(v) == 'table' -- lua is especially unhelpful with these
+				then v = serpent.line(v, {nocode=true, sparse=true}) end
 			fmt_args[n] = v
 		end
-		msg = string.format(msg, table.unpack(fmt_args))
+		local done, res = pcall(string.format, msg, table.unpack(fmt_args))
+		if not done then -- try padding fmt_args with "nil" until it works
+			local res0 = res
+			for n = 1,math.floor((#msg-#fmt_args*2)/2) do
+				if done then goto fixed end
+				if not res:match('%(no value%)') then break end
+				table.insert(fmt_args, 'nil')
+				done, res = pcall(string.format, msg, table.unpack(fmt_args))
+			end
+			error(res0) ::fixed::
+		end
+		msg = res
 	end
 	return msg
 end

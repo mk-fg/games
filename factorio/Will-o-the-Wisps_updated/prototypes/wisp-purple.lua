@@ -43,10 +43,6 @@ data:extend{
 									entity_name = 'wisp-flash-attack',
 									offset = {0, 0},
 									offset_deviation = {{-0.5, -0.5}, {0.5, 0.5}} },
-								{ type = 'create-entity',
-									entity_name = 'wisp-purple-light-01',
-									offset = {0, 0},
-									offset_deviation = {{-0.5, -0.5}, {0.5, 0.5}} },
 								{ type = 'damage',
 									damage = {amount = conf.wisp_purple_dmg, force = 'wisps', type = 'corrosion'} } } } } } }
 		},
@@ -76,25 +72,6 @@ data:extend{
 		duration = conf.wisp_ttl_purple * 12,
 		fade_away_duration = conf.wisp_ttl_purple * 6,
 		spread_duration = 10,
-		color = {r=0.9, g=0.5, b=0.9,a=0.0},
-		action = {
-			type = 'direct',
-			action_delivery = {
-				type = 'instant',
-				target_effects = {
-					type = 'nested-result',
-					action = {
-						type = 'area',
-						radius = conf.wisp_purple_area,
-						entity_flags = {'player-creation'},
-						action_delivery = {
-							type = 'instant',
-							target_effects = {
-								{ type = 'create-entity',
-									entity_name = 'wisp-purple-light-01',
-									offset = {0, 0},
-									offset_deviation = {{-0.5, -0.5}, {0.5, 0.5}} } } } } } }
-		},
-		action_cooldown = 50 },
+		color = {r=0.9, g=0.5, b=0.9,a=0.0} },
 
 }

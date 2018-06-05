@@ -107,13 +107,24 @@ conf.forest_wisp_percent = 0.02
 conf.debug_log = true
 
 
--- Intervals and steps don't really have to be primes, but it might
---  help to space them out on ticks more evenly, with minimal backlog.
+-- Intervals don't really have to be primes, but it might help to
+--  space them out on ticks more evenly, to minimize clashes/backlog.
+---  3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67,
+---  71, 73, 79, 83, 89, 97, 101, 103, 107, 109, 113, 127, 131, 137,
+---  139, 149, 151, 157, 163, 167, 173, 179, 181, 191, 193, 197, 199
+--- 211  223 227 229 233 239 241 251 257 263 269 271 277 281
+--- 283  293 307 311 313 317 331 337 347 349 353
 
 conf.intervals = {
-	zones=11*time_sec, tactics=97, sabotage=107, spawn=317,
-	detectors=47, light=2, uv=53, expire=59, gc=101 }
-conf.work_steps = {detectors=3, light=3, uv=7, expire=3, gc=5}
+	tactics=97, spawn=317, zones=11*time_sec,
+	detectors=47, light=3, uv=53, expire=59 }
+conf.work_steps = {detectors=4, light=2, uv=5, expire=3}
+
+-- wisp_light_anim_speed should be low enough for light to stay around until next update.
+-- animation_speed=1 is "display light for 1 tick only"
+-- Formula here:
+-- Note: used in prototypes only, so re-read on factorio restart, not savegame load!
+conf.wisp_light_anim_speed = 1 / (conf.intervals['light'] * conf.work_steps['light'] + 1)
 
 conf.work_limit_per_tick = 1 -- max 1 task function to run per tick
 

@@ -120,8 +120,8 @@ Easy to fix with mods though, which are one of the best parts of the game.
 - `Will-o'-the-Wisp updated
   <https://mods.factorio.com/mod/Will-o-the-Wisp_updated>`_
 
-  Compatibility update (for Factorio 0.16.x) and minor tweaks to nice
-  `Will-o'-the-Wisp mod <https://mods.factorio.com/mod/Will-o-the-Wisps_updated>`_
+  Compatibility update (for Factorio 0.16.x) and bunch of tweaks to
+  `Will-o'-the-Wisp mod <https://mods.factorio.com/mod/Will-o-the-Wisps>`_
   by Betep3akata, which seem to be abandoned since 0.15.x.
   License: `CC BY-NC-SA <https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode>`_
 

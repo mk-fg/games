@@ -72,7 +72,7 @@ local function wisp_create_at_random(name, near_entity)
 end
 
 local wisp_light_opts = {['wisp-yellow']=4, ['wisp-red']=3, ['wisp-purple']=4}
-local function wisp_light(name, pos)
+local function wisp_emit_light(name, pos)
 	if conf.wisp_lights_dynamic then
 		name = string.format('%s-light-%02d', name, math.random(wisp_light_opts[name]))
 	else name = 'wisp-light-generic' end
@@ -181,12 +181,13 @@ local function task_light(iter_step)
 		if not wisp.entity.valid then table.remove(Wisps, n); goto skip end
 		if wisp.ttl > 64
 				and (not wisp_spore_proto_check(wisp.entity.name) or conf.wisp_spore_emit_light)
-			then wisp_light(wisp.entity.name, wisp.entity.position) end
+			then wisp_emit_light(wisp.entity.name, wisp.entity.position) end
 	::skip:: end
 	-- Runs quite often, so doesn't increment workload here, but maybe it should
 end
 
 local function task_expire(iter_step)
+	local darkness = game.surfaces.nauvis.darkness
 	for n, wisp in iter_step(Wisps) do
 		if not wisp.entity.valid then table.remove(Wisps, n); goto skip end
 		if wisp.ttl  <= 0 then
@@ -195,9 +196,8 @@ local function task_expire(iter_step)
 			goto skip
 		end
 		-- Drop ttl after destroy-check to have wisps live at least one expire-cycle
-		local darkness = game.surfaces.nauvis.darkness
 		if conf.wisp_ttl_expire_chance_func(darkness, wisp) then wisp.ttl = 0
-		elseif not conf.wisp_ttl_extend_chance_func(darkness, wisp)
+		elseif not conf.wisp_chance_func(darkness, wisp)
 			then wisp.ttl = wisp.ttl - conf.intervals.expire end
 	::skip:: end
 	if conf.wisp_peace_chance_func(darkness) then wisp_aggression_set(false) end
@@ -211,13 +211,6 @@ local function task_tactics()
 	if (wisp.entity.valid and wisp.entity.type == 'unit')
 			and (wisp.entity.unit_group == nil and wisp.ttl > conf.intervals.expire) then
 		wisp_group_create_or_join(wisp.entity)
-	end
-	return 1
-end
-
-local function task_gc(iter_step)
-	for n, wisp in pairs(Wisps) do
-		if not wisp.entity.valid then table.remove(Wisps, n) end
 	end
 	return 1
 end
@@ -245,8 +238,6 @@ local function task_sabotage() -- not used
 end
 
 local function task_detectors(iter_step)
-	if not next(Detectors) then return end
-
 	for n, detector in iter_step(Detectors) do
 		if not detector.valid then
 			table.remove(Detectors, n)
@@ -329,7 +320,6 @@ local on_tick_tasks = {
 	light = task_light,
 	uv = task_uv,
 	expire = task_expire,
-	gc = task_gc,
 	tactics = task_tactics,
 	sabotage = task_sabotage }
 local on_tick_backlog = {} -- delayed tasks due to work_limit_per_tick
@@ -349,54 +339,56 @@ local function work_step_iter(step, steps)
 	return iter_func
 end
 
-local function on_tick_run_task(task_name, tt)
+local function on_tick_run_task(task_name)
 	-- Creates iterator to split large lists of entities
 	--  into separate chunks for less on_tick load.
-	if tt % conf.intervals[task_name] ~= 0 then return 0 end
-	local iter_step = conf.work_steps[task_name]
-	if iter_step then
-		local n = (ws[task_name] or -1) + 1
-		if n >= iter_step then n = 0 end
+	local steps, n, iter_step = conf.work_steps[task_name]
+	if steps then
+		n = (ws[task_name] or -1) + 1
+		if n >= steps then n = 0 end
 		ws[task_name] = n
-		iter_step = work_step_iter(n, iter_step)
+		iter_step = work_step_iter(n, steps)
 	end
 	return on_tick_tasks[task_name](iter_step) or 0
+	-- utils.log('tick run task - %s [%s/%s] = %d', task_name, n, steps, tt); return tt
 end
 
-local function on_tick_run(task_name, tt, workload)
-	if workload >= conf.work_limit_per_tick then
-		table.insert(on_tick_backlog, {task_name, tt})
-		return
+local function on_tick_run_backlog(workload)
+	for n, task_name in pairs(on_tick_backlog) do
+		workload, on_tick_backlog[n] = workload + on_tick_run_task(task_name)
+		if workload >= conf.work_limit_per_tick then break end
 	end
-	workload = workload + on_tick_run_task(task_name, tt)
-	if workload <= 0 then
-		for n, task_info in pairs(on_tick_backlog) do
-			task_name, tt = table.unpack(task_info)
-			if not task_name then goto skip end
-			workload, task_info[1] = workload + on_tick_run_task(task_name, tt)
-			if workload > 0 then return workload end
-		::skip:: end
-		on_tick_backlog = {}
-	end
-	if #on_tick_backlog > 100 then
-		-- Should never be more than #on_tick_tasks, unless bugs
-		utils.error('Too many tasks in on_tick backlog \*
-			- most likely a bug in config.lua file of this mod') end
 	return workload
 end
 
+local function on_tick_run(task_name, tt, workload)
+	if tt % conf.intervals[task_name] ~= 0 then return 0 end
+	if workload >= conf.work_limit_per_tick then
+		table.insert(on_tick_backlog, task_name)
+		if #on_tick_backlog > 100 then
+			-- Should never be more than #on_tick_tasks, unless bugs
+			utils.error('Too many tasks in on_tick backlog'..
+				' - most likely a bug in config.lua file of this mod') end
+		-- utils.log( 'tick backlog - %s [workload %d >= %d]',
+		-- 	task_name, workload, conf.work_limit_per_tick )
+		return 0
+	else return workload + on_tick_run_task(task_name) end
+end
+
 local function on_tick(event)
+	-- Performance info from 0.0.10: 0.034-40 with occasional 0.060-80 tasks
 	if not GlobalEnabled then return end
 
-	local tick, wokload = event.tick, 0
-	local function run(task) workload = on_tick_run('spawn', tick, wokload) end
+	local tick, workload = event.tick, 0
+	local function run(task) workload = workload + on_tick_run(task, tick, workload) end
+	workload = on_tick_run_backlog(workload)
 
 	if game.surfaces.nauvis.darkness > conf.min_darkness then
 		run('spawn')
 		run('tactics')
 	else run('zones') end
 
-	run('detectors')
+	if next(Detectors) then run('detectors') end
 
 	if next(Wisps) then
 		run('light')
@@ -404,8 +396,6 @@ local function on_tick(event)
 		run('expire')
 		-- run('sabotage')
 	end
-
-	run('gc')
 end
 
 
@@ -523,6 +513,7 @@ local function apply_version_updates(old_v, new_v)
 
 	if utils.version_less_than(old_v, '0.0.10') then
 		remap_key(ws, 'ttl', 'expire')
+		ws['gc'] = nil
 	end
 end
 
