@@ -46,7 +46,7 @@ local function findForest(forests)
 				for i = 1, math.floor(#forest * conf.forest_wisp_percent) do
 					table.insert(trees, forest[math.random(#forest)])
 				end
-				utils.log('Forest found: '..tostring(chunk.area.left_top.x)..':'..tostring(chunk.area.left_top.y))
+				-- utils.log('Forest found: '..tostring(chunk.area.left_top.x)..':'..tostring(chunk.area.left_top.y))
 				table.insert(Forests, { area=chunk.area,
 					ttu=utils.game_seconds() + conf.zones_chunk_update_interval, target=trees })
 			end

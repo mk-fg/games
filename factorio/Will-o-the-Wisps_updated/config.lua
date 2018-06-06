@@ -29,12 +29,12 @@ conf.wisp_ttl_expire_chance_func = function(darkness, wisp)
 	-- Check is made each "expire" interval * step, chances add up exponentially
 	-- Picked from basic exponent chart, too lazy to fit some curve to these
 	local chance
-	if darkness < 0.30 then chance = 0.02
-	elseif darkness < 0.20 then chance = 0.04
-	elseif darkness < 0.10 then chance = 0.07
+	if darkness < 0.05 then chance = 0.15
 	elseif darkness < 0.08 then chance = 0.10
-	elseif darkness < 0.05 then chance = 0.15 end
-	return chance and math.random() < chance end
+	elseif darkness < 0.10 then chance = 0.07
+	elseif darkness < 0.20 then chance = 0.04
+	elseif darkness < 0.30 then chance = 0.02 end
+	return chance and math.random() < chance * conf.work_steps.expire end
 
 conf.wisp_peace_chance_func = function(darkness)
 	-- Applies to all wisps
@@ -110,7 +110,7 @@ conf.debug_log = true
 
 conf.intervals = {
 	tactics=97, spawn=317, zones=11*time_sec,
-	detectors=47, light=3, uv=53, expire=59 }
+	detectors=47, light=3, uv=53, expire=59, gc=109 }
 conf.work_steps = {detectors=4, light=2, uv=5, expire=3}
 
 conf.work_limit_per_tick = 1 -- max 1 task function to run per tick
@@ -119,9 +119,9 @@ conf.work_limit_per_tick = 1 -- max 1 task function to run per tick
 -- wisp_light_anim_speed should be low enough for light to stay around until next update.
 -- animation_speed=1 is "display light for 1 tick only"
 -- Note: used in prototypes only, so re-read on factorio restart, not savegame load!
-conf.wisp_light_anim_speed = 1 / (conf.intervals['light'] * conf.work_steps['light'] + 1)
+conf.wisp_light_anim_speed = 1 / (conf.intervals.light * conf.work_steps.light + 1)
 
-conf.wisp_light_min_ttl = 64
+conf.wisp_light_min_ttl = conf.intervals.expire
 
 -- Missing entity info here will mean "no light from this wisp"
 conf.wisp_light_entities = {

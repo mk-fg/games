@@ -1,6 +1,12 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.0.11
+Date: 06. 06. 2018
+  Bugfixes:
+    - Fix skipped entity updates in several tasks due to iteration bugs with table.remove.
+    - Fix technology requirements for lamps/detectors, which were likely broken since 0.0.10.
+---------------------------------------------------------------------------------------------------
 Version: 0.0.10
-Date: 05. 06. 2018
+Date: 06. 06. 2018
   Changes:
     - Smooth-out wisp expiration probabilities a bit.
     - Make on_tick scheduling never miss workloads, keeping backlog of these instead.

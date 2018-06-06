@@ -10,7 +10,7 @@ local GlobalEnabled
 local Wisps
 local Chunks
 local Forests
-local UvLights
+local UVLights
 local Detectors
 
 local ws
@@ -44,7 +44,8 @@ local function wisp_init(entity, ttl, key)
 	end
 	entity.force = game.forces.wisps
 	local wisp = {entity=entity, ttl=ttl}
-	if not key then table.insert(Wisps, wisp) else Wisps[key] = wisp end
+	if not key then key = #Wisps + 1 end
+	Wisps[key] = wisp
 end
 
 local function wisp_create(name, surface, position, ttl, key)
@@ -136,14 +137,14 @@ local function get_circuit_input(entity, signal)
 		+ get_circuit_input_wire(entity, signal, defines.wire_type.green)
 end
 
-local function uv_light_init(entity) table.insert(UvLights, entity) end
+local function uv_light_init(entity) UVLights[#UVLights+1] = entity end
 local function uv_light_active(entity)
 	local control  = entity.get_control_behavior()
 	if control and control.valid then return not control.disabled end
 	return true
 end
 
-local function detector_init(entity) table.insert(Detectors, entity) end
+local function detector_init(entity) Detectors[#Detectors] = entity end
 
 
 ------------------------------------------------------------
@@ -182,8 +183,7 @@ end
 local function task_light(iter_step)
 	if game.surfaces.nauvis.darkness < conf.min_darkness_to_emit_light then return end
 	for n, wisp in iter_step(Wisps) do
-		 -- XXX: move table.remove into some gc func?
-		if not wisp.entity.valid then table.remove(Wisps, n); goto skip end
+		if not wisp.entity.valid then goto skip end
 		if wisp.ttl >= conf.wisp_light_min_ttl then wisp_emit_light(wisp) end
 	::skip:: end
 	-- Runs quite often, so doesn't increment workload here, but maybe it should
@@ -191,19 +191,25 @@ end
 
 local function task_expire(iter_step)
 	local darkness = game.surfaces.nauvis.darkness
+	local total, expired = 0, 0
 	for n, wisp in iter_step(Wisps) do
-		 -- XXX: move table.remove into some gc func?
-		if not wisp.entity.valid then table.remove(Wisps, n); goto skip end
+		if not wisp.entity.valid then goto skip end
+		total = total + 1
+
+		-- Destroy one cycle after expire, so that light will be disabled first
 		if wisp.ttl  <= 0 then
 			wisp.entity.destroy()
-			table.remove(Wisps, n)
-			goto skip
+			expired = expired + 1
 		end
-		-- Drop ttl after destroy-check to have wisps live at least one expire-cycle
-		if conf.wisp_ttl_expire_chance_func(darkness, wisp) then wisp.ttl = 0
+
+		if conf.wisp_ttl_expire_chance_func(darkness, wisp) then
+			wisp.ttl = 0
 		elseif not conf.wisp_chance_func(darkness, wisp)
 			then wisp.ttl = wisp.ttl - conf.intervals.expire end
 	::skip:: end
+	-- utils.log( 'Wisp expire stats:'..
+	-- 		' count=%d processed=%d expired=%d %.1f%%',
+	-- 	#Wisps, total, expired, (expired / total) * 100 )
 	if conf.wisp_peace_chance_func(darkness) then wisp_aggression_set(false) end
 	return 1
 end
@@ -243,10 +249,7 @@ end
 
 local function task_detectors(iter_step)
 	for n, detector in iter_step(Detectors) do
-		if not detector.valid then
-			table.remove(Detectors, n)
-			goto skip
-		end
+		if not detector.valid then goto skip end
 
 		-- XXX: selectable range input signal
 		local range = get_circuit_input(detector, 'signal-R')
@@ -265,11 +268,8 @@ local function task_detectors(iter_step)
 				name=wisp_spore_proto, area=utils.get_area(detector.position, range) }
 		end
 
-		local n, params = 0, {}
 		for name, count in pairs(counts) do
-			table.insert( params,
-				{index=n, signal={type='item', name=name}, count=count} )
-			n = n + 1
+			params[#params+1] = {index=#params, signal={type='item', name=name}, count=count}
 		end
 
 		-- XXX: doesn't look right - test it, add total count, other signals
@@ -279,10 +279,10 @@ local function task_detectors(iter_step)
 end
 
 local function task_uv(iter_step)
-	if not next(UvLights) then return end
+	if not next(UVLights) then return end
 
-	for n, uv in iter_step(UvLights) do
-		if not uv.valid then table.remove(UvLights, n); goto skip end
+	for n, uv in iter_step(UVLights) do
+		if not uv.valid then goto skip end
 		if not uv_light_active(uv) then goto skip end
 
 		-- XXX: check how this calculation works out
@@ -310,6 +310,18 @@ local function task_uv(iter_step)
 	return 1
 end
 
+local function task_gc()
+	-- Copying table is always more efficient than table.remove, even in reverse order
+	local list
+	list, Wisps = Wisps, {}
+	for n, e in pairs(list) do if e.entity.valid then Wisps[#Wisps+1] = e end end
+	list, Detectors = Detectors, {}
+	for n, e in pairs(list) do if e.valid then Detectors[#Detectors+1] = e end end
+	list, UVLights = UVLights, {}
+	for n, e in pairs(list) do if e.valid then UVLights[#UVLights+1] = e end end
+	return 1
+end
+
 
 ------------------------------------------------------------
 -- on_tick task scheduler
@@ -325,7 +337,8 @@ local on_tick_tasks = {
 	uv = task_uv,
 	expire = task_expire,
 	tactics = task_tactics,
-	sabotage = task_sabotage }
+	sabotage = task_sabotage,
+	gc = task_gc }
 local on_tick_backlog = {} -- delayed tasks due to work_limit_per_tick
 
 local function work_step_iter(step, steps)
@@ -368,7 +381,7 @@ end
 local function on_tick_run(task_name, tt, workload)
 	if tt % conf.intervals[task_name] ~= 0 then return 0 end
 	if workload >= conf.work_limit_per_tick then
-		table.insert(on_tick_backlog, task_name)
+		on_tick_backlog[#on_tick_backlog+1] = task_name
 		if #on_tick_backlog > 100 then
 			-- Should never be more than #on_tick_tasks, unless bugs
 			utils.error('Too many tasks in on_tick backlog'..
@@ -400,6 +413,8 @@ local function on_tick(event)
 		run('expire')
 		-- run('sabotage')
 	end
+
+	run('gc')
 end
 
 
@@ -484,7 +499,7 @@ local function init_refs()
 	Wisps = global.wisps
 	Chunks = global.chunks
 	Forests = global.forests
-	UvLights = global.uvLights
+	UVLights = global.uvLights
 	Detectors = global.detectors
 	GlobalEnabled = global.enabled
 	ws = global.workSteps

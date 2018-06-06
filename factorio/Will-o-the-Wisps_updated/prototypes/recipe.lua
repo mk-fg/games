@@ -8,7 +8,7 @@ data:extend{
 			{'coal',100},
 		},
 		result = 'alien-flora-sample',
-		enabled = true },
+		enabled = false },
 
 	{ type = 'recipe',
 		name = 'wisp-yellow',
@@ -17,7 +17,7 @@ data:extend{
 			{'raw-wood',100},
 		},
 		result = 'wisp-yellow',
-		enabled = true },
+		enabled = false },
 
 	{ type = 'recipe',
 		name = 'wisp-purple',
@@ -26,7 +26,7 @@ data:extend{
 			{'coal',100},
 		},
 		result = 'wisp-purple',
-		enabled = true },
+		enabled = false },
 
 	{ type = 'recipe',
 		name = 'wisp-red',
@@ -35,7 +35,7 @@ data:extend{
 			{'stone',100},
 		},
 		result = 'wisp-red',
-		enabled = true },
+		enabled = false },
 
 	{ type = 'recipe',
 		name = 'UV-lamp',
@@ -45,7 +45,7 @@ data:extend{
 			{'copper-cable', 8},
 		},
 		result = 'UV-lamp',
-		enabled = true },
+		enabled = false },
 
 	{ type = 'recipe',
 		name = 'wisp-detector',
@@ -61,6 +61,6 @@ data:extend{
 			{'wisp-purple', 3},
 		},
 		result = 'wisp-detector',
-		enabled = true },
+		enabled = false },
 
 }
