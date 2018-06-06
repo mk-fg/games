@@ -11,6 +11,7 @@ function changes.set_corrosion_resistance()
 
 	local affected_prototypes = utils.t('player')
 	local immune_prototypes = utils.t('small-electric-pole')
+
 	local affected_categories = utils.t([[
 		electric-pole radar offshore-pump pump
 		gate wall ammo-turret electric-turret

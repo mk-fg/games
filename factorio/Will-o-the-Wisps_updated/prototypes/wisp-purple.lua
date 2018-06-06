@@ -22,8 +22,8 @@ data:extend{
 		slow_down_factor = 0,
 		affected_by_wind = true,
 		cyclic = true,
-		duration = conf.wisp_ttl_purple * 12,
-		fade_away_duration = conf.wisp_ttl_purple * 6,
+		duration = conf.wisp_ttl['wisp-purple'] * 12,
+		fade_away_duration = conf.wisp_ttl['wisp-purple'] * 6,
 		spread_duration = 10,
 		color = {r=0.9, g=0.5, b=0.9,a=0.0},
 		action = {
@@ -69,8 +69,8 @@ data:extend{
 		slow_down_factor = 0,
 		affected_by_wind = true,
 		cyclic = true,
-		duration = conf.wisp_ttl_purple * 12,
-		fade_away_duration = conf.wisp_ttl_purple * 6,
+		duration = conf.wisp_ttl['wisp-purple-harmless'] * 12,
+		fade_away_duration = conf.wisp_ttl['wisp-purple-harmless'] * 6,
 		spread_duration = 10,
 		color = {r=0.9, g=0.5, b=0.9,a=0.0} },
 

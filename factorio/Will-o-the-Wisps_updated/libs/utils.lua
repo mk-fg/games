@@ -94,10 +94,6 @@ function utils.pick_chance(...)
 	return res
 end
 
-function utils.add_jitter(value, jitter_max)
-	return value + math.random(-jitter_max, jitter_max)
-end
-
 
 function utils.game_seconds()
 	return game.tick / 60 --SEC

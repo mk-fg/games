@@ -6,7 +6,6 @@ local zones = require('libs/zones')
 
 
 -- local references to globals
-local GlobalEnabled
 local Wisps
 local Chunks
 local Forests
@@ -30,17 +29,11 @@ end
 local wisp_spore_proto = 'wisp-purple'
 local function wisp_spore_proto_check(name) return name:match('^wisp%-purple') end
 
-local wisp_init_ttl_values = {
-	['wisp-purple']=conf.wisp_ttl_purple,
-	['wisp-purple-harmless']=conf.wisp_ttl_purple,
-	['wisp-yellow']=conf.wisp_ttl_yellow,
-	['wisp-red']=conf.wisp_ttl_red }
-
 local function wisp_init(entity, ttl, key)
 	if not ttl then
-		ttl = wisp_init_ttl_values[entity.name]
-		if not ttl then return end -- not a wisp
-		ttl = utils.add_jitter(ttl, conf.wisp_ttl_jitter_sec)
+		ttl = conf.wisp_ttl[entity.name]
+		if not ttl then return end -- not a wisp entity
+		ttl = ttl + math.random(-conf.wisp_ttl_jitter_sec, conf.wisp_ttl_jitter_sec)
 	end
 	entity.force = game.forces.wisps
 	local wisp = {entity=entity, ttl=ttl}
@@ -90,31 +83,26 @@ local function wisp_aggression_set(attack)
 	game.forces.wisps.set_cease_fire(game.forces.player, peace)
 end
 
-local wisp_group_radius = {['wisp-yellow']=16, ['wisp-red']=6}
-
 local function wisp_group_create_or_join(unit)
-	local pos, radius = unit.position, wisp_group_radius[unit.name]
-	local unitsNear = game.surfaces.nauvis
-		.find_entities_filtered{name=name, area=utils.get_area(pos, radius)}
-	if next(unitsNear) ~= nil and #unitsNear > 1  then
-		local leader = true
-		for _, unitNear in pairs(unitsNear) do
-			if unitNear.unit_group ~= nil then
-				unitNear.unit_group.add_member(unit)
-				leader = false
-				break
-			end
-		end
-		if leader then
-			local newGroup = game.surfaces.nauvis
-				.create_unit_group{position=pos, force=game.forces.wisps}
-			newGroup.add_member(unit)
-			for _, unitNear in pairs(unitsNear) do newGroup.add_member(unitNear) end
-			if game.forces.wisps.get_cease_fire('player') == false then
-				newGroup.set_autonomous()
-				newGroup.start_moving()
-			end
-		end
+	local pos = unit.position
+	local units_near = game.surfaces.nauvis.find_entities_filtered{
+		name=name, area=utils.get_area(pos, conf.wisp_group_radius[unit.name]) }
+	if not (next(units_near) and #units_near > 1) then return end
+	local leader = true
+	for _, units_near in pairs(units_near) do
+		if not units_near.unit_group then goto skip end
+		units_near.unit_group.add_member(unit)
+		leader = false
+		break
+	::skip:: end
+	if not leader then return end
+	local newGroup = game.surfaces.nauvis
+		.create_unit_group{position=pos, force=game.forces.wisps}
+	newGroup.add_member(unit)
+	for _, unit in pairs(units_near) do newGroup.add_member(unit) end
+	if not game.forces.wisps.get_cease_fire('player') then
+		newGroup.set_autonomous()
+		newGroup.start_moving()
 	end
 end
 
@@ -154,7 +142,7 @@ local function detector_init(entity) Detectors[#Detectors] = entity end
 --  which will reschedule other tasks to next ticks upon reaching work_limit_per_tick.
 
 local function task_scan_zones()
-	zones.prepareTarget()
+	zones.find_new_forest()
 	return 1
 end
 
@@ -163,14 +151,14 @@ local function task_spawn()
 
 	-- wisp spawning near players
 	-- XXX: add wisps spawning from rocks too
-	local trees = zones.getTreesNearPlayers()
+	local trees = zones.get_wisp_trees_near_players()
 	for _, tree in pairs(trees) do wisp_create_at_random('wisp-yellow', tree) end
 
 	if #Wisps >= conf.wisp_max_count * conf.wisp_percent_in_random_forests
 		then return end
 
 	-- wisp spawning in random forests
-	for _, tree in pairs(zones.getTreesEverywhere() or {}) do
+	for _, tree in pairs(zones.get_wisp_trees_anywhere() or {}) do
 		local wisp_name = utils.pick_chance{
 			[wisp_spore_proto]=conf.wisp_purple_spawn_chance,
 			['wisp-yellow']=conf.wisp_yellow_spawn_chance,
@@ -219,7 +207,7 @@ local function task_tactics()
 	if not next(Wisps) then return end
 	local wisp = Wisps[math.random(#Wisps)]
 	if (wisp.entity.valid and wisp.entity.type == 'unit')
-			and (wisp.entity.unit_group == nil and wisp.ttl > conf.intervals.expire) then
+			and (not wisp.entity.unit_group and wisp.ttl > conf.intervals.expire) then
 		wisp_group_create_or_join(wisp.entity)
 	end
 	return 1
@@ -231,7 +219,7 @@ local function task_sabotage() -- not used
 		local poles = game.surfaces.nauvis.find_entities_filtered{
 			type='electric-pole', limit=1,
 			area=utils.get_area(wisp.entity.position, conf.sabotage_range) }
-		if next(poles) ~= nil then
+		if next(poles) then
 			local pos = poles[1].position
 			pos.x = pos.x + math.random(-4, 4) * 0.1
 			pos.y = pos.y + math.random(-5, 5) * 0.1
@@ -291,7 +279,7 @@ local function task_uv(iter_step)
 		if energyPercent > 0.2 then
 			local wisps = game.surfaces.nauvis.find_entities_filtered{
 				force='wisps', type='unit', area=utils.get_area(uv.position, conf.uv_range) }
-			if next(wisps) ~= nil then
+			if next(wisps) then
 				local currentUvDmg = (conf.uv_dmg + math.random(3)) * energyPercent
 				for _, wisp in pairs(wisps) do
 					wisp.damage(math.floor(currentUvDmg), game.forces.player, 'fire')
@@ -301,7 +289,7 @@ local function task_uv(iter_step)
 			if energyPercent > 0.6 then
 				local spores = game.surfaces.nauvis.find_entities_filtered{
 					name='wisp-purple', area=utils.get_area(uv.position, conf.uv_range) }
-				if next(spores) ~= nil then for _, spore in pairs(spores) do
+				if next(spores) then for _, spore in pairs(spores) do
 					if utils.pick_chance(energyPercent - 0.55) then spore.destroy() end
 				end end
 			end
@@ -393,9 +381,6 @@ local function on_tick_run(task_name, tt, workload)
 end
 
 local function on_tick(event)
-	-- Performance info from 0.0.10: 0.034-40 with occasional 0.060-80 tasks
-	if not GlobalEnabled then return end
-
 	local tick, workload = event.tick, 0
 	local function run(task) workload = workload + on_tick_run(task, tick, workload) end
 	workload = on_tick_run_backlog(workload)
@@ -423,17 +408,16 @@ end
 ------------------------------------------------------------
 
 local function on_death(event)
-	if not GlobalEnabled then return end
 	if entity_is_tree(event.entity) then wisp_create_at_random('wisp-yellow', event.entity) end
 	if entity_is_rock(event.entity) then wisp_create_at_random('wisp-red', event.entity) end
 	if event.entity.name == 'wisp-red' or event.entity.name == 'wisp-yellow' then
 		wisp_aggression_set(true)
-		wisp_create(wisp_spore_proto, event.entity.surface, event.entity.position)
+		if game.surfaces.nauvis.darkness >= conf.min_darkness
+			then wisp_create(wisp_spore_proto, event.entity.surface, event.entity.position) end
 	end
 end
 
 local function on_mined_entity(event)
-	if not GlobalEnabled then return end
 	if entity_is_tree(event.entity) then wisp_create_at_random('wisp-yellow', event.entity) end
 	if entity_is_rock(event.entity) then wisp_create_at_random('wisp-red', event.entity) end
 end
@@ -501,8 +485,10 @@ local function init_refs()
 	Forests = global.forests
 	UVLights = global.uvLights
 	Detectors = global.detectors
-	GlobalEnabled = global.enabled
 	ws = global.workSteps
+	utils.log(
+		'wisps=%d chunks=%d forests=%d uvs=%d detectors=%d',
+		#Wisps, #Chunks, #Forests, #UVLights, #Detectors )
 
 	zones.init(global.chunks, global.forests)
 end
@@ -511,7 +497,6 @@ local function apply_version_updates(old_v, new_v)
 	local function remap_key(o, k_old, k_new, default)
 		if not o[k_new] then o[k_new], o[k_old] = o[k_old] end
 		if not o[k_new] then o[k_new] = default end
-		if not o[k_new] then utils.log('Empty value after remap [%s -> %s]: %s', k_old, k_new, o) end
 	end
 
 	if utils.version_less_than(old_v, '0.0.3') then
@@ -624,12 +609,9 @@ script.on_init(function()
 	utils.log('Init globals...')
 	global.wisps = {}
 	global.chunks = {}
-
 	global.forests = {}
 	global.uvLights = {}
 	global.detectors = {}
-	global.enabled = true
-
 	global.workSteps = {}
 
 	utils.log('Init wisps force...')

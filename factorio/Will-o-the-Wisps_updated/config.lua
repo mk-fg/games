@@ -73,9 +73,14 @@ conf.detection_range = 16
 
 -- Misc other constants
 
-conf.wisp_ttl_purple = 120 * time_sec
-conf.wisp_ttl_yellow = 100 * time_sec
+conf.wisp_ttl = {
+	['wisp-purple']=120 * time_sec,
+	['wisp-purple-harmless']=120 * time_sec,
+	['wisp-yellow']=100 * time_sec,
+	['wisp-red']=100 * time_sec }
 conf.wisp_ttl_jitter_sec = 40 * time_sec -- -40;+40
+
+conf.wisp_group_radius = {['wisp-yellow']=16, ['wisp-red']=6}
 
 conf.sabotage_range = 3
 
@@ -89,7 +94,7 @@ conf.zones_chunk_update_interval = 3 * time_gameday
 conf.wisp_percent_in_random_forests = 0.8
 conf.wisp_replication_chance = 0.2
 
-conf.forest_count_with_wisps = 7
+conf.forest_count = 7
 conf.forest_min_density = 200
 conf.forest_wisp_percent = 0.02
 
