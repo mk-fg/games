@@ -56,7 +56,7 @@ local function wisp_create_at_random(name, near_entity)
 	-- Create wisp based on conf.wisp_chance_func()
 	local e = near_entity
 	if not ( e and e.valid
-		and conf.wisp_chance_func(game.surfaces.nauvis.darkness) ) then return end
+		and conf.wisp_chance_func(e.surface.darkness) ) then return end
 	e = wisp_create(name, e.surface, e.position)
 	if e and not wisp_spore_proto_check(name) then
 		e.set_command{
@@ -74,13 +74,13 @@ local function wisp_emit_light(wisp)
 			light, math.random(conf.wisp_light_counts[light]) )
 		wisp.light = light
 	end
-	game.surfaces.nauvis.create_entity{name=light, position=wisp.entity.position}
+	wisp.entity.surface.create_entity{name=light, position=wisp.entity.position}
 end
 
-local function wisp_aggression_set(attack)
+local function wisp_aggression_set(surface, attack)
 	local peace = true
 	if attack
-			and not game.surfaces.nauvis.peaceful_mode
+			and not surface.peaceful_mode
 			and not conf.peaceful_wisps
 		then peace = false end
 	game.forces.wisps.set_cease_fire(game.forces.player, peace)
@@ -88,7 +88,7 @@ end
 
 local function wisp_group_create_or_join(unit)
 	local pos = unit.position
-	local units_near = game.surfaces.nauvis.find_entities_filtered{
+	local units_near = unit.surface.find_entities_filtered{
 		name=name, area=utils.get_area(pos, conf.wisp_group_radius[unit.name]) }
 	if not (next(units_near) and #units_near > 1) then return end
 	local leader = true
@@ -99,7 +99,7 @@ local function wisp_group_create_or_join(unit)
 		break
 	::skip:: end
 	if not leader then return end
-	local newGroup = game.surfaces.nauvis
+	local newGroup = unit.surface
 		.create_unit_group{position=pos, force=game.forces.wisps}
 	newGroup.add_member(unit)
 	for _, unit in pairs(units_near) do newGroup.add_member(unit) end
@@ -144,12 +144,12 @@ local function detector_init(entity) Detectors[#Detectors] = entity end
 -- Each one can return number to add to "workload" counter in on_tick,
 --  which will reschedule other tasks to next ticks upon reaching work_limit_per_tick.
 
-local function task_scan_zones()
+local function task_scan_zones(surface)
 	zones.find_new_forest()
 	return 1
 end
 
-local function task_spawn()
+local function task_spawn(surface)
 	if #Wisps >= conf.wisp_max_count then return end
 
 	-- wisp spawning near players
@@ -171,8 +171,8 @@ local function task_spawn()
 	return 1 -- this part can be heavy
 end
 
-local function task_light(iter_step)
-	if game.surfaces.nauvis.darkness < conf.min_darkness_to_emit_light then return end
+local function task_light(surface, iter_step)
+	if surface.darkness < conf.min_darkness_to_emit_light then return end
 	for n, wisp in iter_step(Wisps) do
 		if not wisp.entity.valid then goto skip end
 		if wisp.ttl >= conf.wisp_light_min_ttl then wisp_emit_light(wisp) end
@@ -180,8 +180,8 @@ local function task_light(iter_step)
 	-- Runs quite often, so doesn't increment workload here, but maybe it should
 end
 
-local function task_expire(iter_step)
-	local darkness = game.surfaces.nauvis.darkness
+local function task_expire(surface, iter_step)
+	local darkness = surface.darkness
 	local total, expired = 0, 0
 	for n, wisp in iter_step(Wisps) do
 		if not wisp.entity.valid then goto skip end
@@ -201,12 +201,13 @@ local function task_expire(iter_step)
 	-- utils.log( 'Wisp expire stats:'..
 	-- 		' count=%d processed=%d expired=%d %.1f%%',
 	-- 	#Wisps, total, expired, (expired / total) * 100 )
-	if conf.wisp_peace_chance_func(darkness) then wisp_aggression_set(false) end
+	if conf.wisp_peace_chance_func(darkness)
+		then wisp_aggression_set(surface, false) end
 	return 1
 end
 
-local function task_tactics()
-	if game.surfaces.nauvis.darkness > conf.min_darkness then return end
+local function task_tactics(surface)
+	if surface.darkness > conf.min_darkness then return end
 	if not next(Wisps) then return end
 	local wisp = Wisps[math.random(#Wisps)]
 	if (wisp.entity.valid and wisp.entity.type == 'unit')
@@ -216,18 +217,18 @@ local function task_tactics()
 	return 1
 end
 
-local function task_sabotage() -- not used
+local function task_sabotage(surface) -- not used
 	local wisp = Wisps[math.random(#Wisps)]
 	if wisp.entity.valid and wisp.entity.name == 'wisp-purple' then
-		local poles = game.surfaces.nauvis.find_entities_filtered{
+		local poles = surface.find_entities_filtered{
 			type='electric-pole', limit=1,
 			area=utils.get_area(wisp.entity.position, conf.sabotage_range) }
 		if next(poles) then
 			local pos = poles[1].position
 			pos.x = pos.x + math.random(-4, 4) * 0.1
 			pos.y = pos.y + math.random(-5, 5) * 0.1
-			local wispAttached = game.surfaces.nauvis
-				.create_entity{name = 'wisp-attached', position = pos , force = 'wisps'}
+			local wispAttached = surface.create_entity{
+				name = 'wisp-attached', position = pos, force = 'wisps' }
 			if wispAttached then
 				local oldEntity = wisp.entity
 				wisp.entity = wispAttached
@@ -238,7 +239,7 @@ local function task_sabotage() -- not used
 	return 1
 end
 
-local function task_detectors(iter_step)
+local function task_detectors(surface, iter_step)
 	for n, detector in iter_step(Detectors) do
 		if not detector.valid then goto skip end
 
@@ -251,11 +252,11 @@ local function task_detectors(iter_step)
 
 		local counts = {}
 		if next(Wisps) then
-			local wisps = game.surfaces.nauvis.find_entities_filtered{
+			local wisps = surface.find_entities_filtered{
 				force='wisps', area=utils.get_area(detector.position, range) }
 			for _, wisp in pairs(wisps)
 				do counts[wisp.name] = (counts[wisp.name] or 0) + 1 end
-			counts['wisp-purple'] = game.surfaces.nauvis.count_entities_filtered{
+			counts['wisp-purple'] = surface.count_entities_filtered{
 				name=wisp_spore_proto, area=utils.get_area(detector.position, range) }
 		end
 
@@ -269,7 +270,7 @@ local function task_detectors(iter_step)
 	return 1
 end
 
-local function task_uv(iter_step)
+local function task_uv(surface, iter_step)
 	if not next(UVLights) then return end
 
 	for n, uv in iter_step(UVLights) do
@@ -280,7 +281,7 @@ local function task_uv(iter_step)
 		local energyPercent = uv.energy * 0.00007 -- /14222
 
 		if energyPercent > 0.2 then
-			local wisps = game.surfaces.nauvis.find_entities_filtered{
+			local wisps = surface.find_entities_filtered{
 				force='wisps', type='unit', area=utils.get_area(uv.position, conf.uv_range) }
 			if next(wisps) then
 				local currentUvDmg = (conf.uv_dmg + math.random(3)) * energyPercent
@@ -290,7 +291,7 @@ local function task_uv(iter_step)
 			end
 
 			if energyPercent > 0.6 then
-				local spores = game.surfaces.nauvis.find_entities_filtered{
+				local spores = surface.find_entities_filtered{
 					name='wisp-purple', area=utils.get_area(uv.position, conf.uv_range) }
 				if next(spores) then for _, spore in pairs(spores) do
 					if utils.pick_chance(energyPercent - 0.55) then spore.destroy() end
@@ -347,7 +348,7 @@ local function work_step_iter(step, steps)
 	return iter_func
 end
 
-local function on_tick_run_task(task_name)
+local function on_tick_run_task(surface, task_name)
 	-- Creates iterator to split large lists of entities
 	--  into separate chunks for less on_tick load.
 	local steps, n, iter_step = conf.work_steps[task_name]
@@ -357,19 +358,19 @@ local function on_tick_run_task(task_name)
 		ws[task_name] = n
 		iter_step = work_step_iter(n, steps)
 	end
-	return on_tick_tasks[task_name](iter_step) or 0
+	return on_tick_tasks[task_name](surface, iter_step) or 0
 	-- utils.log('tick run task - %s [%s/%s] = %d', task_name, n, steps, tt); return tt
 end
 
-local function on_tick_run_backlog(workload)
+local function on_tick_run_backlog(surface, workload)
 	for n, task_name in pairs(on_tick_backlog) do
-		workload, on_tick_backlog[n] = workload + on_tick_run_task(task_name)
+		workload, on_tick_backlog[n] = workload + on_tick_run_task(surface, task_name)
 		if workload >= conf.work_limit_per_tick then break end
 	end
 	return workload
 end
 
-local function on_tick_run(task_name, tt, workload)
+local function on_tick_run(surface, task_name, tt, workload)
 	if tt % conf.intervals[task_name] ~= 0 then return 0 end
 	if workload >= conf.work_limit_per_tick then
 		on_tick_backlog[#on_tick_backlog+1] = task_name
@@ -380,15 +381,18 @@ local function on_tick_run(task_name, tt, workload)
 		-- utils.log( 'tick backlog - %s [workload %d >= %d]',
 		-- 	task_name, workload, conf.work_limit_per_tick )
 		return 0
-	else return workload + on_tick_run_task(task_name) end
+	else return workload + on_tick_run_task(surface, task_name) end
 end
 
 local function on_tick(event)
+	-- XXX: backlog can be on diff surface
+	local surface = game.surfaces[conf.surface_name]
 	local tick, workload = event.tick, 0
-	local function run(task) workload = workload + on_tick_run(task, tick, workload) end
-	workload = on_tick_run_backlog(workload)
+	local function run(task)
+		workload = workload + on_tick_run(surface, task, tick, workload) end
+	workload = on_tick_run_backlog(surface, workload)
 
-	if game.surfaces.nauvis.darkness > conf.min_darkness then
+	if surface.darkness > conf.min_darkness then
 		run('spawn')
 		run('tactics')
 	else run('zones') end
@@ -414,7 +418,7 @@ local function on_death(event)
 	if entity_is_tree(event.entity) then wisp_create_at_random('wisp-yellow', event.entity) end
 	if entity_is_rock(event.entity) then wisp_create_at_random('wisp-red', event.entity) end
 	if event.entity.name == 'wisp-red' or event.entity.name == 'wisp-yellow' then
-		wisp_aggression_set(true)
+		wisp_aggression_set(event.entity.surface, true)
 		if game.surfaces.nauvis.darkness >= conf.min_darkness
 			then wisp_create(wisp_spore_proto, event.entity.surface, event.entity.position) end
 	end
@@ -447,7 +451,8 @@ local function on_built_entity(event)
 end
 
 local function on_chunk_generated(event)
-	if event.surface.index == 1 then zones.add_chunk(event.area) end
+	if event.surface.index ~= conf.surface_index then return end
+	zones.add_chunk(event.surface, event.area)
 end
 
 
@@ -580,7 +585,7 @@ end)
 
 script.on_configuration_changed(function(data)
 	utils.log(' - Refreshing chunks...')
-	zones.refresh_chunks()
+	zones.refresh_chunks(game.surfaces[conf.surface_name])
 
 	local update = data.mod_changes and data.mod_changes[script.mod_name]
 	if not update then return end

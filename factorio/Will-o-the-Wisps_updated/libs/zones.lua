@@ -18,8 +18,8 @@ local function get_any_chunk()
 	end
 end
 
-local function get_forest_in_area(area)
-	local forest = game.surfaces.nauvis.find_entities_filtered{type='tree', area=area}
+local function get_forest_in_area(surface, area)
+	local forest = surface.find_entities_filtered{type='tree', area=area}
 	if #forest > conf.forest_min_density then return forest end
 end
 
@@ -35,7 +35,7 @@ function zones.find_new_forest()
 	if #Forests >= conf.forest_count then return end
 	local chunk = get_any_chunk()
 	if not chunk then return end
-	local forest = get_forest_in_area(chunk.area)
+	local forest = get_forest_in_area(chunk.surface, chunk.area)
 	if forest then
 		local trees = {}
 		for i = 1, math.floor(#forest * conf.forest_wisp_percent)
@@ -55,7 +55,7 @@ function zones.get_wisp_trees_near_players()
 	local wisp_trees = {}
 	for _, player in pairs(game.players) do
 		if not (player.valid and player.connected) then goto skip end
-		local forest = get_forest_in_area(
+		local forest = get_forest_in_area( player.surface,
 			utils.get_area(player.position, conf.zones_forest_distance) )
 		if not forest then goto skip end
 		for i = 1,  math.floor(#forest * conf.forest_wisp_percent)
@@ -64,16 +64,16 @@ function zones.get_wisp_trees_near_players()
 	return wisp_trees
 end
 
-local function zones.add_chunk(area)
+function zones.add_chunk(surface, area)
 	Chunks[#Chunks+1] = {area=area, ttu=-1}
 end
 
-function zones.refresh_chunks()
+function zones.refresh_chunks(surface)
 	for n = 1, #Chunks do Chunks[n] = nil end
-	for chunk in game.surfaces.nauvis.get_chunks() do
-		zones.add_chunk{
-			left_top={chunk.x*32, chunk.y*32},
-			right_bottom={(chunk.x+1)*32, (chunk.y+1)*32} }
+	for chunk in surface.get_chunks() do
+		zones.add_chunk( surface,
+			{ left_top={chunk.x*32, chunk.y*32},
+				right_bottom={(chunk.x+1)*32, (chunk.y+1)*32} } )
 	end
 end
 

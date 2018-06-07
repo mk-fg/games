@@ -97,6 +97,10 @@ conf.forest_count = 7
 conf.forest_min_density = 200
 conf.forest_wisp_percent = 0.02
 
+-- Code can mostly handle multiple surfaces, but why bother
+conf.surface_name = 'nauvis'
+conf.surface_index = 1
+
 
 -- debug_log file path: %user-dir%/script-output/Will-o-the-wisps_updated/debug.log
 -- To find %user-dir% see https://wiki.factorio.com/Application_directory#User_data_directory
