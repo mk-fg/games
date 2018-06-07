@@ -11,8 +11,10 @@ local Chunks
 local Forests
 local UVLights
 local Detectors
-
 local ws
+
+-- wisp_surface must only be used directly on entry points, and passed from there
+local wisp_surface
 
 
 ------------------------------------------------------------
@@ -305,12 +307,18 @@ end
 local function task_gc()
 	-- Copying table is always more efficient than table.remove, even in reverse order
 	local list
-	list, Wisps = Wisps, {}
-	for n, e in pairs(list) do if e.entity.valid then Wisps[#Wisps+1] = e end end
-	list, Detectors = Detectors, {}
-	for n, e in pairs(list) do if e.valid then Detectors[#Detectors+1] = e end end
-	list, UVLights = UVLights, {}
-	for n, e in pairs(list) do if e.valid then UVLights[#UVLights+1] = e end end
+	if next(Wisps) then
+		list, Wisps = Wisps, {}
+		for n, e in pairs(list) do if e.entity.valid then Wisps[#Wisps+1] = e end end
+	end
+	if next(Detectors) then
+		list, Detectors = Detectors, {}
+		for n, e in pairs(list) do if e.valid then Detectors[#Detectors+1] = e end end
+	end
+	if next(UVLights) then
+		list, UVLights = UVLights, {}
+		for n, e in pairs(list) do if e.valid then UVLights[#UVLights+1] = e end end
+	end
 	return 1
 end
 
@@ -362,9 +370,9 @@ local function on_tick_run_task(surface, task_name)
 	-- utils.log('tick run task - %s [%s/%s] = %d', task_name, n, steps, tt); return tt
 end
 
-local function on_tick_run_backlog(surface, workload)
-	for n, task_name in pairs(on_tick_backlog) do
-		workload, on_tick_backlog[n] = workload + on_tick_run_task(surface, task_name)
+local function on_tick_run_backlog(workload)
+	for n, task in pairs(on_tick_backlog) do
+		workload, on_tick_backlog[n] = workload + on_tick_run_task(task.surface, task.name)
 		if workload >= conf.work_limit_per_tick then break end
 	end
 	return workload
@@ -373,7 +381,7 @@ end
 local function on_tick_run(surface, task_name, tt, workload)
 	if tt % conf.intervals[task_name] ~= 0 then return 0 end
 	if workload >= conf.work_limit_per_tick then
-		on_tick_backlog[#on_tick_backlog+1] = task_name
+		on_tick_backlog[#on_tick_backlog+1] = {surface=surface, name=task_name}
 		if #on_tick_backlog > 100 then
 			-- Should never be more than #on_tick_tasks, unless bugs
 			utils.error('Too many tasks in on_tick backlog'..
@@ -385,23 +393,24 @@ local function on_tick_run(surface, task_name, tt, workload)
 end
 
 local function on_tick(event)
-	-- XXX: backlog can be on diff surface
-	local surface = game.surfaces[conf.surface_name]
-	local tick, workload = event.tick, 0
+	local surface, tick, workload = wisp_surface, event.tick, 0
 	local function run(task)
 		workload = workload + on_tick_run(surface, task, tick, workload) end
-	workload = on_tick_run_backlog(surface, workload)
+	workload = on_tick_run_backlog(workload)
 
-	if surface.darkness > conf.min_darkness then
+	local is_dark = surface.darkness > conf.min_darkness
+	local wisps, uvlights, detectors = next(Wisps), next(UVLights), next(Detectors)
+
+	if is_dark then
 		run('spawn')
 		run('tactics')
+		if wisps then run('light') end
 	else run('zones') end
 
-	if next(Detectors) then run('detectors') end
+	if detectors then run('detectors') end
 
-	if next(Wisps) then
-		run('light')
-		run('uv')
+	if wisps then
+		if uvlights then run('uv') end
 		run('expire')
 		-- run('sabotage')
 	end
@@ -411,7 +420,7 @@ end
 
 
 ------------------------------------------------------------
--- Other event handlers
+-- Event handlers
 ------------------------------------------------------------
 
 local function on_death(event)
@@ -451,8 +460,27 @@ local function on_built_entity(event)
 end
 
 local function on_chunk_generated(event)
-	if event.surface.index ~= conf.surface_index then return end
+	if event.surface.index ~= wisp_surface.index then return end
 	zones.add_chunk(event.surface, event.area)
+end
+
+local function on_tick_init(event)
+	wisp_surface = game.surfaces[conf.surface_name]
+
+	script.on_event(defines.events.on_entity_died, on_death)
+	script.on_event(defines.events.on_pre_player_mined_item, on_mined_entity)
+	script.on_event(defines.events.on_robot_pre_mined, on_mined_entity)
+	script.on_event(defines.events.on_built_entity, on_built_entity)
+	script.on_event(defines.events.on_robot_built_entity, on_built_entity)
+	script.on_event(defines.events.on_chunk_generated, on_chunk_generated)
+	script.on_event(defines.events.on_trigger_created_entity, on_trigger_created)
+	script.on_event(defines.events.on_runtime_mod_setting_changed, apply_runtime_settings)
+
+	-- script.on_nth_tick can be used here,
+	--  but central on_tick can de-duplicate bunch of common checks,
+	--  like check darkness level and skip bunch of stuff based on that.
+	script.on_event(defines.events.on_tick, on_tick)
+	on_tick(event)
 end
 
 
@@ -493,7 +521,7 @@ local function init_refs()
 	Detectors = global.detectors
 	ws = global.workSteps
 	utils.log(
-		'wisps=%d chunks=%d forests=%d uvs=%d detectors=%d',
+		' - Stats: wisps=%d chunks=%d forests=%d uvs=%d detectors=%d',
 		#Wisps, #Chunks, #Forests, #UVLights, #Detectors )
 
 	zones.init(global.chunks, global.forests)
@@ -584,7 +612,7 @@ script.on_load(function()
 end)
 
 script.on_configuration_changed(function(data)
-	utils.log(' - Refreshing chunks...')
+	utils.log('Refreshing chunks...')
 	zones.refresh_chunks(game.surfaces[conf.surface_name])
 
 	local update = data.mod_changes and data.mod_changes[script.mod_name]
@@ -624,13 +652,4 @@ script.on_init(function()
 	apply_runtime_settings()
 end)
 
-
-script.on_event(defines.events.on_tick, on_tick)
-script.on_event(defines.events.on_entity_died, on_death)
-script.on_event(defines.events.on_pre_player_mined_item, on_mined_entity)
-script.on_event(defines.events.on_robot_pre_mined, on_mined_entity)
-script.on_event(defines.events.on_built_entity, on_built_entity)
-script.on_event(defines.events.on_robot_built_entity, on_built_entity)
-script.on_event(defines.events.on_chunk_generated, on_chunk_generated)
-script.on_event(defines.events.on_trigger_created_entity, on_trigger_created)
-script.on_event(defines.events.on_runtime_mod_setting_changed, apply_runtime_settings)
+script.on_event(defines.events.on_tick, on_tick_init)
