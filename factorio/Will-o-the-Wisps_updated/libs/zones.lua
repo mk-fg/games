@@ -65,7 +65,7 @@ function zones.get_wisp_trees_near_players()
 end
 
 function zones.add_chunk(surface, area)
-	Chunks[#Chunks+1] = {area=area, ttu=-1}
+	Chunks[#Chunks+1] = {area=area, surface=surface, ttu=-1}
 end
 
 function zones.refresh_chunks(surface)
@@ -77,10 +77,6 @@ function zones.refresh_chunks(surface)
 	end
 end
 
-function zones.init(chunks, forests)
-	utils.log('Init zones module...')
-	Chunks = chunks
-	Forests = forests
-end
+function zones.init(chunks, forests) Chunks, Forests = chunks, forests end
 
 return zones

@@ -117,10 +117,10 @@ conf.debug_log = true
 
 conf.intervals = {
 	tactics=97, spawn=317, zones=11*time_sec,
-	detectors=47, light=3, uv=53, expire=59, gc=109 }
+	detectors=47, light=3, uv=53, expire=59 }
 conf.work_steps = {detectors=4, light=2, uv=5, expire=3}
 
-conf.work_limit_per_tick = 1 -- max 1 task function to run per tick
+conf.work_limit_per_tick = 20
 
 
 -- wisp_light_anim_speed should be low enough for light to stay around until next update.
