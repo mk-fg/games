@@ -94,7 +94,7 @@ local function wisp_group_create_or_join(unit)
 		name=name, area=utils.get_area(pos, conf.wisp_group_radius[unit.name]) }
 	if not (next(units_near) and #units_near > 1) then return end
 	local leader = true
-	for _, units_near in pairs(units_near) do
+	for _, units_near in ipairs(units_near) do
 		if not units_near.unit_group then goto skip end
 		units_near.unit_group.add_member(unit)
 		leader = false
@@ -104,7 +104,7 @@ local function wisp_group_create_or_join(unit)
 	local newGroup = unit.surface
 		.create_unit_group{position=pos, force=game.forces.wisps}
 	newGroup.add_member(unit)
-	for _, unit in pairs(units_near) do newGroup.add_member(unit) end
+	for _, unit in ipairs(units_near) do newGroup.add_member(unit) end
 	if not game.forces.wisps.get_cease_fire('player') then
 		newGroup.set_autonomous()
 		newGroup.start_moving()
@@ -119,7 +119,7 @@ end
 local function get_circuit_input_wire(entity, signal, wire)
 	local net = entity.get_circuit_network(wire)
 	if net and net.signals then
-		for _, input in pairs(net.signals) do
+		for _, input in ipairs(net.signals) do
 			if input.signal.name == signal then return input.count end
 		end
 	end
@@ -157,13 +157,13 @@ local function task_spawn(surface)
 	-- wisp spawning near players
 	-- XXX: add wisps spawning from rocks too
 	local trees = zones.get_wisp_trees_near_players()
-	for _, tree in pairs(trees) do wisp_create_at_random('wisp-yellow', tree) end
+	for _, tree in ipairs(trees) do wisp_create_at_random('wisp-yellow', tree) end
 
 	if #Wisps >= conf.wisp_max_count * conf.wisp_percent_in_random_forests
 		then return end
 
 	-- wisp spawning in random forests
-	for _, tree in pairs(zones.get_wisp_trees_anywhere() or {}) do
+	for _, tree in ipairs(zones.get_wisp_trees_anywhere() or {}) do
 		local wisp_name = utils.pick_chance{
 			[wisp_spore_proto]=conf.wisp_purple_spawn_chance,
 			['wisp-yellow']=conf.wisp_yellow_spawn_chance,
@@ -256,7 +256,7 @@ local function task_detectors(surface, iter_step)
 		if next(Wisps) then
 			local wisps = surface.find_entities_filtered{
 				force='wisps', area=utils.get_area(detector.position, range) }
-			for _, wisp in pairs(wisps)
+			for _, wisp in ipairs(wisps)
 				do counts[wisp.name] = (counts[wisp.name] or 0) + 1 end
 			counts['wisp-purple'] = surface.count_entities_filtered{
 				name=wisp_spore_proto, area=utils.get_area(detector.position, range) }
@@ -287,7 +287,7 @@ local function task_uv(surface, iter_step)
 				force='wisps', type='unit', area=utils.get_area(uv.position, conf.uv_range) }
 			if next(wisps) then
 				local currentUvDmg = (conf.uv_dmg + math.random(3)) * energyPercent
-				for _, wisp in pairs(wisps) do
+				for _, wisp in ipairs(wisps) do
 					wisp.damage(math.floor(currentUvDmg), game.forces.player, 'fire')
 				end
 			end
@@ -295,7 +295,7 @@ local function task_uv(surface, iter_step)
 			if energyPercent > 0.6 then
 				local spores = surface.find_entities_filtered{
 					name='wisp-purple', area=utils.get_area(uv.position, conf.uv_range) }
-				if next(spores) then for _, spore in pairs(spores) do
+				if next(spores) then for _, spore in ipairs(spores) do
 					if utils.pick_chance(energyPercent - 0.55) then spore.destroy() end
 				end end
 			end
@@ -309,15 +309,15 @@ local function task_gc()
 	local list
 	if next(Wisps) then
 		list, Wisps = Wisps, {}
-		for n, e in pairs(list) do if e.entity.valid then Wisps[#Wisps+1] = e end end
+		for n, e in ipairs(list) do if e.entity.valid then Wisps[#Wisps+1] = e end end
 	end
 	if next(Detectors) then
 		list, Detectors = Detectors, {}
-		for n, e in pairs(list) do if e.valid then Detectors[#Detectors+1] = e end end
+		for n, e in ipairs(list) do if e.valid then Detectors[#Detectors+1] = e end end
 	end
 	if next(UVLights) then
 		list, UVLights = UVLights, {}
-		for n, e in pairs(list) do if e.valid then UVLights[#UVLights+1] = e end end
+		for n, e in ipairs(list) do if e.valid then UVLights[#UVLights+1] = e end end
 	end
 	return 1
 end
@@ -346,11 +346,9 @@ local function work_step_iter(step, steps)
 	-- step must be in [0, steps-1] range - doesn't start with 1.
 	local function iter_func(entities)
 		local function iter_step(entities, n)
-			local e
-			repeat n, e = next(entities, n)
-			until not n or n % steps == step
-			return n, e
-		end
+			for n = n or 1, #entities do
+				if n % steps == step
+					then return n+1, entities[n] end end end
 		return iter_step, entities, nil
 	end
 	return iter_func
@@ -371,7 +369,7 @@ local function on_tick_run_task(surface, task_name)
 end
 
 local function on_tick_run_backlog(workload)
-	for n, task in pairs(on_tick_backlog) do
+	for n, task in ipairs(on_tick_backlog) do
 		workload, on_tick_backlog[n] = workload + on_tick_run_task(task.surface, task.name)
 		if workload >= conf.work_limit_per_tick then break end
 	end
@@ -535,9 +533,9 @@ local function apply_version_updates(old_v, new_v)
 
 	if utils.version_less_than(old_v, '0.0.3') then
 		utils.log('    - Updating TTL/TTU keys in global objects')
-		for _,wisp in pairs(Wisps) do remap_key(wisp, 'TTL', 'ttl') end
-		for _,chunk in pairs(Chunks) do remap_key(chunk, 'TTU', 'ttu') end
-		for _,forest in pairs(Forests) do remap_key(forest, 'TTU', 'ttu') end
+		for _,wisp in ipairs(Wisps) do remap_key(wisp, 'TTL', 'ttl') end
+		for _,chunk in ipairs(Chunks) do remap_key(chunk, 'TTU', 'ttu') end
+		for _,forest in ipairs(Forests) do remap_key(forest, 'TTU', 'ttu') end
 	end
 
 	if utils.version_less_than(old_v, '0.0.7') then
@@ -569,7 +567,7 @@ local function apply_runtime_settings(event)
 		conf.peaceful_wisps = v
 		if game and v_old ~= v then
 			if v then game.forces.wisps.set_cease_fire(game.forces.player, true) end
-			for key, wisp in pairs(Wisps) do
+			for _, wisp in ipairs(Wisps) do
 				if not wisp.entity.valid or wisp_spore_proto_check(wisp.entity.name) then goto skip end
 				wisp.entity.set_command{ type=defines.command.wander,
 					distraction=v and defines.distraction.none or defines.distraction.by_damage }
@@ -591,13 +589,13 @@ local function apply_runtime_settings(event)
 		if game and v_old ~= v then
 			-- Replace all existing spores with harmless/corroding variants
 			wisp_spore_proto = v and 'wisp-purple-harmless' or 'wisp-purple'
-			for key, wisp in pairs(Wisps) do
+			for n, wisp in ipairs(Wisps) do
 				if not wisp.entity.valid
 						or not wisp_spore_proto_check(wisp.entity.name)
 					then goto skip end
 				local surface, pos = wisp.entity.surface, wisp.entity.position
 				wisp.entity.destroy()
-				wisp = wisp_create(wisp_spore_proto, surface, pos, wisp.ttl, key)
+				wisp = wisp_create(wisp_spore_proto, surface, pos, wisp.ttl, n)
 			::skip:: end
 		end
 	end
