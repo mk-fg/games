@@ -79,7 +79,10 @@ end
 
 local function wisp_aggression_set(attack)
 	local peace = true
-	if not conf.peaceful_wisps and attack then peace = false end
+	if attack
+			and not game.surfaces.nauvis.peaceful_mode
+			and not conf.peaceful_wisps
+		then peace = false end
 	game.forces.wisps.set_cease_fire(game.forces.player, peace)
 end
 
@@ -444,9 +447,7 @@ local function on_built_entity(event)
 end
 
 local function on_chunk_generated(event)
-	if event.surface.index == 1 then
-		Chunks[#Chunks + 1] = {area=event.area, ttu=-1}
-	end
+	if event.surface.index == 1 then zones.add_chunk(event.area) end
 end
 
 
@@ -578,30 +579,20 @@ script.on_load(function()
 end)
 
 script.on_configuration_changed(function(data)
-	utils.log('Reconfiguring...') -- new game/mod version
-
 	utils.log(' - Refreshing chunks...')
-	for n = 1, #Chunks do Chunks[n] = nil end
-	local surface = game.surfaces.nauvis
-	for chunk in surface.get_chunks() do
-		on_chunk_generated{
-			surface = surface,
-			area = { left_top={chunk.x*32, chunk.y*32},
-				right_bottom={(chunk.x+1)*32, (chunk.y+1)*32}} }
-	end
+	zones.refresh_chunks()
 
-	local mod_name = 'Will-o-the-Wisps_updated'
-	if data.mod_changes and data.mod_changes[mod_name] then
-		if data.mod_changes[mod_name].old_version then
-			local oldVer = data.mod_changes[mod_name].old_version
-			local newVer = data.mod_changes[mod_name].new_version
-			utils.log(' - Will-o-the-Wisps updated: '..oldVer..' -> '..newVer)
-			update_recipes(true)
-			apply_version_updates(oldVer, newVer)
-		else
-			utils.log(' - Init Will-o-the-Wisps mod on existing game.')
-			update_recipes()
-		end
+	local update = data.mod_changes and data.mod_changes[script.mod_name]
+	if not update then return end
+	utils.log('Reconfiguring...')
+	if update.old_version then
+		local v_old, v_new = update.old_version, update.new_version
+		utils.log(' - Will-o-the-Wisps updated: %s -> %s', v_old, v_new)
+		update_recipes(true)
+		apply_version_updates(v_old, v_new)
+	else
+		utils.log(' - Init Will-o-the-Wisps mod on existing game.')
+		update_recipes()
 	end
 end)
 

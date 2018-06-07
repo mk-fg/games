@@ -6,7 +6,6 @@ local conf = {}
 local time_gameday = 417 -- seconds
 local time_sec = 60
 
-
 -- Disables aggression between wisps and player factions.
 conf.peaceful_wisps = false
 conf.peaceful_defences = false

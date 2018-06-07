@@ -30,6 +30,7 @@ local function get_random_forest()
 	return forest
 end
 
+
 function zones.find_new_forest()
 	if #Forests >= conf.forest_count then return end
 	local chunk = get_any_chunk()
@@ -61,6 +62,19 @@ function zones.get_wisp_trees_near_players()
 			do table.insert(wisp_trees, forest[math.random(#forest)]) end
 	::skip:: end
 	return wisp_trees
+end
+
+local function zones.add_chunk(area)
+	Chunks[#Chunks+1] = {area=area, ttu=-1}
+end
+
+function zones.refresh_chunks()
+	for n = 1, #Chunks do Chunks[n] = nil end
+	for chunk in game.surfaces.nauvis.get_chunks() do
+		zones.add_chunk{
+			left_top={chunk.x*32, chunk.y*32},
+			right_bottom={(chunk.x+1)*32, (chunk.y+1)*32} }
+	end
 end
 
 function zones.init(chunks, forests)
