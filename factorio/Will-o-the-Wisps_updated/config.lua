@@ -80,22 +80,28 @@ conf.wisp_ttl = {
 conf.wisp_ttl_jitter_sec = 40 * time_sec -- -40;+40
 
 conf.wisp_group_radius = {['wisp-yellow']=16, ['wisp-red']=6}
+conf.wisp_red_damage_replication_chance = 0.2
 
 conf.sabotage_range = 3
 
-conf.zones_attempts = 3
-conf.zones_forest_distance = 12
-conf.zones_chunk_update_interval = 3 * time_gameday
-
--- wisp_percent_in_random_forests sets percentage of maximus wisp count,
+-- wisp_forest_on_map_percent sets percentage of maximum wisp count,
 --  after which they stop spawning in random forests on the map,
---  to leave some margin for spawning near player position.
-conf.wisp_percent_in_random_forests = 0.8
-conf.wisp_replication_chance = 0.2
+--  to leave some margin for spawning near player position and on death.
+conf.wisp_forest_on_map_percent = 0.8
+-- Min tree count on 3x3 chunk area to randomly spawn wisps there.
+conf.wisp_forest_min_density = 200
 
-conf.forest_count = 7
-conf.forest_min_density = 200
-conf.forest_wisp_percent = 0.02
+-- Radius (tiles square) in which to spawn wisps near players.
+-- Note: near_player and forest_on_map wisps are spawned independently.
+conf.wisp_near_player_radius = 16
+-- floor(tree-count * forest_wisp_percent / 100) = wisps
+--  spawned near each player in wisp_near_player_radius.
+-- E.g. 2 = 2 per each 100+ trees.
+conf.wisp_near_player_percent = 2
+
+
+
+-- conf.forest_count = 7
 
 -- Code can mostly handle multiple surfaces, but why bother
 conf.surface_name = 'nauvis'

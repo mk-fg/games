@@ -41,7 +41,6 @@ function utils.log(msg, ...) if debug_logger then debug_logger.log(utils.f(msg, 
 function utils.error(msg, ...) error(utils.f(msg, ...)) end
 
 
-
 function utils.version_to_num(ver, padding)
 	local ver_nums = {}
 	ver:gsub('(%d+)', function(v) ver_nums[#ver_nums+1] = tonumber(v) end)
@@ -58,14 +57,6 @@ function utils.version_less_than(v1, v2)
 	return false
 end
 
-function utils.t(s, value)
-	-- Helper to make padded table from other table keys or a string of keys
-	local t = {}
-	if not value then value = true end
-	if type(s) == 'table' then for k,_ in pairs(s) do t[k] = value end
-	else s:gsub('(%S+)', function(k) t[k] = value end) end
-	return t
-end
 
 function utils.pick_weight(...)
 	-- Returns key for randomly-picked weight value from args/table
@@ -95,27 +86,18 @@ function utils.pick_chance(...)
 end
 
 
-function utils.game_seconds()
-	return game.tick / 60 --SEC
+function utils.t(s, value)
+	-- Helper to make padded table from other table keys or a string of keys
+	local t = {}
+	if not value then value = true end
+	if type(s) == 'table' then for k,_ in pairs(s) do t[k] = value end
+	else s:gsub('(%S+)', function(k) t[k] = value end) end
+	return t
 end
 
-function utils.get_area(position, radius)
-	return {{position.x - radius, position.y - radius}, {position.x + radius, position.y + radius}}
+function utils.get_area(radius, x, y)
+	if not y then x, y = x.x, x.y end
+	return {{x - radius, y - radius}, {x + radius, y + radius}}
 end
-
-function utils.getSafely(entity, key)
-	local callResult, value =  pcall(function() return entity[key]; end)
-	if callResult then return value end
-	return nil
-end
-
-local function NtoZ(x, y)
-	return (x >= 0 and (x * 2) or (-x * 2 - 1)), (y >= 0 and (y * 2) or (-y * 2 - 1))
-end
-function utils.cantorPair(x, y)
-	x,y = NtoZ(x, y)
-	return (x + y +1)*(x + y)/2 + x
-end
-
 
 return utils

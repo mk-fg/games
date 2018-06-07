@@ -6,7 +6,6 @@ local zones = require('libs/zones')
 
 
 -- local references to globals
-local Chunks, Forests
 local Wisps, UVLights, Detectors
 local ws
 
@@ -90,7 +89,7 @@ end
 local function wisp_group_create_or_join(unit)
 	local pos = unit.position
 	local units_near = unit.surface.find_entities_filtered{
-		name=name, area=utils.get_area(pos, conf.wisp_group_radius[unit.name]) }
+		name=name, area=utils.get_area(conf.wisp_group_radius[unit.name], pos) }
 	if not (next(units_near) and #units_near > 1) then return end
 	local leader = true
 	for _, units_near in ipairs(units_near) do
@@ -153,9 +152,10 @@ local tasks_monolithic = {
 	-- All task functions here should return non-nil (number > 0)
 	--  if they did something heavy, which will re-schedule other tasks on this tick.
 	-- Args: surface.
+
 	zones = function(surface)
-		zones.find_new_forest()
-		return 10
+		zones.on_nth_tick(surface)
+		return 100
 	end,
 
 	spawn = function(surface)
@@ -164,19 +164,24 @@ local tasks_monolithic = {
 		local workload = 0
 
 		-- wisp spawning near players
-		local trees = zones.get_wisp_trees_near_players()
-		for _, tree in ipairs(trees) do wisp_create_at_random('wisp-yellow', tree) end
-		workload = workload + #trees
+		-- XXX: spawns way too many of them - check if there are some already, don't spawn if so
+		for _, player in pairs(game.connected_players) do
+			if not player.valid or player.surface.index ~= wisp_surface.index then goto skip end
+			local trees = zones.get_wisp_trees_near_pos(
+				player.surface, player.position, conf.wisp_near_player_radius )
+			for _, tree in ipairs(trees) do wisp_create_at_random('wisp-yellow', tree) end
+			workload = workload + #trees
+		::skip:: end
 
-		if Wisps.n < conf.wisp_max_count * conf.wisp_percent_in_random_forests then
+		if Wisps.n < conf.wisp_max_count * conf.wisp_forest_on_map_percent then
 			-- wisp spawning in random forests
-			trees = zones.get_wisp_trees_anywhere() or {}
+			trees = zones.get_wisp_trees_anywhere()
 			for _, tree in ipairs(trees) do
 				local wisp_name = utils.pick_chance{
 					[wisp_spore_proto]=conf.wisp_purple_spawn_chance,
 					['wisp-yellow']=conf.wisp_yellow_spawn_chance,
 					['wisp-red']=conf.wisp_red_spawn_chance }
-				if wisp_name then wisp_create_at_random(wisp_name, tree) end
+				wisp_create_at_random(wisp_name, tree)
 			end
 			workload = workload + #trees
 		end
@@ -206,7 +211,7 @@ local tasks_monolithic = {
 		if wisp.entity.valid and wisp.entity.name == 'wisp-purple' then
 			local poles = surface.find_entities_filtered{
 				type='electric-pole', limit=1,
-				area=utils.get_area(wisp.entity.position, conf.sabotage_range) }
+				area=utils.get_area(conf.sabotage_range, wisp.entity.position) }
 			if next(poles) then
 				local pos = poles[1].position
 				pos.x = pos.x + math.random(-4, 4) * 0.1
@@ -250,7 +255,7 @@ local tasks_entities = {
 
 		if energy_percent > 0.2 then
 			local wisps = s.find_entities_filtered{
-				force='wisps', type='unit', area=utils.get_area(e.position, conf.uv_range) }
+				force='wisps', type='unit', area=utils.get_area(conf.uv_range, e.position) }
 			if next(wisps) then
 				local currentUvDmg = (conf.uv_dmg + math.random(3)) * energy_percent
 				for _, wisp in ipairs(wisps) do
@@ -260,7 +265,7 @@ local tasks_entities = {
 
 			if energy_percent > 0.6 then
 				local spores = s.find_entities_filtered{
-					name='wisp-purple', area=utils.get_area(e.position, conf.uv_range) }
+					name='wisp-purple', area=utils.get_area(conf.uv_range, e.position) }
 				if next(spores) then for _, spore in ipairs(spores) do
 					if utils.pick_chance(energy_percent - 0.55) then spore.destroy() end
 				end end
@@ -278,11 +283,11 @@ local tasks_entities = {
 		local counts = {}
 		if next(Wisps) then
 			local wisps = s.find_entities_filtered{
-				force='wisps', area=utils.get_area(e.position, range) }
+				force='wisps', area=utils.get_area(range, e.position) }
 			for _, wisp in ipairs(wisps)
 				do counts[wisp.name] = (counts[wisp.name] or 0) + 1 end
 			counts['wisp-purple'] = s.count_entities_filtered{
-				name=wisp_spore_proto, area=utils.get_area(e.position, range) }
+				name=wisp_spore_proto, area=utils.get_area(range, e.position) }
 		end
 
 		for name, count in pairs(counts) do
@@ -302,11 +307,11 @@ local function run_on_object_set(set, task_func, step, steps)
 	--  and either efficiently remove o from the set or run task_func on it.
 	-- Return count of task_func runs.
 	-- Built-in lua array operations - table.* and #arr tracking - are very bad for this.
-	local n, obj = step
+	local n, obj, e = step
 	while n <= set.n do
-		obj = set[n]
-		if obj.entity.valid then
-			task_func(obj, obj.entity, obj.entity.surface)
+		obj = set[n]; e = obj.entity
+		if e.valid then
+			task_func(obj, e, e.surface)
 			n = n + steps
 		else set[n], set.n = set[set.n], set.n - 1 end
 	end
@@ -404,8 +409,8 @@ local function on_mined_entity(event)
 end
 
 local function on_trigger_created(event)
-	-- For red wisps replication via trigger_created_entity
-	if utils.pick_chance(conf.wisp_replication_chance)
+	-- Limit red wisps' replication via trigger_created_entity to specific percentage
+	if utils.pick_chance(conf.wisp_red_damage_replication_chance)
 	then wisp_init(event.entity)
 	else event.entity.destroy() end
 end
@@ -426,7 +431,7 @@ end
 
 local function on_chunk_generated(event)
 	if event.surface.index ~= wisp_surface.index then return end
-	zones.add_chunk(event.surface, event.area)
+	zones.reset_chunk(event.surface, event.area)
 end
 
 local function on_tick_init(event)
@@ -457,61 +462,6 @@ local function update_recipes(with_reset)
 		if force.technologies['solar-energy'].researched then
 			force.recipes['UV-lamp'].enabled = true
 		end
-	end
-end
-
-local function init_refs()
-	-- XXX: make this stuff configurable via mod options
-	utils.log('Sanity checks...')
-	if ( conf.wisp_purple_spawn_chance +
-			conf.wisp_yellow_spawn_chance +
-			conf.wisp_red_spawn_chance ) > 1 then
-		utils.error('Wisp spawn chances in config.lua must sum up to <1.')
-	end
-
-	utils.log('Init local references to globals...')
-	Chunks, Forests = global.chunks, global.forests
-	Wisps, UVLights, Detectors = global.wisps, global.uvLights, global.detectors
-	ws = global.workSteps
-	utils.log(
-		' - Stats: chunks=%d forests=%d wisps=%s uvs=%s detectors=%s',
-		#Chunks, #Forests, Wisps.n, UVLights.n, Detectors.n )
-
-	utils.log('Init zones module...')
-	zones.init(Chunks, Forests)
-end
-
-local function apply_version_updates(old_v, new_v)
-	local function remap_key(o, k_old, k_new, default)
-		if not o[k_new] then o[k_new], o[k_old] = o[k_old] end
-		if not o[k_new] then o[k_new] = default end
-	end
-
-	if utils.version_less_than(old_v, '0.0.3') then
-		utils.log('    - Updating TTL/TTU keys in global objects')
-		for _,wisp in ipairs(Wisps) do remap_key(wisp, 'TTL', 'ttl') end
-		for _,chunk in ipairs(Chunks) do remap_key(chunk, 'TTU', 'ttu') end
-		for _,forest in ipairs(Forests) do remap_key(forest, 'TTU', 'ttu') end
-	end
-
-	if utils.version_less_than(old_v, '0.0.7') then
-		for _,k in ipairs{
-				'stepLIGTH', 'stepTTL', 'stepGC',
-				'stepUV', 'stepDTCT', 'recentDayTime' }
-			do global[k] = nil end
-		if not global.workSteps then global.workSteps = {} end
-		ws = global.workSteps
-	end
-
-	if utils.version_less_than(old_v, '0.0.10') then
-		remap_key(ws, 'ttl', 'expire')
-	end
-
-	if utils.version_less_than(old_v, '0.0.13') then
-		Wisps.n = #Wisps
-		UVLights.n = #UVLights
-		Detectors.n = #Detectors
-		ws['gc'] = nil
 	end
 end
 
@@ -561,9 +511,63 @@ local function apply_runtime_settings(event)
 			::skip:: end
 		end
 	end
-
 end
 
+local function apply_version_updates(old_v, new_v)
+	local function remap_key(o, k_old, k_new, default)
+		if not o[k_new] then o[k_new], o[k_old] = o[k_old] end
+		if not o[k_new] then o[k_new] = default end
+	end
+
+	if utils.version_less_than(old_v, '0.0.3') then
+		utils.log('    - Updating TTL/TTU keys in global objects')
+		for _,wisp in ipairs(Wisps) do remap_key(wisp, 'TTL', 'ttl') end
+		for _,chunk in ipairs(Chunks) do remap_key(chunk, 'TTU', 'ttu') end
+		for _,forest in ipairs(Forests) do remap_key(forest, 'TTU', 'ttu') end
+	end
+
+	if utils.version_less_than(old_v, '0.0.7') then
+		for _,k in ipairs{
+				'stepLIGTH', 'stepTTL', 'stepGC',
+				'stepUV', 'stepDTCT', 'recentDayTime' }
+			do global[k] = nil end
+	end
+
+	if utils.version_less_than(old_v, '0.0.10') then
+		remap_key(ws, 'ttl', 'expire')
+	end
+
+	if utils.version_less_than(old_v, '0.0.13') then
+		Wisps.n, UVLights.n, Detectors.n = #Wisps, #UVLights, #Detectors
+		ws.gc, global.chunks, global.forests = nil
+	end
+end
+
+local function init_globals()
+	for _, k in ipairs{'zones', 'wisps', 'uvLights', 'detectors', 'workSteps'} do
+		if not global[k] then global[k] = {} end
+	end
+end
+
+local function init_refs()
+	-- XXX: make this stuff configurable via mod options
+	utils.log('Sanity checks...')
+	if ( conf.wisp_purple_spawn_chance +
+			conf.wisp_yellow_spawn_chance +
+			conf.wisp_red_spawn_chance ) > 1 then
+		utils.error('Wisp spawn chances in config.lua must sum up to <1.')
+	end
+
+	utils.log('Init local references to globals...')
+	Wisps, UVLights, Detectors = global.wisps, global.uvLights, global.detectors
+	ws = global.workSteps
+	utils.log(
+		' - Object stats: wisps=%s uvs=%s detectors=%s',
+		Wisps.n, UVLights.n, Detectors.n )
+
+	utils.log('Init zones module...')
+	if global.zones then zones.init(global.zones) end -- nil before on_configuration_changed
+end
 
 script.on_load(function()
 	utils.log('Loading game...')
@@ -572,6 +576,10 @@ script.on_load(function()
 end)
 
 script.on_configuration_changed(function(data)
+	-- Add any new globals and pick them up in init_refs() again
+	init_globals()
+	init_refs(false)
+
 	utils.log('Refreshing chunks...')
 	zones.refresh_chunks(game.surfaces[conf.surface_name])
 
@@ -584,17 +592,16 @@ script.on_configuration_changed(function(data)
 		update_recipes(true)
 		apply_version_updates(v_old, v_new)
 	else
-		utils.log(' - Init Will-o-the-Wisps mod on existing game.')
+		utils.log(' - Updating tech requirements...')
 		update_recipes()
 	end
 end)
 
 script.on_init(function()
-	utils.log('Init globals...')
+	init_globals()
 
-	global.chunks, global.forests = {}, {}
-	global.wisps, global.uvLights, global.detectors = {}, {}, {}
-	global.workSteps = {}
+	utils.log('Initializing mod for a new game...')
+	init_refs()
 
 	utils.log('Init wisps force...')
 	if not game.forces.wisps then
@@ -606,7 +613,6 @@ script.on_init(function()
 	game.forces.wisps.set_cease_fire(game.forces.enemy, true)
 	game.forces.enemy.set_cease_fire(game.forces.wisps, true)
 
-	init_refs()
 	apply_runtime_settings()
 end)
 
