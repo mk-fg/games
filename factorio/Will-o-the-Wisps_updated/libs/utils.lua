@@ -85,6 +85,8 @@ function utils.pick_chance(...)
 	return res
 end
 
+function utils.pick_jitter(limit) return math.random(-limit, limit) end
+
 
 function utils.t(s, value)
 	-- Helper to make padded table from other table keys or a string of keys

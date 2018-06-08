@@ -8,7 +8,7 @@ for wisp_name, light_info_list in pairs(conf.wisp_light_entities) do
 	for idx, light_info in pairs(light_info_list) do
 		data:extend{{
 			type = 'explosion',
-			name = string.format(conf.wisp_light_name_fmt, wisp_name, idx),
+			name = conf.wisp_light_name_fmt:format(wisp_name, idx),
 			flags = {'not-on-map', 'placeable-off-grid'},
 			animations = {
 				{ filename = '__Will-o-the-Wisps_updated__/graphics/null.png',

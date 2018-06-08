@@ -3,13 +3,35 @@
 
 local conf = {}
 
-local time_gameday = 417 -- seconds
-local time_sec = 60
+local ticks_sec = 60
+local ticks_gameday = 417 * ticks_sec
 
 -- Disables aggression between wisps and player factions.
 conf.peaceful_wisps = false
 conf.peaceful_defences = false
 conf.peaceful_spores = false
+
+-- Max number of wisps on the map
+conf.wisp_max_count = 1250
+
+-- Damage parameters for the purple wisps prototypes
+conf.wisp_purple_dmg = 1
+conf.wisp_purple_area = 2
+
+-- UV lights / detectors
+conf.uv_dmg = 16
+conf.uv_range = 12
+conf.detection_range = 16
+
+-- How long wisps stay around
+-- Except in daylight (where wisp_ttl_expire_chance_func kills them)
+--  and can vary due to wisp_ttl_jitter_sec and wisp_chance_func.
+conf.wisp_ttl = {
+	['wisp-purple']=120 * ticks_sec,
+	['wisp-purple-harmless']=120 * ticks_sec,
+	['wisp-yellow']=100 * ticks_sec,
+	['wisp-red']=100 * ticks_sec }
+conf.wisp_ttl_jitter = 40 * ticks_sec -- -40s to +40s
 
 -- Minimal darkness value when the wisps appearing (0-1).
 -- Chances of wisps appearing increase in reverse to this value.
@@ -42,92 +64,83 @@ conf.wisp_peace_chance_func = function(darkness)
 	return 0.3
 end
 
--- Max number of wisps on the map
-conf.wisp_max_count = 1250
-
--- Damage parameters for the purple wisps
-conf.wisp_purple_dmg = 1
-conf.wisp_purple_area = 2
-
--- These values will affect number of the wisps which rise from forests on their own
--- All values should be in 0-1 range, and sum up to <=1 (<1 will mean more rare spawns)
--- Defaults: purple=80%, yellow=9%, red=0.5%
-conf.wisp_purple_spawn_chance = 0.80
-conf.wisp_yellow_spawn_chance = 0.09
-conf.wisp_red_spawn_chance = 0.005
-
----- Skip the agreesive state of the wisps after every 12 minutes of night
----- Default value: 12 = (fake_day_mult + 1) * fake_night_len
----- (this works even if fake_day_mode = false)
-conf.reset_aggression_at_night = true
-
-
--- UV lights / detectors parameters
-
-conf.uv_dmg = 16
-conf.uv_range = 12
-
-conf.detection_range = 16
-
-
--- Misc other constants
-
-conf.wisp_ttl = {
-	['wisp-purple']=120 * time_sec,
-	['wisp-purple-harmless']=120 * time_sec,
-	['wisp-yellow']=100 * time_sec,
-	['wisp-red']=100 * time_sec }
-conf.wisp_ttl_jitter_sec = 40 * time_sec -- -40;+40
-
 conf.wisp_group_radius = {['wisp-yellow']=16, ['wisp-red']=6}
 conf.wisp_red_damage_replication_chance = 0.2
 
-conf.sabotage_range = 3
+
+-- ---------- Map scanning parameters
 
 -- wisp_forest_on_map_percent sets percentage of maximum wisp count,
 --  after which they stop spawning in random forests on the map,
 --  to leave some margin for spawning near player position and on death.
 conf.wisp_forest_on_map_percent = 0.8
 -- Min tree count on 3x3 chunk area to randomly spawn wisps there.
-conf.wisp_forest_min_density = 200
+conf.wisp_forest_min_density = 300
+
+-- Chances for which wisps rise from forests on their own
+-- All values should be in 0-1 range, and sum up to <=1 (<1 will mean some spawns skipped)
+-- Defaults: purple=50%, yellow=7%, red=1%
+conf.wisp_forest_spawn_chance_purple = 0.50
+conf.wisp_forest_spawn_chance_yellow = 0.07
+conf.wisp_forest_spawn_chance_red = 0.01
+
+-- How many wisps will try to spawn, subject to wisp_forest_spawn_chance_*
+conf.wisp_forest_spawn_count = 3
 
 -- Radius (tiles square) in which to spawn wisps near players.
 -- Note: near_player and forest_on_map wisps are spawned independently.
 conf.wisp_near_player_radius = 16
--- floor(tree-count * forest_wisp_percent / 100) = wisps
+-- floor(tree-count * wisp_near_player_percent) = wisps
 --  spawned near each player in wisp_near_player_radius.
--- E.g. 2 = 2 per each 100+ trees.
-conf.wisp_near_player_percent = 2
+-- E.g. 0.02 = 2 per each 100+ trees.
+conf.wisp_near_player_percent = 0.01
 
-
-
--- conf.forest_count = 7
+-- How often to update chunk players/pollution spread
+conf.chunk_rescan_spread_interval = 1 * ticks_gameday
+-- Alien flora do not grow back in base game, but in case of mods...
+conf.chunk_rescan_tree_growth_interval = 4 * ticks_gameday
+-- Jitter to spread stuff out naturally by randomness
+conf.chunk_rescan_jitter = 5 * 60 * ticks_sec
 
 -- Code can mostly handle multiple surfaces, but why bother
 conf.surface_name = 'nauvis'
 
+
+-- ---------- Debug / performance stuff
 
 -- debug_log file path: %user-dir%/script-output/Will-o-the-wisps_updated/debug.log
 -- To find %user-dir% see https://wiki.factorio.com/Application_directory#User_data_directory
 
 conf.debug_log = true
 
-
 -- Intervals don't really have to be primes, but it might help to
 --  space them out on ticks more evenly, to minimize clashes/backlog.
+-- Spreading workload as thinly as possible is probably the best option.
 ---  3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67,
 ---  71, 73, 79, 83, 89, 97, 101, 103, 107, 109, 113, 127, 131, 137,
 ---  139, 149, 151, 157, 163, 167, 173, 179, 181, 191, 193, 197, 199
 --- 211  223 227 229 233 239 241 251 257 263 269 271 277 281
 --- 283  293 307 311 313 317 331 337 347 349 353
 
-conf.intervals = {
-	tactics=97, spawn=317, zones=11*time_sec,
+conf.intervals = { spawn=317, tactics=97,
 	detectors=47, light=3, uv=53, expire=59 }
 conf.work_steps = {detectors=4, light=2, uv=5, expire=3}
 
+-- Chunks are checked for pollution/player spread during daytime only, can ~10k chunks
+-- Interval formula: (ticks_gameday * 0.6) / work_steps
+conf.work_steps.zones_spread = 666
+conf.intervals.zones_spread = 23 -- ~1 day-time for 10k chunks scan at 666 steps
+
+-- Scan "spread" areas for trees.
+-- Much more difficult as it does find_entities_filtered instead of just pollution level probe.
+-- Takes 1.89s to scan 682 chunks finding 243 forests here - almost 3ms per scan!
+conf.work_steps.zones_forest = 600
+conf.intervals.zones_forest = 29 -- ~1 day-time for 3k chunks scan at 600 steps
+
 conf.work_limit_per_tick = 20
 
+
+-- ---------- Wisp lighing effects
 
 -- wisp_light_anim_speed should be low enough for light to stay around until next update.
 -- animation_speed=1 is "display light for 1 tick only"
@@ -161,6 +174,18 @@ conf.wisp_light_aliases = {['wisp-purple-harmless']='wisp-purple'}
 conf.wisp_light_counts = {}
 for wisp_name, light_info_list in pairs(conf.wisp_light_entities) do
 	conf.wisp_light_counts[wisp_name] = #light_info_list end
+
+
+-- ---------- Testing hacks
+
+-- conf.work_steps.zones_spread = 1
+-- conf.work_steps.zones_forest = 1
+-- conf.intervals.zones_spread = 173
+-- conf.intervals.zones_forest = 173
+
+-- conf.wisp_forest_spawn_chance_purple = 0.01
+-- conf.wisp_forest_spawn_chance_yellow = 0.70
+-- conf.wisp_forest_spawn_chance_red = 0.10
 
 
 return conf

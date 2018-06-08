@@ -31,7 +31,7 @@ local function wisp_init(entity, ttl, n)
 	if not ttl then
 		ttl = conf.wisp_ttl[entity.name]
 		if not ttl then return end -- not a wisp entity
-		ttl = ttl + math.random(-conf.wisp_ttl_jitter_sec, conf.wisp_ttl_jitter_sec)
+		ttl = ttl + utils.pick_jitter(conf.wisp_ttl_jitter)
 	end
 	entity.force = game.forces.wisps
 	local wisp = {entity=entity, ttl=ttl}
@@ -68,7 +68,7 @@ local function wisp_emit_light(wisp)
 	if not light then
 		light = wisp.entity.name
 		light = conf.wisp_light_aliases[light] or light
-		light = string.format( conf.wisp_light_name_fmt,
+		light = conf.wisp_light_name_fmt:format(
 			light, math.random(conf.wisp_light_counts[light]) )
 		wisp.light = light
 	end
@@ -153,21 +153,23 @@ local tasks_monolithic = {
 	--  if they did something heavy, which will re-schedule other tasks on this tick.
 	-- Args: surface.
 
-	zones = function(surface)
-		zones.on_nth_tick(surface)
-		return 100
+	zones_spread = function(surface, n, steps)
+		return 0.2 * zones.update_wisp_spread(n, steps)
+	end,
+
+	zones_forest = function(surface, n, steps)
+		return zones.update_forests_in_spread(n, steps)
 	end,
 
 	spawn = function(surface)
 		-- XXX: add wisps spawning from rocks too
 		if Wisps.n >= conf.wisp_max_count then return end
-		local workload = 0
+		local workload, trees = 0
 
 		-- wisp spawning near players
-		-- XXX: spawns way too many of them - check if there are some already, don't spawn if so
 		for _, player in pairs(game.connected_players) do
-			if not player.valid or player.surface.index ~= wisp_surface.index then goto skip end
-			local trees = zones.get_wisp_trees_near_pos(
+			if not player.valid or player.surface.index ~= surface.index then goto skip end
+			trees = zones.get_wisp_trees_near_pos(
 				player.surface, player.position, conf.wisp_near_player_radius )
 			for _, tree in ipairs(trees) do wisp_create_at_random('wisp-yellow', tree) end
 			workload = workload + #trees
@@ -175,13 +177,13 @@ local tasks_monolithic = {
 
 		if Wisps.n < conf.wisp_max_count * conf.wisp_forest_on_map_percent then
 			-- wisp spawning in random forests
-			trees = zones.get_wisp_trees_anywhere()
+			trees = zones.get_wisp_trees_anywhere(conf.wisp_forest_spawn_count)
 			for _, tree in ipairs(trees) do
-				local wisp_name = utils.pick_chance{
-					[wisp_spore_proto]=conf.wisp_purple_spawn_chance,
-					['wisp-yellow']=conf.wisp_yellow_spawn_chance,
-					['wisp-red']=conf.wisp_red_spawn_chance }
-				wisp_create_at_random(wisp_name, tree)
+				local wisp_name = utils.pick_chance{ -- nil - neither
+					[wisp_spore_proto]=conf.wisp_forest_spawn_chance_purple,
+					['wisp-yellow']=conf.wisp_forest_spawn_chance_yellow,
+					['wisp-red']=conf.wisp_forest_spawn_chance_red }
+				if wisp_name then wisp_create_at_random(wisp_name, tree) end
 			end
 			workload = workload + #trees
 		end
@@ -315,23 +317,22 @@ local function run_on_object_set(set, task_func, step, steps)
 			n = n + steps
 		else set[n], set.n = set[set.n], set.n - 1 end
 	end
-	return math.floor((n - step) / steps) -- count
+	return (n - step) / steps -- count
 end
 
-local function on_tick_run_task(task_name, target)
-	local iter_task, res = tasks_entities[task_name]
-	if not iter_task then
-		-- Monolithic task
-		res = tasks_monolithic[task_name](target)
-		-- utils.log('tick task - %s = %s', task_name, res)
-	else
-		-- Task mapped to valid objects in a number of steps
-		local steps = conf.work_steps[task_name]
-		n = (ws[task_name] or 0) + 1
+local function on_tick_run_task(name, target)
+	local iter_task, steps, res = tasks_entities[name], conf.work_steps[name]
+	if steps then
+		n = (ws[name] or 0) + 1
 		if n > steps then n = 1 end
-		ws[task_name] = n
+		ws[name] = n
+	end
+	if not iter_task then -- monolithic task
+		res = tasks_monolithic[name](target, n, steps)
+		-- utils.log('tick task - %s [%s/%s] = %s', name, n, steps, res)
+	else -- task mapped to valid(-ated) objects in a number of steps
 		res = iter_task.work * run_on_object_set(target, iter_task.func, n, steps)
-		-- utils.log('tick task - %s [%d/%d] = %d', task_name, n, steps, res)
+		-- utils.log('tick task - %s [%d/%d] = %d', name, n, steps, res)
 	end
 	return res or 0
 end
@@ -347,18 +348,19 @@ local function on_tick_run_backlog(workload)
 	return workload
 end
 
-local function on_tick_run(task_name, tick, workload, target)
-	if tick % conf.intervals[task_name] ~= 0 then return 0 end
+local function on_tick_run(name, tick, workload, target)
+	if tick % conf.intervals[name] ~= 0 then return 0 end
 	if workload >= conf.work_limit_per_tick then
-		table.insert(on_tick_backlog, {target=target, name=task_name})
+		table.insert(on_tick_backlog, {target=target, name=name})
 		if #on_tick_backlog > 100 then
 			-- Should never be more than #on_tick_tasks, unless bugs
 			utils.error('Too many tasks in on_tick backlog'..
 				' - most likely a bug in config.lua file of this mod') end
-		-- utils.log( 'tick task to backlog - %s [workload %d >= %d]',
-		-- 	task_name, workload, conf.work_limit_per_tick )
+		-- utils.log(
+		-- 	'tick task to backlog - %s [workload %d >= %d]',
+		-- 	name, workload, conf.work_limit_per_tick )
 		return 0
-	else return workload + on_tick_run_task(task_name, target) end
+	else return workload + on_tick_run_task(name, target) end
 end
 
 local function on_tick(event)
@@ -377,7 +379,10 @@ local function on_tick(event)
 		run('tactics', surface)
 		if wisps and surface.darkness > conf.min_darkness_to_emit_light
 			then run('light', Wisps) end
-	else run('zones', surface) end
+	else
+		run('zones_spread', surface)
+		run('zones_forest', surface)
+	end
 
 	if detectors then run('detectors', Detectors) end
 
@@ -550,14 +555,6 @@ local function init_globals()
 end
 
 local function init_refs()
-	-- XXX: make this stuff configurable via mod options
-	utils.log('Sanity checks...')
-	if ( conf.wisp_purple_spawn_chance +
-			conf.wisp_yellow_spawn_chance +
-			conf.wisp_red_spawn_chance ) > 1 then
-		utils.error('Wisp spawn chances in config.lua must sum up to <1.')
-	end
-
 	utils.log('Init local references to globals...')
 	Wisps, UVLights, Detectors = global.wisps, global.uvLights, global.detectors
 	ws = global.workSteps
@@ -576,6 +573,7 @@ script.on_load(function()
 end)
 
 script.on_configuration_changed(function(data)
+	utils.log('Updating mod configuration...')
 	-- Add any new globals and pick them up in init_refs() again
 	init_globals()
 	init_refs(false)
@@ -583,9 +581,9 @@ script.on_configuration_changed(function(data)
 	utils.log('Refreshing chunks...')
 	zones.refresh_chunks(game.surfaces[conf.surface_name])
 
+	utils.log('Processing mod updates...')
 	local update = data.mod_changes and data.mod_changes[script.mod_name]
 	if not update then return end
-	utils.log('Reconfiguring...')
 	if update.old_version then
 		local v_old, v_new = update.old_version, update.new_version
 		utils.log(' - Will-o-the-Wisps updated: %s -> %s', v_old, v_new)
@@ -598,9 +596,9 @@ script.on_configuration_changed(function(data)
 end)
 
 script.on_init(function()
-	init_globals()
-
 	utils.log('Initializing mod for a new game...')
+
+	init_globals()
 	init_refs()
 
 	utils.log('Init wisps force...')
