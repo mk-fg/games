@@ -106,12 +106,7 @@ conf.chunk_rescan_jitter = 5 * 60 * ticks_sec
 conf.surface_name = 'nauvis'
 
 
--- ---------- Debug / performance stuff
-
--- debug_log file path: %user-dir%/script-output/Will-o-the-wisps_updated/debug.log
--- To find %user-dir% see https://wiki.factorio.com/Application_directory#User_data_directory
-
-conf.debug_log = true
+-- ---------- Performance stuff
 
 -- Intervals don't really have to be primes, but it might help to
 --  space them out on ticks more evenly, to minimize clashes/backlog.
@@ -177,6 +172,11 @@ for wisp_name, light_info_list in pairs(conf.wisp_light_entities) do
 
 
 -- ---------- Testing hacks
+
+-- debug_log file path: %user-dir%/script-output/Will-o-the-wisps_updated/debug.log
+-- To find %user-dir% see https://wiki.factorio.com/Application_directory#User_data_directory
+
+conf.debug_log = false
 
 -- conf.work_steps.zones_spread = 1
 -- conf.work_steps.zones_forest = 1

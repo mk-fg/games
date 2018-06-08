@@ -1,4 +1,12 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.0.14
+Date: 08. 06. 2018
+  Changes:
+    - Disable debug logging module by default.
+    - Add readme/license files to archive.
+  Bugfixes:
+    - Fix lua error when enabling mod in a new game.
+---------------------------------------------------------------------------------------------------
 Version: 0.0.13
 Date: 08. 06. 2018
   Changes:

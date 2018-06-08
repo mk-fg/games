@@ -530,6 +530,8 @@ end
 local function init_globals()
 	for _, k in ipairs{'zones', 'wisps', 'uvLights', 'detectors', 'workSteps'} do
 		if not global[k] then global[k] = {} end
+		if (k == 'wisps' or k == 'uvLights' or k == 'detectors')
+			and not global[k].n then global[k].n = #(global[k]) end
 	end
 end
 

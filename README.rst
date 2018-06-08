@@ -117,11 +117,11 @@ Easy to fix with mods though, which are one of the best parts of the game.
   Changes Burner Mining Drills to have 4x4 resource search area instead of
   default 2x2 (right under), and nothing else.
 
-- `Will-o'-the-Wisp updated
-  <https://mods.factorio.com/mod/Will-o-the-Wisp_updated>`_
+- `Will-o'-the-Wisps updated
+  <https://mods.factorio.com/mod/Will-o-the-Wisps_updated>`_
 
   Compatibility update (for Factorio 0.16.x) and bunch of tweaks to
-  `Will-o'-the-Wisp mod <https://mods.factorio.com/mod/Will-o-the-Wisps>`_
+  `Will-o'-the-Wisps mod <https://mods.factorio.com/mod/Will-o-the-wisps>`_
   by Betep3akata, which seem to be abandoned since 0.15.x.
   License: `CC BY-NC-SA <https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode>`_
 

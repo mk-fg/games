@@ -24,24 +24,22 @@ Affects other wisps in different ways as well.
 - Try not to burn forests at night.
 - Trees destroyed or mined at night-time might spawn yellow wisps, rocks - red ones.
 - Most production machinery (belts, inserters, assemblers, etc) is not susceptible to corrosion damage from wisps.
-- Purple wisps don't touch small electrical poles (as they're made of alien wood), but keep them away from power generation stuff.
 - For affected buildings, corrosion resistance is derived from acid resistance.
 - If your turrets shoot down a wisp, try to stay away from its kind that night.
-- Overlapping UV lights will amplify the effects.
-- Wisps are easier to find when wandering through forest after dark.
+- Overlapping UV lights will amplify effects, though daylight is the best cure.
+- Power generation buildings are most vulnerable to purple wisps.
+- Wisps appear in forests at night, drawn out by nearby pollution or player presence.
 - Disable turrets targeting wisps in Mod Options menu to coexist with them peacefully.
 
 
 ## Changes from the original mod
 
-- 0.16.x compatibility update and related fixes (events, entity names, etc).
-- Fix memory leak on every game/mod changes due to chunk info duplication in save files.
-- Adjust UV lamps' electricity usage down 400kW -> 80kW.
-- Lower red wisps health significantly (180 -> 30).
-- Purple wisps do more damage to boilers/reactors in addition to solar panels.
+- 0.16.x compatibility update, various bugfixes.
 - Mod Options menu checkboxes for wisps/turrets aggression.
+- Adjust costs for UV lamps and wisp detectors to be more reasonable.
+- Make wisps more vulnerable and less of a nuisance in general.
 - Some visual tweaks.
-- Ingame changelog with more version-specific and/or less significant features and tweaks.
+- Ingame changelog with full list of features, fixes and tweaks for each version.
 
 
 See [original Will-o'-the-wisps mod](https://mods.factorio.com/mod/Will-o-the-wisps) and its [forum thread](https://forums.factorio.com/viewtopic.php?f=93&t=41514) for more information.
