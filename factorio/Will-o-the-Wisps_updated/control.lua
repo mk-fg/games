@@ -114,19 +114,11 @@ end
 -- Tech
 ------------------------------------------------------------
 
-local function get_circuit_input_wire(entity, signal, wire)
-	local net = entity.get_circuit_network(wire)
-	if net and net.signals then
-		for _, input in ipairs(net.signals) do
-			if input.signal.name == signal then return input.count end
-		end
-	end
-	return 0
-end
-
 local function get_circuit_input(entity, signal)
-	return get_circuit_input_wire(entity, signal, defines.wire_type.red)
-		+ get_circuit_input_wire(entity, signal, defines.wire_type.green)
+	local c = 0
+	for _, input in ipairs(entity.get_merged_signals())
+		do if input.signal.name == signal then c = c + input.count; break end end
+	return c
 end
 
 local function uv_light_init(entity)
@@ -255,10 +247,8 @@ local tasks_entities = {
 	end},
 
 	detectors = {work=1, func=function(wd, e, s)
-		local range = get_circuit_input(e, 'signal-R')
-		if range > 0 then
-			range = math.abs(range)
-			if range > 128 then range = 128 end
+		local range = get_circuit_input(e, conf.detection_range_signal)
+		if range > 0 then range = math.min(range, conf.detection_range_max)
 		else range = conf.detection_range end
 
 		local counts = {}
@@ -276,7 +266,6 @@ local tasks_entities = {
 			params[#params+1] = {index=#params+1, signal={type='item', name=name}, count=count}
 		end
 
-		-- XXX: doesn't look right - test it, add total count, other signals
 		e.get_control_behavior().parameters = {parameters=params}
 	end},
 }

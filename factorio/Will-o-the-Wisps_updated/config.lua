@@ -22,6 +22,8 @@ conf.wisp_purple_area = 2
 conf.uv_dmg = 16
 conf.uv_range = 12
 conf.detection_range = 16
+conf.detection_range_max = 128
+conf.detection_range_signal = 'signal-R'
 
 -- How long wisps stay around
 -- Except in daylight (where wisp_ttl_expire_chance_func kills them)
@@ -176,7 +178,7 @@ for wisp_name, light_info_list in pairs(conf.wisp_light_entities) do
 -- debug_log file path: %user-dir%/script-output/Will-o-the-wisps_updated/debug.log
 -- To find %user-dir% see https://wiki.factorio.com/Application_directory#User_data_directory
 
-conf.debug_log = false
+-- conf.debug_log = true
 
 -- conf.work_steps.zones_spread = 1
 -- conf.work_steps.zones_forest = 1

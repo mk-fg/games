@@ -21,15 +21,16 @@ Affects other wisps in different ways as well.
 
 ## Hints
 
-- Try not to burn forests at night.
+- Avoid burning forests at night.
 - Trees destroyed or mined at night-time might spawn yellow wisps, rocks - red ones.
 - Most production machinery (belts, inserters, assemblers, etc) is not susceptible to corrosion damage from wisps.
 - For affected buildings, corrosion resistance is derived from acid resistance.
+- Power generation buildings are most vulnerable to purple wisps.
 - If your turrets shoot down a wisp, try to stay away from its kind that night.
 - Overlapping UV lights will amplify effects, though daylight is the best cure.
-- Power generation buildings are most vulnerable to purple wisps.
-- Wisps appear in forests at night, drawn out by nearby pollution or player presence.
+- Wisps appear in forests after dark (after a day or few), drawn out by nearby pollution or player activity.
 - Disable turrets targeting wisps in Mod Options menu to coexist with them peacefully.
+- Wisp detectors range can be set by R signal, see ingame description for more info.
 
 
 ## Changes from the original mod
