@@ -10,7 +10,7 @@ Date: 08. 06. 2018
     - Disable debug logging module by default.
     - Add readme/license files to archive.
   Bugfixes:
-    - Fix lua error when enabling mod in a new game.
+    - Fix regression in .13 causing lua error when enabling mod in a new game.
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.13
 Date: 08. 06. 2018
