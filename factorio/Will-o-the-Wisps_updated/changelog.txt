@@ -1,4 +1,12 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.0.13
+Date: 08. 06. 2018
+  Changes:
+    - Spawning system rewrite, wisps should start appearing in forests at night in a day or few.
+    - Slightly brighter/larger lights for some wisps.
+    - Adjusted recipie costs for wisps and detector to be a bit more reasonable.
+    - Remove attached wisp and sabotage stuff for now - needs some fixes and testing.
+---------------------------------------------------------------------------------------------------
 Version: 0.0.12
 Date: 07. 06. 2018
   Changes:

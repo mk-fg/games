@@ -152,21 +152,21 @@ conf.wisp_light_min_ttl = conf.intervals.expire
 -- Missing entity info here will mean "no light from this wisp"
 conf.wisp_light_entities = {
 	['wisp-yellow']={
-		{intensity=0.5, size=4},
+		{intensity=0.5, size=5},
 		{intensity=0.7, size=6, color={r=0.95, g=0.84, b=0.1}},
-		{intensity=0.4, size=10, color={r=0.7, g=0.5, b=0.3, a=0.7}},
-		{intensity=0.6, size=4, color={r=0.8, g=0.7, b=0.1, a=0.8}}
+		{intensity=0.4, size=12, color={r=0.7, g=0.5, b=0.3, a=0.7}},
+		{intensity=0.6, size=7, color={r=0.8, g=0.7, b=0.1, a=0.8}}
 	},
 	['wisp-red']={
-		{intensity=0.5, size=4},
-		{intensity=0.3, size=6, color={r=0.95, g=0.0, b=0.8}},
+		{intensity=0.5, size=5},
+		{intensity=0.3, size=7, color={r=0.95, g=0.0, b=0.8}},
 		{intensity=0.2, size=12, color={r=0.95, g=0.0, b=0.3}}
 	},
 	['wisp-purple']={ -- light from these can be disabled to increase performance
-		{intensity=0.3, size=4, color={r=0.30, g=0.24, b=1.0, a=0.5}},
-		{intensity=0.2, size=10, color={r=0.36, g=0.15, b=0.82, a=0.8}},
-		{intensity=0.5, size=6, color={r=0.40, g=0.05, b=0.80, a=0.6}},
-		{intensity=0.4, size=3, color={r=0.15, g=0.02, b=0.88, a=0.7}}
+		{intensity=0.7, size=5, color={r=0.30, g=0.24, b=1.0, a=0.5}},
+		{intensity=0.4, size=11, color={r=0.36, g=0.15, b=0.82, a=0.8}},
+		{intensity=0.6, size=7, color={r=0.40, g=0.05, b=0.80, a=0.6}},
+		{intensity=0.5, size=3, color={r=0.15, g=0.02, b=0.88, a=0.7}}
 	},
 }
 conf.wisp_light_name_fmt = '%s-light-%02d'

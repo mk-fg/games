@@ -31,16 +31,6 @@ data:extend{
 		stack_size = 100 },
 
 	{ type = 'item',
-		name = 'wisp-attached',
-		icon = '__Will-o-the-Wisps_updated__/graphics/icons/wisp-purple-capsule.png',
-		icon_size = 32,
-		flags = {'goes-to-quickbar'},
-		subgroup = 'capsule',
-		order = 'z[combatrobot]',
-		place_result = 'wisp-attached',
-		stack_size = 100 },
-
-	{ type = 'item',
 		name = 'wisp-red',
 		icon = '__Will-o-the-Wisps_updated__/graphics/icons/wisp-red-capsule.png',
 		icon_size = 32,

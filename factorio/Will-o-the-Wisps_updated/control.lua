@@ -121,6 +121,7 @@ local function get_circuit_input_wire(entity, signal, wire)
 			if input.signal.name == signal then return input.count end
 		end
 	end
+	return 0
 end
 
 local function get_circuit_input(entity, signal)
@@ -206,28 +207,6 @@ local tasks_monolithic = {
 			wisp_group_create_or_join(wisp.entity)
 		end
 		return 20
-	end,
-
-	sabotage = function(surface)
-		local wisp = Wisps[math.random(Wisps.n)]
-		if wisp.entity.valid and wisp.entity.name == 'wisp-purple' then
-			local poles = surface.find_entities_filtered{
-				type='electric-pole', limit=1,
-				area=utils.get_area(conf.sabotage_range, wisp.entity.position) }
-			if next(poles) then
-				local pos = poles[1].position
-				pos.x = pos.x + math.random(-4, 4) * 0.1
-				pos.y = pos.y + math.random(-5, 5) * 0.1
-				local wispAttached = surface.create_entity{
-					name = 'wisp-attached', position = pos, force = 'wisps' }
-				if wispAttached then
-					local oldEntity = wisp.entity
-					wisp.entity = wispAttached
-					oldEntity.destroy()
-				end
-			end
-		end
-		return 50
 	end
 }
 
@@ -277,7 +256,7 @@ local tasks_entities = {
 
 	detectors = {work=1, func=function(wd, e, s)
 		local range = get_circuit_input(e, 'signal-R')
-		if range then
+		if range > 0 then
 			range = math.abs(range)
 			if range > 128 then range = 128 end
 		else range = conf.detection_range end
@@ -292,8 +271,9 @@ local tasks_entities = {
 				name=wisp_spore_proto, area=utils.get_area(range, e.position) }
 		end
 
+		local params = {}
 		for name, count in pairs(counts) do
-			params[#params+1] = {index=#params, signal={type='item', name=name}, count=count}
+			params[#params+1] = {index=#params+1, signal={type='item', name=name}, count=count}
 		end
 
 		-- XXX: doesn't look right - test it, add total count, other signals
@@ -389,7 +369,6 @@ local function on_tick(event)
 	if wisps then
 		if uvlights then run('uv', UVLights) end
 		run('expire', Wisps)
-		-- run('sabotage', surface)
 	end
 end
 
