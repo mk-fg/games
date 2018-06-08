@@ -495,8 +495,6 @@ local function apply_version_updates(old_v, new_v)
 	if utils.version_less_than(old_v, '0.0.3') then
 		utils.log('    - Updating TTL/TTU keys in global objects')
 		for _,wisp in ipairs(Wisps) do remap_key(wisp, 'TTL', 'ttl') end
-		for _,chunk in ipairs(Chunks) do remap_key(chunk, 'TTU', 'ttu') end
-		for _,forest in ipairs(Forests) do remap_key(forest, 'TTU', 'ttu') end
 	end
 
 	if utils.version_less_than(old_v, '0.0.7') then
