@@ -7,29 +7,8 @@ local ChunkList, ChunkMap -- always up-to-date, existing chunks never removed
 local ChunkSpreadQueue, ForestSet
 
 
--- Where to spawn wisps on the map in general:
---
---  - Find and track all chunks via ChunkList/ChunkMap.
---
---  - Scan ChunkList & scan_tick for pollution values, add to ChunkSpreadQueue.
---    These will be polluted areas where wisps
---     wisps are most likely to appear, if there are any trees left.
---
---  - Scan ChunkSpreadQueue for tree count, setting "scan_tick" and populating ForestSet.
---    As forests eat pollution, and their exact chunks might not show up there,
---     scanned areas are extended to cover neighboring chunks as well.
---
---  - Weighted random from ForestSet by pollution-level.
-
--- Where to spawn wisps in player proximity:
---
---  - Find trees in wisp_near_player_radius around each player.
---  - Return count * wisp_near_player_percent random ones from each per-player list.
-
-
 local cs = 32 -- chunk size, to name all "32" where it's that
 local forest_radius = cs * 3 / 2 -- radius in which to look for forests, centered on chunk
-
 
 local function area_chunk_xy(area)
 	local left_top
@@ -52,6 +31,24 @@ local function replace_chunk(surface, cx, cy)
 	ChunkMap[k] = {cx=cx, cy=cy, surface=surface}
 end
 
+
+-- How wisps spawn on the map:
+--
+--  - Find and track all chunks via ChunkList/ChunkMap.
+--    Done via refresh_chunks + reset_chunk in on_chunk_generated.
+--
+--  - Scan ChunkList & scan_spread for pollution values, add to ChunkSpreadQueue.
+--    ChunkSpreadQueue is a queue of polluted areas where
+--     wisps are most likely to appear, if there are any trees left.
+--    Periodic update_wisp_spread task.
+--
+--  - Go through (check and remove) chunks in ChunkSpreadQueue & scan_trees,
+--     scanning for tree count around these chunks' center.
+--    As forests eat pollution, and their exact chunks might not show up there,
+--     scanned areas are extended to cover some area around chunks as well.
+--    Periodic update_forests_in_spread task.
+--
+--  - Weighted random from ForestSet by pollution-level in get_wisp_trees_anywhere.
 
 function zones.update_wisp_spread(step, steps)
 	local tick, out, k, chunk = game.tick, ChunkSpreadQueue
