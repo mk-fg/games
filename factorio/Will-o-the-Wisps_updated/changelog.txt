@@ -1,8 +1,11 @@
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.17
-Date: 09. 06. 2018
+Date: 10. 06. 2018
+  Changes:
+    - Update wisp daylight expire algo to only take darkness changes into account, not ticks.
   Bugfixes:
     - Fix wisp detector to only show non-zero signals on it in Alt-mode.
+    - Fix wisps never switching to back to peaceful mode during day.
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.16
 Date: 09. 06. 2018

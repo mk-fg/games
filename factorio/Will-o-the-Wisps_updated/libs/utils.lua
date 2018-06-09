@@ -85,7 +85,9 @@ function utils.pick_chance(...)
 	return res
 end
 
-function utils.pick_jitter(limit) return math.random(-limit, limit) end
+function utils.pick_jitter(limit, positive)
+	return math.random(positive and -limit or 0, limit)
+end
 
 
 function utils.t(s, value)

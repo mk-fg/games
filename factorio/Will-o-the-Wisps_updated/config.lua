@@ -35,9 +35,14 @@ conf.wisp_ttl = {
 	['wisp-red']=100 * ticks_sec }
 conf.wisp_ttl_jitter = 40 * ticks_sec -- -40s to +40s
 
+-- Misc other wisp parameters
+conf.wisp_group_radius = {['wisp-yellow']=16, ['wisp-red']=6}
+conf.wisp_group_min_ttl = 100
+conf.wisp_red_damage_replication_chance = 0.2
+
 -- Minimal darkness value when the wisps appearing (0-1).
--- Chances of wisps appearing increase in reverse to this value.
--- Full daylight is 0 (wisps at daytime), max darkness is ~0.85.
+-- Full daylight is darkness=0 (wisps at daytime), max ~0.85.
+-- Also used to check for max uv level in uv expire.
 conf.min_darkness = 0.05
 conf.min_darkness_to_emit_light = 0.10
 
@@ -47,30 +52,32 @@ conf.wisp_chance_func = function(darkness, wisp)
 	return darkness > conf.min_darkness
 		and math.random() < darkness - 0.40 end
 
-conf.wisp_ttl_expire_chance_func = function(darkness, wisp)
-	-- When true, wisp's ttl will drop to 0 on expire-check
-	-- Check is made each "expire" interval * step, chances add up exponentially
-	-- Picked from basic exponent chart, too lazy to fit some curve to these
-	local chance
-	if darkness < 0.05 then chance = 0.15
-	elseif darkness < 0.08 then chance = 0.10
-	elseif darkness < 0.10 then chance = 0.07
-	elseif darkness < 0.20 then chance = 0.04
-	elseif darkness < 0.30 then chance = 0.02 end
-	return chance and math.random() < chance * conf.work_steps.expire end
+-- Darkness drop step to +1 uv level and run wisp_uv_expire_chance.
+-- See also: chart in darkness-wisp-expire-chart.html file
+conf.wisp_uv_expire_step = 0.10
+conf.wisp_uv_expire_jitter = 20 * ticks_sec -- instead of ttl=0
 
-conf.wisp_peace_chance_func = function(darkness)
-	-- Applies to all wisps
-	if darkness >= conf.min_darkness
-		then return conf.wisp_ttl_expire_chance_func(darkness) end
-	return 0.3
+-- All wisp_uv_* chances only work with wisp_uv_expire_step value above
+local wisp_uv_expire_exp = function(uv) return math.pow(1.3, 1 + uv * 0.08) - 1.3 end
+local wisp_uv_expire_exp_bp = wisp_uv_expire_exp(6)
+conf.wisp_uv_expire_chance_func = function(darkness, uv, wisp)
+	-- When returns true, wisp's ttl will drop to 0 on expire_uv.
+	-- Check is made per wisp each time when
+	--  darkness drops by conf.wisp_daytime_expire_step
+	--  or on every interval*step when <min_darkness.
+	local chance
+	if uv < 6 then chance = wisp_uv_expire_exp(uv)
+	else chance = wisp_uv_expire_exp_bp + uv * 0.03 end
+	return math.random() < chance
 end
 
-conf.wisp_group_radius = {['wisp-yellow']=16, ['wisp-red']=6}
-conf.wisp_red_damage_replication_chance = 0.2
+-- Applies to all wisps, runs on global uv level changes, not per-wisp
+conf.wisp_uv_peace_chance_func = function(darkness, uv)
+	return math.random() < (uv / 10) * 0.3
+end
 
 
--- ---------- Map scanning parameters
+-- ---------- Map scanning/spawning parameters
 
 -- wisp_forest_on_map_percent sets percentage of maximum wisp count,
 --  after which they stop spawning in random forests on the map,
@@ -80,7 +87,7 @@ conf.wisp_forest_on_map_percent = 0.8
 conf.wisp_forest_min_density = 300
 
 -- Chances for which wisps rise from forests on their own
--- All values should be in 0-1 range, and sum up to <=1 (<1 will mean some spawns skipped)
+-- Sum should be in 0-1 range (<1 will mean some spawns skipped)
 -- Defaults: purple=50%, yellow=7%, red=1%
 conf.wisp_forest_spawn_chance_purple = 0.50
 conf.wisp_forest_spawn_chance_yellow = 0.07
@@ -120,9 +127,9 @@ conf.surface_name = 'nauvis'
 --- 283  293 307 311 313 317 331 337 347 349 353
 
 conf.intervals = {
-	spawn_near_players=317, spawn_on_map=313, tactics=97,
-	detectors=47, light=3, uv=53, expire=59 }
-conf.work_steps = {detectors=4, light=2, uv=5, expire=3}
+	spawn_near_players=107, spawn_on_map=113, pacify=311, tactics=97,
+	detectors=47, light=3, uv=53, expire_ttl=73, expire_uv=61 }
+conf.work_steps = { detectors=4, light=2, uv=5, expire_ttl=8, expire_uv=5 }
 
 -- Chunks are checked for pollution/player spread during daytime only, can ~10k chunks
 -- Interval formula: (ticks_gameday * 0.6) / work_steps
@@ -145,7 +152,7 @@ conf.work_limit_per_tick = 20
 -- Note: used in prototypes only, so re-read on factorio restart, not savegame load!
 conf.wisp_light_anim_speed = 1 / (conf.intervals.light * conf.work_steps.light + 1)
 
-conf.wisp_light_min_ttl = conf.intervals.expire
+conf.wisp_light_min_ttl = conf.intervals.expire_ttl
 
 -- Missing entity info here will mean "no light from this wisp"
 conf.wisp_light_entities = {

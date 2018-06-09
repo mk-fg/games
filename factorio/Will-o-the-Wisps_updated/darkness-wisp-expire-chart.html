@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<meta charset='utf-8'>
+<style>
+
+body {
+	margin: 0 auto;
+	padding: 1em;
+	max-width: 1000px;
+}
+svg text { font: 15px 'Liberation Sans', 'Luxi Sans', sans-serif; }
+
+.axis text { fill: black; }
+.line { fill: none; stroke: steelblue; stroke-width: 1.5px; }
+.grid line { stroke: #ddd; }
+.grid .domain { stroke: none; }
+
+.mark { stroke: red; }
+
+.overlay { fill: none; pointer-events: all; }
+.focus circle { fill: none; stroke: steelblue; }
+.focus tspan { paint-order: stroke; stroke: white; stroke-width: 10px; }
+
+</style>
+<body>
+
+<script src='d3.v4.min.js'></script>
+<script>
+
+let d3js_url = 'https://d3js.org/d3.v4.min.js',
+	d3js_loaded = new Promise((resolve, reject) => {
+		if (window.d3) return resolve(window.d3)
+		let include = (url) => {
+			let req = new XMLHttpRequest()
+			req.open('GET', url)
+			req.onreadystatechange = d => {
+				if (req.status != 200 || req.readyState != 4) return
+				eval(req.responseText)
+				resolve(window.d3) }
+			req.send() }
+		console.log(`WARNING: loading d3 from ${d3js_url}`)
+		include(d3js_url) })
+
+window.onload = () => d3js_loaded.then((d3) => {
+'use strict'
+
+if (!d3) {
+	document.body.innerHTML = `
+		<h2>ERROR: failed to load d3.js library</h2>
+		<p>Check uMatrix/NoScript/adblocker setttings or download
+			<a href='${d3js_url}'>d3.v4.min.js</a> into same dir as this html.</p>`
+	return
+}
+
+
+// Data
+
+let data = []
+
+let chance_func = (uv) => {
+	let e = 1.3, k = 0.08, bp = 6
+	let exp = (uv) => Math.pow(e, 1 + Math.max(0, uv) * k) - e
+	if (uv < bp) return exp(uv)
+	else return exp(bp) + uv * 0.03
+}
+
+let peace_func = (uv) => {
+	return (uv / 10) * 0.3
+}
+
+let count = 1, darkness = 1, darkness_step = 0.10,
+	uv_max = Math.ceil(darkness / darkness_step)
+let n = 0, n_max = darkness / darkness_step + 5 // show +5 full-daytime steps
+data.push({uv: n, count: count})
+
+while (n <= n_max) {
+	darkness -= darkness_step; n += 1
+	let uv = Math.min(uv_max, Math.floor((1 - darkness) / darkness_step))
+	let chance = chance_func(uv)
+	// let chance = peace_func(uv)
+	count = Math.min(1, Math.max(0, count * (1 - chance)))
+	console.log(`uv=${uv} chance=${chance} count=${count}`)
+	data.push({uv: n, chance: chance, count: count})
+}
+
+
+// Basic d3 boilerplate
+
+let
+	margin = {top: 50, right: 100, bottom: 50, left: 100},
+	width = 960 - margin.left - margin.right,
+	height = 700 - margin.top - margin.bottom,
+	x = d3.scaleLinear().range([0, width]),
+	y = d3.scaleLinear().range([height, 0])
+
+let vis = d3.select('body')
+	.append('svg')
+		.attr('width', width + margin.left + margin.right)
+		.attr('height', height + margin.top + margin.bottom)
+	.append('g')
+		.attr('transform', `translate(${margin.left},${margin.top})`)
+
+
+// Axes and chart
+
+let kx = 'uv', ky = 'count',
+	line = d3.line().x(d => x(d[kx])).y(d => y(d[ky]))
+let attrs = (vals) => (s) => {
+	Object.entries(vals).forEach(([k,v]) => s.attr(k, v)) }
+
+x.domain(d3.extent(data, d => d[kx]))
+y.domain([0, 1])
+
+vis
+	.call(s => {
+		s.append('g').attr('class', 'x grid').call(
+			d3.axisBottom(x).tickSize(height, 0).tickFormat('') )
+		s.append('g').attr('class', 'y grid').call(
+			d3.axisLeft(y).tickSize(-width, 0).tickFormat('') ) })
+	.call( s => s
+		.append('g')
+			.attr('class', 'x axis').attr('transform', `translate(0,${height})`)
+			.call(d3.axisBottom(x))
+		.append('text')
+			.attr('transform', `translate(${width},0)`)
+			.attr('dx', '-1em').attr('dy', '3em')
+			.style('text-anchor', 'end').text(kx) )
+	.call( s => s
+		.append('g').attr('class', 'y axis').call(d3.axisLeft(y))
+		.append('text')
+			.attr('transform', 'rotate(-90)').attr('dx', '-1em').attr('dy', '-3em')
+			.style('text-anchor', 'end').text(ky) )
+	.call(s => s.append('path').data([data]).attr('class', 'line') .attr('d', line))
+
+
+// Marker lines
+
+vis.append('line').attr('class', 'mark')
+	.call(attrs({x1: x(uv_max), x2: x(uv_max), y1: 0, y2: height}))
+
+
+// Focus data on mouseover
+
+let side = -1, // 1 or -1
+	x_bisect = d3.bisector(d => d[kx]).left,
+	focus = vis
+		.append('g').attr('class', 'focus').style('display', 'none')
+		.call(s => s.append('circle').attr('r', 4.5)),
+	focus_label = focus.append('text')
+		.attr('x', 10).attr('dy', '.3em')
+		.attr('text-anchor', side > 0 ? 'start' : 'end')
+
+let format_n = d3.format(',.3f'),
+	format = (k, v) => {
+		if (k == kx) return v
+		if (k == ky) return format_n(v)
+		return (typeof v === 'number') ? format_n(v) : v }
+
+vis.append('rect')
+	.attr('class', 'overlay').attr('width', width).attr('height', height)
+	.on('mouseover', (d, n, ns) => focus.style('display', null))
+	.on('mouseout', (d, n, ns) => focus.style('display', 'none'))
+	.on('mousemove', (d, n, ns) => {
+		let x0 = x.invert(d3.mouse(ns[n])[0]),
+			i = x_bisect(data, x0, 1), d0 = data[i-1], d1 = data[i]
+		d = x0 - d0[kx] > d1[kx] - x0 ? d1 : d0
+		focus.attr('transform', `translate(${x(d[kx])},${y(d[ky])})`)
+		focus_label.selectAll('tspan').call( s => s
+			.data(Object.entries(d).map(([k, v]) => `${k}: ${format(k, v)}`).sort())
+			.call(s => s.exit().remove())
+			.enter().append('tspan').attr('dy', '1.5em').attr('x', `${side}em`).merge(s).text(d => d) ) })
+
+})
+</script>
+</body>

@@ -7,6 +7,7 @@ local zones = require('libs/zones')
 
 -- local references to globals
 local Wisps, UVLights, Detectors
+local MapUVLevel
 local ws
 
 -- wisp_surface must only be used directly on entry points, and passed from there
@@ -34,7 +35,7 @@ local function wisp_init(entity, ttl, n)
 		ttl = ttl + utils.pick_jitter(conf.wisp_ttl_jitter)
 	end
 	entity.force = game.forces.wisps
-	local wisp = {entity=entity, ttl=ttl}
+	local wisp = {entity=entity, ttl=ttl, uv_level=0}
 	if not n then n = Wisps.n + 1; Wisps.n = n end
 	Wisps[n] = wisp
 end
@@ -182,8 +183,11 @@ local tasks_monolithic = {
 	end,
 
 	pacify = function(surface)
-		if conf.wisp_peace_chance_func(surface.darkness)
+		local uv = math.floor((1 - surface.darkness) / conf.wisp_uv_expire_step)
+		if (surface.darkness <= conf.min_darkness or uv > MapUVLevel)
+				and conf.wisp_uv_peace_chance_func(surface.darkness, uv)
 			then wisp_aggression_set(surface, false) end
+		MapUVLevel = uv
 		return 1
 	end,
 
@@ -192,7 +196,7 @@ local tasks_monolithic = {
 		if Wisps.n > 0 then return end
 		local wisp = Wisps[math.random(Wisps.n)]
 		if (wisp.entity.valid and wisp.entity.type == 'unit')
-				and (not wisp.entity.unit_group and wisp.ttl > conf.intervals.expire) then
+				and (not wisp.entity.unit_group and wisp.ttl >= conf.wisp_group_min_ttl) then
 			wisp_group_create_or_join(wisp.entity)
 		end
 		return 20
@@ -207,14 +211,27 @@ local tasks_entities = {
 		if wisp.ttl >= conf.wisp_light_min_ttl
 			then wisp_emit_light(wisp) end end},
 
-	expire = {work=1, func=function(wisp, e, s)
-		-- Destroy one cycle after expire, so that light will be disabled first
-		if wisp.ttl  <= 0 then e.destroy() end
-		if conf.wisp_ttl_expire_chance_func(s.darkness, wisp)
-			then wisp.ttl = 0
-		elseif not conf.wisp_chance_func(s.darkness, wisp)
-			then wisp.ttl = wisp.ttl -
-				conf.intervals.expire * conf.work_steps.expire end
+	expire_ttl = {work=0.3, func=function(wisp, e, s)
+		-- Works by time passing by reducing ttl value,
+		--  so that even with long nights, wisps come and go normally.
+		-- wisp_chance_func is rolled to not decrease ttl at night, to spread-out ttls.
+		-- e.destroy() works one cycle after expire, so that light will be disabled first.
+		if wisp.ttl  <= 0 then return e.destroy() end
+		if not conf.wisp_chance_func(s.darkness, wisp)
+			then wisp.ttl = wisp.ttl - conf.intervals.expire_ttl * conf.work_steps.expire_ttl end
+	end},
+
+	expire_uv = {work=0.1, func=function(wisp, e, s)
+		-- Chance to destroy each wisp when night is over.
+		-- At zero darkness, such check is done on each call using max uv value.
+		-- Works by making checks when darkness crosses threshold levels.
+		if wisp.ttl <= 0 then return end
+		local uv = math.floor((1 - s.darkness) / conf.wisp_uv_expire_step)
+		if (s.darkness <= conf.min_darkness or uv > wisp.uv_level)
+				and conf.wisp_uv_expire_chance_func(s.darkness, uv, wisp) then
+			wisp.ttl = math.min(wisp.ttl, utils.pick_jitter(conf.wisp_uv_expire_jitter, true))
+		end
+		wisp.uv_level = uv
 	end},
 
 	uv = {work=1, func=function(uv, e, s)
@@ -356,7 +373,9 @@ local function on_tick(event)
 
 	if wisps then
 		if uvlights then run('uv', UVLights) end
-		run('expire', Wisps)
+		run('expire_uv', Wisps)
+		run('expire_ttl', Wisps)
+		run('pacify', surface)
 	end
 end
 
@@ -510,19 +529,30 @@ local function apply_version_updates(old_v, new_v)
 		Wisps.n, UVLights.n, Detectors.n = #Wisps, #UVLights, #Detectors
 		ws.gc, global.chunks, global.forests = nil
 	end
+
+	if utils.version_less_than(old_v, '0.0.17') then
+		ws.spawn, ws.expire = nil
+		for _, wisp in ipairs(Wisps) do wisp.uv_level = 0 end
+	end
 end
 
 local function init_globals()
-	for _, k in ipairs{'zones', 'wisps', 'uvLights', 'detectors', 'workSteps'} do
-		if not global[k] then global[k] = {} end
+	for _, k in ipairs{
+			'zones', 'wisps', 'uvLights',
+			'detectors', 'workSteps', 'mapUVLevel' } do
+		if global[k] then goto skip end
+		if k == 'mapUVLevel'
+			then global[k] = 0
+			else global[k] = {} end
 		if (k == 'wisps' or k == 'uvLights' or k == 'detectors')
 			and not global[k].n then global[k].n = #(global[k]) end
-	end
+	::skip:: end
 end
 
 local function init_refs()
 	utils.log('Init local references to globals...')
 	Wisps, UVLights, Detectors = global.wisps, global.uvLights, global.detectors
+	MapUVLevel = global.mapUVLevel
 	ws = global.workSteps
 	utils.log(
 		' - Object stats: wisps=%s uvs=%s detectors=%s',
@@ -542,7 +572,7 @@ script.on_configuration_changed(function(data)
 	utils.log('Updating mod configuration...')
 	-- Add any new globals and pick them up in init_refs() again
 	init_globals()
-	init_refs(false)
+	init_refs()
 
 	utils.log('Refreshing chunks...')
 	zones.refresh_chunks(game.surfaces[conf.surface_name])
