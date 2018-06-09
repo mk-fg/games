@@ -154,12 +154,10 @@ local tasks_monolithic = {
 		return zones.update_forests_in_spread(n, steps)
 	end,
 
-	spawn = function(surface)
+	spawn_near_players = function(surface)
 		-- XXX: add wisps spawning from rocks too
 		if Wisps.n >= conf.wisp_max_count then return end
 		local workload, trees = 0
-
-		-- wisp spawning near players
 		for _, player in pairs(game.connected_players) do
 			if not player.valid or player.surface.index ~= surface.index then goto skip end
 			trees = zones.get_wisp_trees_near_pos(
@@ -167,21 +165,20 @@ local tasks_monolithic = {
 			for _, tree in ipairs(trees) do wisp_create_at_random('wisp-yellow', tree) end
 			workload = workload + #trees
 		::skip:: end
-
-		if Wisps.n < conf.wisp_max_count * conf.wisp_forest_on_map_percent then
-			-- wisp spawning in random forests
-			trees = zones.get_wisp_trees_anywhere(conf.wisp_forest_spawn_count)
-			for _, tree in ipairs(trees) do
-				local wisp_name = utils.pick_chance{ -- nil - neither
-					[wisp_spore_proto]=conf.wisp_forest_spawn_chance_purple,
-					['wisp-yellow']=conf.wisp_forest_spawn_chance_yellow,
-					['wisp-red']=conf.wisp_forest_spawn_chance_red }
-				if wisp_name then wisp_create_at_random(wisp_name, tree) end
-			end
-			workload = workload + #trees
-		end
-
 		return workload
+	end,
+
+	spawn_on_map = function(surface)
+		if Wisps.n >= conf.wisp_max_count * conf.wisp_forest_on_map_percent then return end
+		trees = zones.get_wisp_trees_anywhere(conf.wisp_forest_spawn_count)
+		for _, tree in ipairs(trees) do
+			local wisp_name = utils.pick_chance{ -- nil - neither
+				[wisp_spore_proto]=conf.wisp_forest_spawn_chance_purple,
+				['wisp-yellow']=conf.wisp_forest_spawn_chance_yellow,
+				['wisp-red']=conf.wisp_forest_spawn_chance_red }
+			if wisp_name then wisp_create_at_random(wisp_name, tree) end
+		end
+		return #trees
 	end,
 
 	pacify = function(surface)
@@ -238,7 +235,7 @@ local tasks_entities = {
 
 			if energy_percent > 0.6 then
 				local spores = s.find_entities_filtered{
-					name='wisp-purple', area=utils.get_area(conf.uv_range, e.position) }
+					name=wisp_spore_proto, area=utils.get_area(conf.uv_range, e.position) }
 				if next(spores) then for _, spore in ipairs(spores) do
 					if utils.pick_chance(energy_percent - 0.55) then spore.destroy() end
 				end end
@@ -251,14 +248,15 @@ local tasks_entities = {
 		if range > 0 then range = math.min(range, conf.detection_range_max)
 		else range = conf.detection_range end
 
-		local counts = {}
+		local counts, wisps = {}
 		if next(Wisps) then
-			local wisps = s.find_entities_filtered{
+			wisps = s.find_entities_filtered{
 				force='wisps', area=utils.get_area(range, e.position) }
 			for _, wisp in ipairs(wisps)
 				do counts[wisp.name] = (counts[wisp.name] or 0) + 1 end
-			counts['wisp-purple'] = s.count_entities_filtered{
+			wisps = s.count_entities_filtered{
 				name=wisp_spore_proto, area=utils.get_area(range, e.position) }
+			if wisps > 0 then counts['wisp-purple'] = wisps end
 		end
 
 		local params = {}
@@ -344,7 +342,8 @@ local function on_tick(event)
 	local wisps, uvlights, detectors = Wisps.n > 0, UVLights.n > 0, Detectors.n > 0
 
 	if is_dark then
-		run('spawn', surface)
+		run('spawn_near_players', surface)
+		run('spawn_on_map', surface)
 		run('tactics', surface)
 		if wisps and surface.darkness > conf.min_darkness_to_emit_light
 			then run('light', Wisps) end
@@ -395,10 +394,9 @@ local function on_built_entity(event)
 	if entity.name == 'wisp-detector' then return detector_init(entity) end
 
 	if entity.name == 'wisp-purple' then
-		-- Recreate wisp to change damage values
 		local surface, pos = entity.surface, entity.position
 		entity.destroy()
-		local wisp =  wisp_create('wisp-purple', surface, pos)
+		local wisp =  wisp_create(wisp_spore_proto, surface, pos)
 	else wisp_init(entity) end
 end
 

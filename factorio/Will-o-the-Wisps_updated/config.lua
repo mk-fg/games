@@ -119,7 +119,8 @@ conf.surface_name = 'nauvis'
 --- 211  223 227 229 233 239 241 251 257 263 269 271 277 281
 --- 283  293 307 311 313 317 331 337 347 349 353
 
-conf.intervals = { spawn=317, tactics=97,
+conf.intervals = {
+	spawn_near_players=317, spawn_on_map=313, tactics=97,
 	detectors=47, light=3, uv=53, expire=59 }
 conf.work_steps = {detectors=4, light=2, uv=5, expire=3}
 
