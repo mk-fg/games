@@ -116,9 +116,10 @@ end
 ------------------------------------------------------------
 
 local function get_circuit_input(entity, signal)
-	local c = 0
-	for _, input in ipairs(entity.get_merged_signals())
-		do if input.signal.name == signal then c = c + input.count; break end end
+	local c, signals = 0, entity.get_merged_signals()
+	if signals then for _, input in ipairs(signals) do
+		if input.signal.name == signal then c = c + input.count; break end
+	end end
 	return c
 end
 
