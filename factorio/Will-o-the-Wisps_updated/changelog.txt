@@ -1,4 +1,11 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.0.18
+Date: 10. 06. 2018
+  Features:
+    - Make wisp type spawn chances (when spawned in random forests) controllable via mod options.
+  Bugfixes:
+    - Fix wisp spawning zones' pollution tracking being reset after mod updates.
+---------------------------------------------------------------------------------------------------
 Version: 0.0.17
 Date: 10. 06. 2018
   Changes:

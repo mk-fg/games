@@ -421,7 +421,7 @@ end
 
 local function on_chunk_generated(event)
 	if event.surface.index ~= wisp_surface.index then return end
-	zones.reset_chunk(event.surface, event.area)
+	zones.reset_chunk_area(event.surface, event.area)
 end
 
 local function on_tick_init(event)
@@ -499,6 +499,20 @@ local function apply_runtime_settings(event)
 				wisp.entity.destroy()
 				wisp = wisp_create(wisp_spore_proto, surface, pos, wisp.ttl, n)
 			::skip:: end
+		end
+	end
+
+	local wisp_spawns_sum = 0
+	for _, c in ipairs{'purple', 'yellow', 'red'} do
+		local k, k_conf = 'wisp-map-spawn-'..c, 'wisp_forest_spawn_chance_'..c
+		knob = key_update(k)
+		if knob then conf[k_conf] = knob.value end
+		wisp_spawns_sum = wisp_spawns_sum + conf[k_conf]
+	end
+	if wisp_spawns_sum > 1 then
+		for _, c in ipairs{'purple', 'yellow', 'red'} do
+			local k = 'wisp_forest_spawn_chance_'..c
+			conf[k] = conf[k] / wisp_spawns_sum
 		end
 	end
 end

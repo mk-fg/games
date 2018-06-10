@@ -137,7 +137,7 @@ function zones.get_wisp_trees_near_pos(surface, pos, radius)
 end
 
 
-function zones.reset_chunk(surface, area)
+function zones.reset_chunk_area(surface, area)
 	-- Adds or resets all stored info (scan ticks, pollution, etc)
 	--  for chunk, identified by left-top corner of the area (assumed to be chunk area).
 	replace_chunk(surface, area_chunk_xy(area))
@@ -147,10 +147,28 @@ function zones.refresh_chunks(surface)
 	-- Forces re-scan of all existing chunks and adds any newly-revealed ones.
 	-- Should only be called on game/mod updates,
 	--  in case these might change chunks or how they are handled.
-	for n = 1, #ChunkList do ChunkList[n] = nil end
-	for n = 1, #ChunkMap do ChunkMap[n] = nil end
-	for chunk in surface.get_chunks()
-		do replace_chunk(surface, chunk.x, chunk.y) end
+	local chunks_found, chunks_diff, k, c = {}, 0
+
+	for chunk in surface.get_chunks() do
+		k = chunk_key(chunk.x, chunk.y)
+		c = ChunkMap[k]
+		if c then c.scan_spread, c.scan_trees = nil else
+			chunks_diff = chunks_diff + 1
+			replace_chunk(surface, chunk.x, chunk.y)
+		end
+		chunks_found[k] = true
+	end
+	if chunks_diff > 0
+		then utils.log(' - Detected ChunkMap additions: %d', chunks_diff) end
+
+	chunks_diff = 0
+	for k,_ in pairs(ChunkMap) do if not chunks_found[k]
+		then chunks_diff, ChunkMap[k] = chunks_diff + 1, nil end end
+	if chunks_diff > 0 then
+		utils.log(' - Detected ChunkMap removals (mod bug?): %d', chunks_diff)
+		for n = 1, #ChunkList do ChunkList[n] = nil end
+		for k,_ in pairs(ChunkMap) do ChunkList[#ChunkList+1] = k end
+	end
 end
 
 function zones.init(zs)

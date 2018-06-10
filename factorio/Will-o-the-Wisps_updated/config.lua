@@ -88,7 +88,6 @@ conf.wisp_forest_min_density = 300
 
 -- Chances for which wisps rise from forests on their own
 -- Sum should be in 0-1 range (<1 will mean some spawns skipped)
--- Defaults: purple=50%, yellow=7%, red=1%
 conf.wisp_forest_spawn_chance_purple = 0.50
 conf.wisp_forest_spawn_chance_yellow = 0.07
 conf.wisp_forest_spawn_chance_red = 0.01

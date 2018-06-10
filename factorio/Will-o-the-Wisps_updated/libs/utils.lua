@@ -78,8 +78,7 @@ function utils.pick_chance(...)
 	local args, sum = {...}, 0
 	if #args == 1 and type(args[1]) == 'table' then args = args[1] end
 	for _,v in pairs(args) do sum = sum + v end
-	if sum > 1 then utils.error('Sum of passed probability values must be <=1: %s', args) end
-	args['__none'] = 1 - sum
+	args['__none'] = math.max(0, 1 - sum)
 	local res = utils.pick_weight(args)
 	if res == '__none' then res = nil end
 	return res
