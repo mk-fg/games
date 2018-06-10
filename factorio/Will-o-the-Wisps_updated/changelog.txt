@@ -3,6 +3,8 @@ Version: 0.0.23
 Date: 11. 06. 2018
   Changes:
     - Add light around wisp detectors.
+  Bugfixes:
+    - Fix new purple wisps corroding stuff after save load, when it's disabled in mod opts.
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.22
 Date: 10. 06. 2018

@@ -493,9 +493,9 @@ local function apply_runtime_settings(event)
 	if knob then
 		local v_old, v = conf.peaceful_spores, not knob.value
 		conf.peaceful_spores = v
+		wisp_spore_proto = v and 'wisp-purple-harmless' or 'wisp-purple'
 		if game and v_old ~= v then
 			-- Replace all existing spores with harmless/corroding variants
-			wisp_spore_proto = v and 'wisp-purple-harmless' or 'wisp-purple'
 			for n, wisp in ipairs(Wisps) do
 				if not wisp.entity.valid
 						or not wisp_spore_proto_check(wisp.entity.name)
