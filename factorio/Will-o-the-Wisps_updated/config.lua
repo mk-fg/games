@@ -127,8 +127,9 @@ conf.surface_name = 'nauvis'
 
 conf.intervals = {
 	spawn_near_players=107, spawn_on_map=113, pacify=311, tactics=97,
-	detectors=47, light=3, uv=53, expire_ttl=73, expire_uv=61 }
-conf.work_steps = { detectors=4, light=2, uv=5, expire_ttl=8, expire_uv=5 }
+	detectors=47, light=3, light_detectors=17, uv=53, expire_ttl=73, expire_uv=61 }
+conf.work_steps = {
+	detectors=4, light=2, light_detectors=4, uv=5, expire_ttl=8, expire_uv=5 }
 
 -- Chunks are checked for pollution/player spread during daytime only, can ~10k chunks
 -- Interval formula: (ticks_gameday * 0.6) / work_steps
@@ -144,13 +145,18 @@ conf.intervals.zones_forest = 29 -- ~1 day-time for 3k chunks scan at 600 steps
 conf.work_limit_per_tick = 20
 
 
--- ---------- Wisp lighing effects
+-- ---------- Lighing effects
 
 -- wisp_light_anim_speed should be low enough for light to stay around until next update.
 -- animation_speed=1 is "display light for 1 tick only"
 -- Note: used in prototypes only, so re-read on factorio restart, not savegame load!
 conf.wisp_light_anim_speed = 1 / (conf.intervals.light * conf.work_steps.light + 1)
 
+-- Light from wisp trapped in a detector device
+conf.wisp_light_anim_speed_detector = 1
+	/ (conf.intervals.light_detectors * conf.work_steps.light_detectors * 3)
+
+-- Disables light for wisps that are about to expire
 conf.wisp_light_min_ttl = conf.intervals.expire_ttl
 
 -- Missing entity info here will mean "no light from this wisp"
@@ -178,6 +184,7 @@ conf.wisp_light_aliases = {['wisp-purple-harmless']='wisp-purple'}
 conf.wisp_light_counts = {}
 for wisp_name, light_info_list in pairs(conf.wisp_light_entities) do
 	conf.wisp_light_counts[wisp_name] = #light_info_list end
+conf.wisp_light_counts['wisp-detector'] = 1
 
 
 -- ---------- Testing hacks

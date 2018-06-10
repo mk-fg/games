@@ -23,6 +23,22 @@ for wisp_name, light_info_list in pairs(conf.wisp_light_entities) do
 	end
 end
 
+-- Wisp detector light uses same logic as wisp lights, but slightly different proto
+data:extend{{
+	type = 'explosion',
+	name = 'wisp-detector-light-01',
+	flags = {'not-on-map', 'placeable-off-grid'},
+	animations = {
+		{ filename = '__Will-o-the-Wisps_updated__/graphics/entity/wisp-detector/wisp-detector-light.png',
+			priority = 'high',
+			width = 0,
+			height = 0,
+			frame_count = 1,
+			animation_speed = conf.wisp_light_anim_speed_detector,
+			shift = util.by_pixel(0, -9) } },
+	rotate = false,
+	light = {intensity=0.3, size=7, color={r=0.95, g=0.0, b=0.8}} }}
+
 -- For compatibility with old versions
 for _, light in pairs{'wisp-light-generic', 'wisp-flash'}
 do data:extend{{

@@ -211,6 +211,8 @@ local tasks_entities = {
 	light = {work=0.5, func=function(wisp, e, s)
 		if wisp.ttl >= conf.wisp_light_min_ttl
 			then wisp_emit_light(wisp) end end},
+	light_detectors = { work=0.5,
+		func=function(detector, e, s) wisp_emit_light(detector) end },
 
 	expire_ttl = {work=0.3, func=function(wisp, e, s)
 		-- Works by time passing by reducing ttl value,
@@ -363,8 +365,10 @@ local function on_tick(event)
 		run('spawn_near_players', surface)
 		run('spawn_on_map', surface)
 		run('tactics', surface)
-		if wisps and surface.darkness > conf.min_darkness_to_emit_light
-			then run('light', Wisps) end
+		if surface.darkness > conf.min_darkness_to_emit_light then
+			if wisps then run('light', Wisps) end
+			if detectors then run('light_detectors', Detectors) end
+		end
 	else
 		run('zones_spread', surface)
 		run('zones_forest', surface)
