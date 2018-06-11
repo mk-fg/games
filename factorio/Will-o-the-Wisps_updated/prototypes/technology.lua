@@ -5,17 +5,15 @@ data:extend{
 		icon_size = 128,
 		prerequisites = {'laser'},
 		unit = {
-			count = 300,
+			count = 200,
 			ingredients = {
 				{'science-pack-1', 1},
-				{'science-pack-2', 1} },
+				{'science-pack-2', 1},
+				{'science-pack-3', 1} },
 			time = 30 },
 		effects = {
 			{type='unlock-recipe', recipe='alien-flora-sample'},
-			{type='unlock-recipe', recipe='wisp-yellow'},
-			{type='unlock-recipe', recipe='wisp-red'},
-			{type='unlock-recipe', recipe='wisp-purple'},
 			{type='unlock-recipe', recipe='wisp-detector'} },
-		order = 'e-f'
+		order = 'e-f',
 	}
 }

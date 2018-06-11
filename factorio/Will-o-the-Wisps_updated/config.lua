@@ -53,6 +53,7 @@ conf.wisp_ttl_jitter = 40 * ticks_sec -- -40s to +40s
 conf.wisp_group_radius = {['wisp-yellow']=16, ['wisp-red']=6}
 conf.wisp_group_min_ttl = 100
 conf.wisp_red_damage_replication_chance = 0.2
+conf.wisp_drone_ttl = 3 * 3600 * ticks_sec -- 3 hours
 
 -- Minimal darkness value when the wisps appearing (0-1).
 -- Full daylight is darkness=0 (wisps at daytime), max ~0.85.
@@ -141,10 +142,10 @@ conf.surface_name = 'nauvis'
 
 conf.intervals = {
 	spawn_near_players=107, spawn_on_map=113, pacify=311, tactics=97,
-	light_wisps=3, light_detectors=17,
+	light_wisps=3, light_detectors=17, light_drones=5,
 	detectors=47, uv=31, expire_ttl=73, expire_uv=61 }
 conf.work_steps = {
-	light_wisps=2, light_detectors=4,
+	light_wisps=2, light_detectors=4, light_drones=1,
 	detectors=4, uv=4, expire_ttl=8, expire_uv=5 }
 
 -- Chunks are checked for pollution/player spread during daytime only, can ~10k chunks
@@ -163,14 +164,13 @@ conf.work_limit_per_tick = 20
 
 -- ---------- Lighing effects
 
--- wisp_light_anim_speed should be low enough for light to stay around until next update.
+-- *_light_anim_speed should be low enough for light to stay around until next update.
 -- animation_speed=1 is "display light for 1 tick only"
 -- Note: used in prototypes only, so re-read on factorio restart, not savegame load!
 conf.wisp_light_anim_speed = 1 / (conf.intervals.light_wisps * conf.work_steps.light_wisps + 1)
-
--- Light from wisp trapped in a detector device
 conf.wisp_light_anim_speed_detector = 1
 	/ (conf.intervals.light_detectors * conf.work_steps.light_detectors * 3)
+conf.wisp_light_anim_speed_drone = 1 / (conf.intervals.light_drones * conf.work_steps.light_drones + 1)
 
 -- Disables light for wisps that are about to expire
 conf.wisp_light_min_ttl = conf.intervals.expire_ttl
@@ -193,6 +193,11 @@ conf.wisp_light_entities = {
 		{intensity=0.4, size=11, color={r=0.36, g=0.15, b=0.82, a=0.8}},
 		{intensity=0.6, size=7, color={r=0.40, g=0.05, b=0.80, a=0.6}},
 		{intensity=0.5, size=3, color={r=0.15, g=0.02, b=0.88, a=0.7}}
+	},
+	['wisp-drone-violet']={
+		{ intensity=0.7, size=60,
+			speed=conf.wisp_light_anim_speed_drone,
+			color={r=0.8, g=0.1, b=0.9, a=0.7} },
 	},
 }
 conf.wisp_light_name_fmt = '%s-light-%02d'

@@ -54,12 +54,14 @@ function changes.set_corrosion_resistance()
 	end end
 end
 
-function changes.update_tech_recipies()
-	if data.raw['technology']['solar-energy'] then
-		table.insert(
-			data.raw['technology']['solar-energy'].effects,
-			{type='unlock-recipe', recipe='UV-lamp'} )
+function changes.update_tech_recipes()
+	local function add_tech_unlock(tech, recipe)
+		tech = data.raw.technology[tech]
+		if not tech then return end
+		table.insert(tech.effects, {type='unlock-recipe', recipe=recipe})
 	end
+	add_tech_unlock('solar-energy', 'UV-lamp')
+	add_tech_unlock('combat-robotics', 'wisp-drone-violet-capsule')
 end
 
 return changes

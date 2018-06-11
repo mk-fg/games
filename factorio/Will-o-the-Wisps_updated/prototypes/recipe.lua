@@ -2,47 +2,23 @@ data:extend{
 
 	{ type = 'recipe',
 		name = 'alien-flora-sample',
+		energy_required = 14,
 		ingredients = {
-			{'stone',1},
-			{'raw-wood',1},
-			{'coal',1},
+			{'stone', 20},
+			{'raw-wood', 20},
+			{'coal', 20},
 		},
 		result = 'alien-flora-sample',
 		enabled = false },
 
 	{ type = 'recipe',
-		name = 'wisp-yellow',
-		ingredients = {
-			{'alien-flora-sample',20},
-			{'raw-wood',20},
-		},
-		result = 'wisp-yellow',
-		enabled = false },
-
-	{ type = 'recipe',
-		name = 'wisp-purple',
-		ingredients = {
-			{'alien-flora-sample',20},
-			{'coal',20},
-		},
-		result = 'wisp-purple',
-		enabled = false },
-
-	{ type = 'recipe',
-		name = 'wisp-red',
-		ingredients = {
-			{'alien-flora-sample',20},
-			{'stone',20},
-		},
-		result = 'wisp-red',
-		enabled = false },
-
-	{ type = 'recipe',
 		name = 'UV-lamp',
+		energy_required = 3,
 		ingredients = {
-			{'advanced-circuit', 1},
+			{'small-lamp', 1},
+			{'electronic-circuit', 5},
 			{'iron-plate', 4},
-			{'copper-cable', 8},
+			{'copper-cable', 4},
 		},
 		result = 'UV-lamp',
 		enabled = false },
@@ -51,16 +27,32 @@ data:extend{
 		name = 'wisp-detector',
 		icon = '__Will-o-the-Wisps_updated__/graphics/icons/wisp-detector.png',
 		icon_size = 32,
-		energy_required = 1.0,
+		energy_required = 10,
 		ingredients = {
 			{'constant-combinator', 1},
 			{'advanced-circuit', 3},
 			{'wood', 9},
-			{'wisp-yellow', 1},
-			{'wisp-red', 1},
-			{'wisp-purple', 1},
+			{'alien-flora-sample', 3},
 		},
 		result = 'wisp-detector',
 		enabled = false },
+
+	{ type = 'recipe',
+		name = 'wisp-drone-violet-capsule',
+		icon = '__Will-o-the-Wisps_updated__/graphics/icons/wisp-drone-violet.png',
+		icon_size = 32,
+		energy_required = 8,
+		ingredients = {
+			{'UV-lamp', 1},
+			{'advanced-circuit', 1},
+			{'alien-flora-sample', 1},
+		},
+		result = 'wisp-drone-violet-capsule',
+		enabled = false },
+
+	-- Legacy recipes that are never enabled
+	{type='recipe', name='wisp-yellow', ingredients={}, result='wisp-yellow', enabled=false},
+	{type='recipe', name='wisp-purple', ingredients={}, result='wisp-purple', enabled=false},
+	{type='recipe', name='wisp-red', ingredients={}, result='wisp-red', enabled=false},
 
 }

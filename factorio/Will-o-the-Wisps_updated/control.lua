@@ -6,7 +6,7 @@ local zones = require('libs/zones')
 
 
 -- local references to globals
-local Wisps, UVLights, Detectors
+local Wisps, WispDrones, UVLights, Detectors
 local MapUVLevel
 local ws
 
@@ -198,7 +198,7 @@ local tasks_monolithic = {
 			wisp_group_create_or_join(wisp.entity)
 		end
 		return 20
-	end
+	end,
 }
 
 local tasks_entities = {
@@ -208,9 +208,8 @@ local tasks_entities = {
 	light_wisps = {work=0.5, func=function(wisp, e, s)
 		if wisp.ttl >= conf.wisp_light_min_ttl
 			then wisp_emit_light(wisp) end end},
-
-	light_detectors = { work=0.5,
-		func=function(detector, e, s) wisp_emit_light(detector) end },
+	light_detectors = {work=0.5, func=function(detector, e, s) wisp_emit_light(detector) end},
+	light_drones = {work=0.3, func=function(drone, e, s) wisp_emit_light(drone) end},
 
 	expire_ttl = {work=0.3, func=function(wisp, e, s)
 		-- Works by time passing by reducing ttl value,
@@ -277,7 +276,8 @@ local tasks_entities = {
 
 		local params = {}
 		for name, count in pairs(counts) do
-			params[#params+1] = {index=#params+1, signal={type='item', name=name}, count=count}
+			params[#params+1] = { index=#params+1,
+				count=count, signal={type='item', name=name} }
 		end
 
 		e.get_control_behavior().parameters = {parameters=params}
@@ -354,13 +354,15 @@ local function on_tick(event)
 	end
 
 	local is_dark = surface.darkness > conf.min_darkness
-	local wisps, uvlights, detectors = Wisps.n > 0, UVLights.n > 0, Detectors.n > 0
+	local wisps, drones = Wisps.n > 0, WispDrones.n > 0
+	local uvlights, detectors = UVLights.n > 0, Detectors.n > 0
 
 	if is_dark then
 		run('spawn_near_players', surface)
 		run('spawn_on_map', surface)
 		run('tactics', surface)
 		if surface.darkness > conf.min_darkness_to_emit_light then
+			if drones then run('light_drones', WispDrones) end
 			if wisps then run('light_wisps', Wisps) end
 			if detectors then run('light_detectors', Detectors) end
 		end
@@ -406,6 +408,22 @@ local function on_trigger_created(event)
 	else event.entity.destroy() end
 end
 
+local function on_drone_placed(event)
+	local surface = game.players[event.player_index].surface
+	local drones = surface.find_entities_filtered{
+		utils.get_area(1, event.position), name='wisp-drone-violet' }
+	if not next(drones) then return end
+	for _, entity in ipairs(drones) do
+		for n = 1, WispDrones.n do
+			if WispDrones[n].entity == entity then entity = nil; break end
+		end
+		if not entity then goto skip end
+		local drone = {entity=entity}
+		local n = WispDrones.n + 1
+		WispDrones[n], WispDrones.n = drone, n
+	::skip:: end
+end
+
 local function on_built_entity(event)
 	local entity = event.created_entity
 
@@ -444,13 +462,13 @@ local function update_recipes(with_reset)
 		if with_reset then force.reset_recipes() end
 		if force.technologies['alien-bio-technology'].researched then
 			force.recipes['alien-flora-sample'].enabled = true
-			force.recipes['wisp-yellow'].enabled = true
-			force.recipes['wisp-red'].enabled = true
-			force.recipes['wisp-purple'].enabled = true
 			force.recipes['wisp-detector'].enabled = true
 		end
 		if force.technologies['solar-energy'].researched then
 			force.recipes['UV-lamp'].enabled = true
+		end
+		if force.technologies['combat-robotics'].researched then
+			force.recipes['wisp-drone-violet-capsule'].enabled = true
 		end
 	end
 end
@@ -550,30 +568,37 @@ local function apply_version_updates(old_v, new_v)
 		for _, wisp in ipairs(Wisps) do wisp.uv_level = 0 end
 	end
 
-	if utils.version_less_than(old_v, '0.0.25') then ws.light = nil end
+	if utils.version_less_than(old_v, '0.0.25') then
+		ws.light = nil
+		for _, force in pairs(game.forces) do
+			for _, k in ipairs{'wisp-yellow', 'wisp-purple', 'wisp-red'}
+				do force.recipes[k].enabled = false end end
+	end
 end
 
 local function init_globals()
+	local sets = utils.t('wisps wispDrones uvLights detectors')
 	for _, k in ipairs{
-			'zones', 'wisps', 'uvLights',
-			'detectors', 'workSteps', 'mapUVLevel' } do
+			'zones', 'wisps', 'wispDrones',
+			'uvLights', 'detectors', 'workSteps', 'mapUVLevel' } do
 		if global[k] then goto skip end
 		if k == 'mapUVLevel'
 			then global[k] = 0
 			else global[k] = {} end
-		if (k == 'wisps' or k == 'uvLights' or k == 'detectors')
-			and not global[k].n then global[k].n = #(global[k]) end
+		if sets[k] and not global[k].n then global[k].n = #(global[k]) end
 	::skip:: end
 end
 
 local function init_refs()
 	utils.log('Init local references to globals...')
-	Wisps, UVLights, Detectors = global.wisps, global.uvLights, global.detectors
+	Wisps, WispDrones = global.wisps, global.wispDrones
+	UVLights, Detectors = global.uvLights, global.detectors
 	MapUVLevel = global.mapUVLevel
 	ws = global.workSteps
 	utils.log(
-		' - Object stats: wisps=%s uvs=%s detectors=%s',
-		Wisps.n, UVLights.n, Detectors.n )
+		' - Object stats: wisps=%s drones=%s uvs=%s detectors=%s%s',
+		Wisps and Wisps.n, WispDrones and WispDrones.n,
+		UVLights and UVLights.n, Detectors and Detectors.n, '' )
 
 	utils.log('Init zones module...')
 	if global.zones then zones.init(global.zones) end -- nil before on_configuration_changed
@@ -636,4 +661,5 @@ script.on_event(defines.events.on_built_entity, on_built_entity)
 script.on_event(defines.events.on_robot_built_entity, on_built_entity)
 script.on_event(defines.events.on_chunk_generated, on_chunk_generated)
 script.on_event(defines.events.on_trigger_created_entity, on_trigger_created)
+script.on_event(defines.events.on_player_used_capsule, on_drone_placed)
 script.on_event(defines.events.on_runtime_mod_setting_changed, apply_runtime_settings)

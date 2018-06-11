@@ -16,7 +16,7 @@ for wisp_name, light_info_list in pairs(conf.wisp_light_entities) do
 					width = 0,
 					height = 0,
 					frame_count = 1,
-					animation_speed = conf.wisp_light_anim_speed,
+					animation_speed = light_info.speed or conf.wisp_light_anim_speed,
 					shift = {0, 0} } },
 			rotate = false,
 			light = light_info }}

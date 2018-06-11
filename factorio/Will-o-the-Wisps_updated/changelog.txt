@@ -1,11 +1,12 @@
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.25
-Date: 11. 06. 2018
+Date: 12. 06. 2018
   Features:
+    - Add personal companion wisp lantern (alien-bio + combat-robotics research).
     - Make max wisp spawn count configurable via mod options.
   Changes:
-    - Buff red wisps HP 30 -> 50, to have them not die too fast to UV lamps.
     - Lower damage from UV lamps to wisps ~15 -> ~10.
+    - Add blue science-pack-3 cost to Alien Biotech research.
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.24
 Date: 11. 06. 2018
@@ -78,7 +79,7 @@ Date: 08. 06. 2018
   Changes:
     - Spawning system rewrite, wisps should start appearing in forests at night in a day or few.
     - Slightly brighter/larger lights for some wisps.
-    - Adjusted recipie costs for wisps and detector to be a bit more reasonable.
+    - Adjusted recipe costs for wisps and detector to be a bit more reasonable.
     - Remove attached wisp and sabotage stuff for now - needs some fixes and testing.
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.12

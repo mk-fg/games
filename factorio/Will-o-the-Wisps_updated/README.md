@@ -1,5 +1,5 @@
 Compatibility update (for Factorio 0.16.x) and tweaks to [Will-o'-the-wisps mod by Betep3akata](https://mods.factorio.com/mod/Will-o-the-wisps).
-[[Feedback forum thread link](https://forums.factorio.com/viewtopic.php?f=190&t=60876&p=366660)]
+[[Feedback forum thread link](https://forums.factorio.com/viewtopic.php?f=190&t=60876&p=366660)] - [[github link](https://github.com/mk-fg/games/tree/master/factorio/Will-o-the-Wisps_updated)]
 
 
 ## Description
@@ -24,8 +24,9 @@ New alien fauna:
 
 Technologies:
 
-- UV lamp (solar energy research) - only known way to reduce lifespan of purple Will-o'-Wisps when it's dark.
-- Wisp detector (alien biotech research) - outputs number of wisps around it to circuit network with a range input.
+- UV Lamp (solar energy research) - only known way to reduce lifespan of purple Will-o'-Wisps when it's dark.
+- Wisp Detector (alien biotech research) - outputs number of wisps around it to circuit network with a range input.
+- Tame Will-o'-Wisp Lantern (combat robots) - lasting UV-resistant wisp drone to use as a personal lantern.
 
 
 ## Hints
@@ -46,11 +47,10 @@ Technologies:
 ## Changes from the original mod
 
 - 0.16.x compatibility update, various bugfixes.
-- Mod Options menu checkboxes for wisps/turrets aggression.
+- Mod Options menu settings for wisps/turrets aggression and spawning.
 - Different spawning algorithm based on pollution.
-- Adjust costs for UV lamps and wisp detectors to be more reasonable.
-- Make wisps more vulnerable and less of a nuisance in general.
-- Some visual tweaks.
+- Rebalanced combat stats and material costs for technologies.
+- Some new technologies (e.g. wisp lantern drones), some visual tweaks.
 - Ingame changelog with full list of features, fixes and tweaks for each version.
 
 See [original Will-o'-the-wisps mod](https://mods.factorio.com/mod/Will-o-the-wisps) and its [forum thread](https://forums.factorio.com/viewtopic.php?f=93&t=41514) for more information.
