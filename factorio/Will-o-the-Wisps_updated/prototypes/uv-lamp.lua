@@ -20,8 +20,8 @@ data:extend{{
 	energy_source = {
 		type = 'electric',
 		usage_priority = 'secondary-input',
-		-- buffer_capacity = '240kJ',
-		-- input_flow_limit = '160kW',
+		buffer_capacity = '160kJ',
+		input_flow_limit = '160kW',
 	},
 
 	light = uv_light,

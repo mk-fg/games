@@ -10,8 +10,10 @@ local Wisps, UVLights, Detectors
 local MapUVLevel
 local ws
 
--- wisp_surface must only be used directly on entry points, and passed from there
-local wisp_surface
+-- WispSurface must only be used directly on entry points, and passed from there
+local WispSurface
+-- Not sure how UVLightEnergyLimit value is calculated, so re-adjusted if ever seen higher
+local UVLightEnergyLimit = 1422.23
 
 
 ------------------------------------------------------------
@@ -127,11 +129,6 @@ local function uv_light_init(entity)
 	local n = UVLights.n + 1
 	UVLights.n, UVLights[n] = n, {entity=entity}
 end
-local function uv_light_active(entity)
-	local control  = entity.get_control_behavior()
-	if control and control.valid then return not control.disabled end
-	return true
-end
 
 local function detector_init(entity)
 	local n = Detectors.n + 1
@@ -237,36 +234,34 @@ local tasks_entities = {
 		wisp.uv_level = uv
 	end},
 
-	uv = {work=1, func=function(uv, e, s)
-		if not uv_light_active(e) then return end
+	uv = {work=4, func=function(uv, e, s)
+		local control  = e.get_control_behavior()
+		if control and control.valid and not control.disabled then return end
 
-		-- XXX: check how this calculation works out
-		local energy_percent = e.energy * 0.00007 -- /14222
+		if e.energy > UVLightEnergyLimit then UVLightEnergyLimit = e.energy end
+		local energy_percent = e.energy / UVLightEnergyLimit
+		if energy_percent < conf.uv_lamp_energy_min then return end
 
-		if energy_percent > 0.2 then
-			local wisps = s.find_entities_filtered{
-				force='wisps', type='unit', area=utils.get_area(conf.uv_range, e.position) }
-			if next(wisps) then
-				local currentUvDmg = (conf.uv_dmg + math.random(3)) * energy_percent
-				for _, wisp in ipairs(wisps) do
-					wisp.damage(math.floor(currentUvDmg), game.forces.player, 'fire')
-				end
-			end
-
-			if energy_percent > 0.6 then
-				local spores = s.find_entities_filtered{
-					name=wisp_spore_proto, area=utils.get_area(conf.uv_range, e.position) }
-				if next(spores) then for _, spore in ipairs(spores) do
-					if utils.pick_chance(energy_percent - 0.55) then spore.destroy() end
-				end end
-			end
+		-- Effects on unit-type wisps - reds and yellows
+		local wisps, wisp = s.find_entities_filtered{
+			force='wisps', type='unit', area=utils.get_area(conf.uv_lamp_range, e.position) }
+		if next(wisps) then
+			local damage = conf.uv_lamp_damage_func(energy_percent)
+			for _, entity in ipairs(wisps) do entity.damage(damage, game.forces.player, 'fire') end
 		end
+
+		-- Effects on non-unit wisps - purple
+		wisps = s.find_entities_filtered{
+			name=wisp_spore_proto, area=utils.get_area(conf.uv_lamp_range, e.position) }
+		if next(wisps) then for _, entity in ipairs(wisps) do
+			if conf.uv_lamp_spore_kill_chance_func(energy_percent) then entity.destroy() end
+		end end
 	end},
 
 	detectors = {work=1, func=function(wd, e, s)
 		local range = get_circuit_input(e, conf.detection_range_signal)
 		if range > 0 then range = math.min(range, conf.detection_range_max)
-		else range = conf.detection_range end
+		else range = conf.detection_range_default end
 
 		local counts, wisps = {}
 		if next(Wisps) then
@@ -299,10 +294,9 @@ local function run_on_object_set(set, task_func, step, steps)
 	local n, obj, e = step
 	while n <= set.n do
 		obj = set[n]; e = obj.entity
-		if e.valid then
-			task_func(obj, e, e.surface)
-			n = n + steps
-		else set[n], set.n = set[set.n], set.n - 1 end
+		if e.valid
+			then task_func(obj, e, e.surface); n = n + steps
+			else set[n], set.n = set[set.n], set.n - 1 end
 	end
 	return (n - step) / steps -- count
 end
@@ -351,7 +345,7 @@ local function on_tick_run(name, tick, workload, target)
 end
 
 local function on_tick(event)
-	local surface, tick = wisp_surface, event.tick
+	local surface, tick = WispSurface, event.tick
 
 	local workload = on_tick_run_backlog(workload or 0)
 	local function run(task, target)
@@ -425,12 +419,12 @@ local function on_built_entity(event)
 end
 
 local function on_chunk_generated(event)
-	if event.surface.index ~= wisp_surface.index then return end
+	if event.surface.index ~= WispSurface.index then return end
 	zones.reset_chunk_area(event.surface, event.area)
 end
 
 local function on_tick_init(event)
-	wisp_surface = game.surfaces[conf.surface_name]
+	WispSurface = game.surfaces[conf.surface_name]
 
 	-- script.on_nth_tick can be used here,
 	--  but central on_tick can de-duplicate bunch of common checks,

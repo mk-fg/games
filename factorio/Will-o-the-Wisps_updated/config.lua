@@ -18,10 +18,24 @@ conf.wisp_max_count = 1250
 conf.wisp_purple_dmg = 1
 conf.wisp_purple_area = 2
 
--- UV lights / detectors
-conf.uv_dmg = 16
-conf.uv_range = 12
-conf.detection_range = 16
+-- UV lamps
+conf.uv_lamp_energy_min = 0.2
+conf.uv_lamp_range = 12
+
+conf.uv_lamp_damage_func = function(energy_percent)
+	return math.floor(energy_percent * (16 * (1 + math.random(-5, 5)/10))) end
+
+-- See also: chart in doc/uv-lamp-spore-kill-chart.html
+conf.uv_lamp_spore_kill_chance_func = function(energy_percent)
+	return math.random() < (energy_percent + 0.01)  * 0.15 end
+
+-- XXX: hard to make this work without seq scans, but maybe possible
+-- conf.uv_lamp_ttl_change_func = function(energy_percent, wisp)
+-- 	if math.random() < (energy_percent + 0.01)  * 0.15
+-- 		then wisp.ttl = wisp.ttl / 3 end end
+
+-- Detectors
+conf.detection_range_default = 16
 conf.detection_range_max = 128
 conf.detection_range_signal = 'signal-R'
 
@@ -53,7 +67,7 @@ conf.wisp_chance_func = function(darkness, wisp)
 		and math.random() < darkness - 0.40 end
 
 -- Darkness drop step to +1 uv level and run wisp_uv_expire_chance.
--- See also: chart in darkness-wisp-expire-chart.html file
+-- See also: chart in doc/darkness-wisp-expire-chart.html file
 conf.wisp_uv_expire_step = 0.10
 conf.wisp_uv_expire_jitter = 20 * ticks_sec -- instead of ttl=0
 
@@ -127,9 +141,9 @@ conf.surface_name = 'nauvis'
 
 conf.intervals = {
 	spawn_near_players=107, spawn_on_map=113, pacify=311, tactics=97,
-	detectors=47, light=3, light_detectors=17, uv=53, expire_ttl=73, expire_uv=61 }
+	detectors=47, light=3, light_detectors=17, uv=31, expire_ttl=73, expire_uv=61 }
 conf.work_steps = {
-	detectors=4, light=2, light_detectors=4, uv=5, expire_ttl=8, expire_uv=5 }
+	detectors=4, light=2, light_detectors=4, uv=4, expire_ttl=8, expire_uv=5 }
 
 -- Chunks are checked for pollution/player spread during daytime only, can ~10k chunks
 -- Interval formula: (ticks_gameday * 0.6) / work_steps
