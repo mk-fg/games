@@ -502,6 +502,9 @@ local function apply_runtime_settings(event)
 		end
 	end
 
+	knob = key_update('wisp-map-spawn-count')
+	if knob then conf.wisp_max_count = knob.value end
+
 	local wisp_spawns_sum = 0
 	for _, c in ipairs{'purple', 'yellow', 'red'} do
 		local k, k_conf = 'wisp-map-spawn-'..c, 'wisp_forest_spawn_chance_'..c

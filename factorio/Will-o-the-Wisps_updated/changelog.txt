@@ -1,6 +1,8 @@
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.25
 Date: 11. 06. 2018
+  Features:
+    - Make max wisp spawn count configurable via mod options.
   Changes:
     - Buff red wisps HP 30 -> 50, to have them not die too fast to UV lamps.
     - Lower damage from UV lamps to wisps ~15 -> ~10.
