@@ -36,11 +36,11 @@ Technologies:
 - For affected buildings, corrosion resistance is derived from acid resistance.
 - Power infrastructure is vulnerable to purple wisps, though not wooden poles.
 - If your turrets shoot down a wisp, try to stay away from its kind that night.
-- Overlapping UV lights will amplify effects, though daylight is the best cure.
+- Disable turrets targeting wisps in Mod Options menu to avoid accidental aggression.
+- UV will kill wisps without retaliation or replication. Overlapping lamps will amplify effects.
 - Wisps appear in forests after dark (in a day or few), drawn out by nearby pollution and player activity.
-- Disable turrets targeting wisps in Mod Options menu to coexist with them peacefully.
 - Wisp detectors range can be set by R signal, see ingame description for more info.
-- Mod only tracks surface darkness value, not time, so any mods that change day/night cycle should be compatible.
+- Mod only tracks surface darkness changes, not time, so mods that change day/night cycle should be compatible.
 
 
 ## Changes from the original mod

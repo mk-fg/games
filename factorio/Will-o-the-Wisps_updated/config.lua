@@ -23,11 +23,11 @@ conf.uv_lamp_energy_min = 0.2
 conf.uv_lamp_range = 12
 
 conf.uv_lamp_damage_func = function(energy_percent)
-	return math.floor(energy_percent * (16 * (1 + math.random(-5, 5)/10))) end
+	return math.floor(energy_percent * (10 * (1 + math.random(-5, 5)/10))) end
 
 -- See also: chart in doc/uv-lamp-spore-kill-chart.html
 conf.uv_lamp_spore_kill_chance_func = function(energy_percent)
-	return math.random() < (energy_percent + 0.01)  * 0.15 end
+	return math.random() < energy_percent * 0.15 end
 
 -- XXX: hard to make this work without seq scans, but maybe possible
 -- conf.uv_lamp_ttl_change_func = function(energy_percent, wisp)
@@ -141,9 +141,11 @@ conf.surface_name = 'nauvis'
 
 conf.intervals = {
 	spawn_near_players=107, spawn_on_map=113, pacify=311, tactics=97,
-	detectors=47, light=3, light_detectors=17, uv=31, expire_ttl=73, expire_uv=61 }
+	light_wisps=3, light_detectors=17,
+	detectors=47, uv=31, expire_ttl=73, expire_uv=61 }
 conf.work_steps = {
-	detectors=4, light=2, light_detectors=4, uv=4, expire_ttl=8, expire_uv=5 }
+	light_wisps=2, light_detectors=4,
+	detectors=4, uv=4, expire_ttl=8, expire_uv=5 }
 
 -- Chunks are checked for pollution/player spread during daytime only, can ~10k chunks
 -- Interval formula: (ticks_gameday * 0.6) / work_steps
@@ -164,7 +166,7 @@ conf.work_limit_per_tick = 20
 -- wisp_light_anim_speed should be low enough for light to stay around until next update.
 -- animation_speed=1 is "display light for 1 tick only"
 -- Note: used in prototypes only, so re-read on factorio restart, not savegame load!
-conf.wisp_light_anim_speed = 1 / (conf.intervals.light * conf.work_steps.light + 1)
+conf.wisp_light_anim_speed = 1 / (conf.intervals.light_wisps * conf.work_steps.light_wisps + 1)
 
 -- Light from wisp trapped in a detector device
 conf.wisp_light_anim_speed_detector = 1

@@ -205,9 +205,10 @@ local tasks_entities = {
 	-- Tasks to run for valid entities, each run adding "work" to on_tick workload.
 	-- Args: object, entity, surface.
 
-	light = {work=0.5, func=function(wisp, e, s)
+	light_wisps = {work=0.5, func=function(wisp, e, s)
 		if wisp.ttl >= conf.wisp_light_min_ttl
 			then wisp_emit_light(wisp) end end},
+
 	light_detectors = { work=0.5,
 		func=function(detector, e, s) wisp_emit_light(detector) end },
 
@@ -360,7 +361,7 @@ local function on_tick(event)
 		run('spawn_on_map', surface)
 		run('tactics', surface)
 		if surface.darkness > conf.min_darkness_to_emit_light then
-			if wisps then run('light', Wisps) end
+			if wisps then run('light_wisps', Wisps) end
 			if detectors then run('light_detectors', Detectors) end
 		end
 	else
@@ -534,9 +535,7 @@ local function apply_version_updates(old_v, new_v)
 			do global[k] = nil end
 	end
 
-	if utils.version_less_than(old_v, '0.0.10') then
-		remap_key(ws, 'ttl', 'expire')
-	end
+	if utils.version_less_than(old_v, '0.0.10') then remap_key(ws, 'ttl', 'expire') end
 
 	if utils.version_less_than(old_v, '0.0.13') then
 		Wisps.n, UVLights.n, Detectors.n = #Wisps, #UVLights, #Detectors
@@ -547,6 +546,8 @@ local function apply_version_updates(old_v, new_v)
 		ws.spawn, ws.expire = nil
 		for _, wisp in ipairs(Wisps) do wisp.uv_level = 0 end
 	end
+
+	if utils.version_less_than(old_v, '0.0.25') then ws.light = nil end
 end
 
 local function init_globals()

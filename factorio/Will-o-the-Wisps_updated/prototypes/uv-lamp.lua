@@ -29,6 +29,9 @@ data:extend{{
 	glow_size = 6,
 	glow_color_intensity = 0.13500000000000001,
 
+	darkness_for_all_lamps_off = 0.2,
+	darkness_for_all_lamps_on = 0.5,
+
 	signal_to_color_mapping = {},
 
 	picture_off = {

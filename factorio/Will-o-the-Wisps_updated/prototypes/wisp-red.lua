@@ -6,7 +6,7 @@ data:extend{{
 	icon_size = 32,
 	flags = {'placeable-player', 'placeable-enemy', 'placeable-off-grid', 'breaths-air', 'not-repairable'},
 	subgroup='enemies',
-	max_health = 30,
+	max_health = 50,
 	alert_when_damaged = false,
 	order='b-b-c',
 	resistances = {{type = 'physical', decrease = 3}},
@@ -93,7 +93,5 @@ data:extend{{
 				scale = 0.4 },
 		}
 	},
-
-	action_frequency = 480, -- ???
 
 }}
