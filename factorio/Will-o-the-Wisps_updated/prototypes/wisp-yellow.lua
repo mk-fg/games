@@ -56,7 +56,7 @@ data:extend{{
 					source_offset = {0.0, 0.0} } } },
 		animation = {
 			layers = {
-				{ filename = '__Will-o-the-Wisps_updated__/graphics/entity/wisp-yellow/wisp-yellow-attack.png',
+				{ filename = '__Will-o-the-Wisps_updated__/graphics/entity/wisps/wisp-yellow-attack.png',
 					priority = 'high',
 					width = 158,
 					height = 158,
@@ -70,7 +70,7 @@ data:extend{{
 
 	run_animation = {
 		layers = {
-			{ filename = '__Will-o-the-Wisps_updated__/graphics/entity/wisp-yellow/wisp-yellow.png',
+			{ filename = '__Will-o-the-Wisps_updated__/graphics/entity/wisps/wisp-yellow.png',
 				priority = 'high',
 				width = 158,
 				height = 158,

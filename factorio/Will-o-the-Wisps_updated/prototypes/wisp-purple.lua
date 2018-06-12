@@ -10,7 +10,7 @@ data:extend{
 		flags = {'placeable-player', 'placeable-enemy', 'placeable-off-grid', 'breaths-air', 'not-repairable'},
 		show_when_smoke_off = true,
 		animation = {
-			filename = '__Will-o-the-Wisps_updated__/graphics/entity/wisp-purple/wisp-purple.png',
+			filename = '__Will-o-the-Wisps_updated__/graphics/entity/wisps/wisp-purple.png',
 			flags = {'compressed'},
 			priority = 'high',
 			width = 158,
@@ -57,7 +57,7 @@ data:extend{
 		flags = {'placeable-enemy', 'placeable-off-grid', 'breaths-air', 'not-repairable'},
 		show_when_smoke_off = true,
 		animation = {
-			filename = '__Will-o-the-Wisps_updated__/graphics/entity/wisp-purple/wisp-purple.png',
+			filename = '__Will-o-the-Wisps_updated__/graphics/entity/wisps/wisp-purple.png',
 			flags = {'compressed'},
 			priority = 'high',
 			width = 158,
