@@ -20,11 +20,11 @@ def main(args=None):
 	list_stack = list()
 	last_item = last_nonempty = None
 
+	lines.append('---') # to close all lists
 	n = 0
 	while True:
 		n += 1
 		if n > len(lines) - 1: break
-		# print('readme::', [line, last_nonempty and lines[last_nonempty]])
 
 		line_is_empty = not lines[n].strip()
 		line_is_item = re.search('^ *- ', lines[n])
@@ -36,7 +36,6 @@ def main(args=None):
 			list_stack.append(line_indent_item)
 			lines[n-1] += '\n{}[list]'.format(' '*line_indent)
 		if list_stack:
-			# print('readme::', list_stack[-1], line_indent_item)
 			if not line_is_empty and line_indent_item < list_stack[-1]:
 				lines[last_nonempty] += '\n{}[/list]'.format(' '*(list_stack[-1]-2))
 				list_stack.pop()
@@ -48,7 +47,8 @@ def main(args=None):
 		lines[n] = re.sub(r'^( *)#+\s+(.*?)\s*$', r'\g<1>[h]\g<2>[/h]', lines[n])
 
 		if not line_is_empty: last_nonempty = n
+	lines.pop()
 
-	print('\n'.join(lines))
+	print('\n'.join(lines).strip())
 
 if __name__ == '__main__': sys.exit(main())

@@ -26,7 +26,7 @@ Technologies:
 
 - UV Lamp (solar energy research) - only known way to reduce lifespan of purple Will-o'-Wisps when it's dark.
 - Wisp Detector (alien biotech research) - outputs number of wisps around it to circuit network with a range input.
-- Tame Will-o'-Wisp Lantern (combat robots) - lasting UV-resistant wisp drone to use as a personal lantern.
+- Pet Will-o'-Wisp Lantern (combat robots) - lasting UV-resistant wisp drone to use as a personal lantern.
 
 
 ## Hints
