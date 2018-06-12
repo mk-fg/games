@@ -150,7 +150,7 @@ function zones.print_stats(print_func)
 	end
 
 	print_func('zones: stats')
-	pollution_table_stats('chunk', ChunkList)
+	pollution_table_stats('spread', ChunkList)
 	local forest_chunks = {}
 	for n = 1, ForestSet.n
 		do table.insert(forest_chunks, ForestSet[n].chunk_key) end

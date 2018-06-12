@@ -3,7 +3,10 @@ Version: 0.0.28
 Date: 13. 06. 2018
   Features:
     - Add /wisp-zone-update and /wisp-zone-stats admin console commands.
+  Changes:
+    - Use print/log instead of file logger with conf.debug_log.
   Bugfixes:
+    - Fix map UV level not being saved correctly.
     - Minor fixes in wisp spawn zones load distribution algos.
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.27

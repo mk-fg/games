@@ -7,8 +7,7 @@ local zones = require('libs/zones')
 
 -- local references to globals
 local Wisps, WispDrones, UVLights, Detectors
-local MapUVLevel
-local ws
+local MapStats, WorkSteps
 
 -- WispSurface must only be used directly on entry points, and passed from there
 local WispSurface
@@ -178,10 +177,10 @@ local tasks_monolithic = {
 
 	pacify = function(surface)
 		local uv = math.floor((1 - surface.darkness) / conf.wisp_uv_expire_step)
-		if (surface.darkness <= conf.min_darkness or uv > MapUVLevel)
+		if (surface.darkness <= conf.min_darkness or uv > (MapStats.uv_level or 0))
 				and conf.wisp_uv_peace_chance_func(surface.darkness, uv)
 			then wisp_aggression_set(surface, false) end
-		MapUVLevel = uv
+		MapStats.uv_level = uv
 		return 1
 	end,
 
@@ -301,9 +300,9 @@ end
 local function on_tick_run_task(name, target)
 	local iter_task, steps, res = tasks_entities[name], conf.work_steps[name]
 	if steps then
-		n = (ws[name] or 0) + 1
+		n = (WorkSteps[name] or 0) + 1
 		if n > steps then n = 1 end
-		ws[name] = n
+		WorkSteps[name] = n
 	end
 	-- Passed "n" value goes from 1 to "steps"
 	if not iter_task then -- monolithic task
@@ -553,23 +552,31 @@ local function apply_version_updates(old_v, new_v)
 			do global[k] = nil end
 	end
 
-	if utils.version_less_than(old_v, '0.0.10') then remap_key(ws, 'ttl', 'expire') end
+	if utils.version_less_than(old_v, '0.0.10')
+		then remap_key(WorkSteps, 'ttl', 'expire') end
 
 	if utils.version_less_than(old_v, '0.0.13') then
 		Wisps.n, UVLights.n, Detectors.n = #Wisps, #UVLights, #Detectors
-		ws.gc, global.chunks, global.forests = nil
+		WorkSteps.gc, global.chunks, global.forests = nil
 	end
 
 	if utils.version_less_than(old_v, '0.0.17') then
-		ws.spawn, ws.expire = nil
+		WorkSteps.spawn, WorkSteps.expire = nil
 		for _, wisp in ipairs(Wisps) do wisp.uv_level = 0 end
 	end
 
 	if utils.version_less_than(old_v, '0.0.25') then
-		ws.light = nil
+		WorkSteps.light = nil
 		for _, force in pairs(game.forces) do
 			for _, k in ipairs{'wisp-yellow', 'wisp-purple', 'wisp-red'}
 				do force.recipes[k].enabled = false end end
+	end
+
+	if utils.version_less_than(old_v, '0.0.28') then
+		global.wisp_drones, global.wispDrones = WispDrones
+		global.uv_lights, global.uvLights = UVLights
+		global.map_stats, global.mapUVLevel = MapStats
+		global.work_steps, global.workSteps = WorkSteps
 	end
 end
 
@@ -595,24 +602,21 @@ local function init_commands()
 end
 
 local function init_globals()
-	local sets = utils.t('wisps wispDrones uvLights detectors')
+	local sets = utils.t('wisps wisp_drones uv_lights detectors')
 	for _, k in ipairs{
-			'zones', 'wisps', 'wispDrones',
-			'uvLights', 'detectors', 'workSteps', 'mapUVLevel' } do
+			'wisps', 'wisp_drones', 'uv_lights', 'detectors',
+			'zones', 'map_stats', 'work_steps' } do
 		if global[k] then goto skip end
-		if k == 'mapUVLevel'
-			then global[k] = 0
-			else global[k] = {} end
+		global[k] = {}
 		if sets[k] and not global[k].n then global[k].n = #(global[k]) end
 	::skip:: end
 end
 
 local function init_refs()
 	utils.log('Init local references to globals...')
-	Wisps, WispDrones = global.wisps, global.wispDrones
-	UVLights, Detectors = global.uvLights, global.detectors
-	MapUVLevel = global.mapUVLevel
-	ws = global.workSteps
+	Wisps, WispDrones = global.wisps, global.wisp_drones
+	UVLights, Detectors = global.uv_lights, global.detectors
+	MapStats, WorkSteps = global.map_stats, global.work_steps
 	utils.log(
 		' - Object stats: wisps=%s drones=%s uvs=%s detectors=%s%s',
 		Wisps and Wisps.n, WispDrones and WispDrones.n,

@@ -3,13 +3,6 @@ local utils = {}
 local conf = require('config')
 
 
-local debug_logger
-if conf.debug_log then
-	require('libs/logger')
-	debug_logger = Logger.new(
-		'Will-o-the-wisps_updated', 'debug', true, {log_ticks=true} )
-end
-
 function utils.f(msg, ...)
 	-- Format message using string.format if extra args are passed
 	-- Non-string arguments are formatted via serpent.line
@@ -34,10 +27,27 @@ function utils.f(msg, ...)
 		end
 		msg = res
 	end
+	if type(msg) ~= 'string'
+		then msg = serpent.block(msg, {comment=false, nocode=true, sparse=true}) end
 	return msg
 end
 
-function utils.log(msg, ...) if debug_logger then debug_logger.log(utils.f(msg, ...)) end end
+function utils.log(msg, ...)
+	if not conf.debug_log then return end
+	local tick, ts_prefix = game and game.tick, ''
+	if tick then
+		local ts, unit = {3600*60,  60*60, 60, 1}
+		for n = 1, #ts do
+			unit, ts[n] = ts[n], math.floor(tick / ts[n])
+			tick = tick - ts[n] * unit
+		end
+		ts[1] = ts[1] % 100 -- not actual daytime hours anyway
+		ts_prefix = ('%02d:%02d:%02d.%02d :: '):format(table.unpack(ts))
+	else ts_prefix = '--:--:--.-- :: ' end
+	local log_func = conf.debug_log_direct and print or log
+	log_func(ts_prefix..utils.f(msg, ...))
+end
+
 function utils.error(msg, ...) error(utils.f(msg, ...)) end
 
 
@@ -49,6 +59,7 @@ function utils.version_to_num(ver, padding)
 		do ver = ver + v * math.pow(10, ((#ver_nums-n)*(padding or 3))) end
 	return ver
 end
+
 function utils.version_less_than(v1, v2)
 	if utils.version_to_num(v1) < utils.version_to_num(v2) then
 		utils.log('  - Update from pre-'..v2)

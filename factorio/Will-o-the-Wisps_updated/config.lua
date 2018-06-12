@@ -210,9 +210,11 @@ conf.wisp_light_counts['wisp-detector'] = 1
 
 -- ---------- Testing hacks
 
--- debug_log file path: %user-dir%/script-output/Will-o-the-wisps_updated/debug.log
--- To find %user-dir% see https://wiki.factorio.com/Application_directory#User_data_directory
+-- use print() instead of log() for shorter prefix
+conf.debug_log_direct = true
 
+-- Enable this for various utils.log() messages from code to
+--  go to factorio logging (stdout by default) instead of nowhere.
 -- conf.debug_log = true
 
 
