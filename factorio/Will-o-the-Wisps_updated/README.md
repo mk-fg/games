@@ -54,3 +54,10 @@ Technologies:
 - Ingame changelog with full list of features, fixes and tweaks for each version.
 
 See [original Will-o'-the-wisps mod](https://mods.factorio.com/mod/Will-o-the-wisps) and its [forum thread](https://forums.factorio.com/viewtopic.php?f=93&t=41514) for more information.
+
+
+## Mod Suggestions
+
+- [Day Night Extender](https://mods.factorio.com/mod/DayNightExtender) - more nights, more shinies!
+- [Time Tools](https://mods.factorio.com/mods/binbinhfr/TimeTools) - UI clock and speed settings plus time/darkness-tracking combinators.
+- [Bullet Trails](https://mods.factorio.com/mod/bullet-trails) - essential visual upgrade, which can also be seen on images here.
