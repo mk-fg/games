@@ -411,7 +411,7 @@ end
 local function on_drone_placed(event)
 	local surface = game.players[event.player_index].surface
 	local drones = surface.find_entities_filtered{
-		utils.get_area(1, event.position), name='wisp-drone-violet' }
+		utils.get_area(1, event.position), name='wisp-drone-blue' }
 	if not next(drones) then return end
 	for _, entity in ipairs(drones) do
 		for n = 1, WispDrones.n do
@@ -468,7 +468,7 @@ local function update_recipes(with_reset)
 			force.recipes['UV-lamp'].enabled = true
 		end
 		if force.technologies['combat-robotics'].researched then
-			force.recipes['wisp-drone-violet-capsule'].enabled = true
+			force.recipes['wisp-drone-blue-capsule'].enabled = true
 		end
 	end
 end

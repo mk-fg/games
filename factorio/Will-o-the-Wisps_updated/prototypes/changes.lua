@@ -61,7 +61,7 @@ function changes.update_tech_recipes()
 		table.insert(tech.effects, {type='unlock-recipe', recipe=recipe})
 	end
 	add_tech_unlock('solar-energy', 'UV-lamp')
-	add_tech_unlock('combat-robotics', 'wisp-drone-violet-capsule')
+	add_tech_unlock('combat-robotics', 'wisp-drone-blue-capsule')
 end
 
 return changes

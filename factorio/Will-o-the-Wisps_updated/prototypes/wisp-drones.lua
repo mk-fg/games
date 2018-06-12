@@ -3,8 +3,8 @@ local conf = require('config')
 data:extend{{
 
 	type = 'combat-robot',
-	name = 'wisp-drone-violet',
-	icon = '__Will-o-the-Wisps_updated__/graphics/icons/wisp-drone-violet.png',
+	name = 'wisp-drone-blue',
+	icon = '__Will-o-the-Wisps_updated__/graphics/icons/wisp-drone-blue.png',
 	icon_size = 32,
 	flags = {'placeable-player', 'player-creation', 'placeable-off-grid', 'not-on-map', 'not-repairable'},
 	resistances = {{type='corrosion', percent=95}},
@@ -27,7 +27,7 @@ data:extend{{
 			type = 'instant',
 			source_effects = {
 				type = 'create-entity',
-				entity_name = 'wisp-drone-violet-death' } } },
+				entity_name = 'wisp-drone-blue-death' } } },
 
 	attack_parameters = {
 		type = 'beam',
@@ -48,7 +48,7 @@ data:extend{{
 					source_offset = {0.0, 0.0} } } } },
 
 	idle = {
-		filename = '__Will-o-the-Wisps_updated__/graphics/entity/wisps/wisp-drone-violet.png',
+		filename = '__Will-o-the-Wisps_updated__/graphics/entity/wisps/wisp-drone-blue.png',
 		priority = 'high',
 		width = 158,
 		height = 158,
@@ -58,7 +58,7 @@ data:extend{{
 		scale = 0.4
 	},
 	in_motion = {
-		filename = '__Will-o-the-Wisps_updated__/graphics/entity/wisps/wisp-drone-violet.png',
+		filename = '__Will-o-the-Wisps_updated__/graphics/entity/wisps/wisp-drone-blue.png',
 		priority = 'high',
 		width = 158,
 		height = 158,
@@ -92,10 +92,10 @@ data:extend{{
 
 data:extend{{
 	type = 'explosion',
-	name = 'wisp-drone-violet-death',
+	name = 'wisp-drone-blue-death',
 	flags = {'not-on-map', 'placeable-off-grid'},
 	animations = {
-		{ filename = '__Will-o-the-Wisps_updated__/graphics/entity/wisps/wisp-drone-violet-death.png',
+		{ filename = '__Will-o-the-Wisps_updated__/graphics/entity/wisps/wisp-drone-blue-death.png',
 			priority = 'high',
 			width = 0,
 			height = 0,
@@ -110,7 +110,7 @@ data:extend{
 
 	-- ----- Projectile animation makes it hard to find entity from on_player_used_capsule event
 	-- { type = 'projectile',
-	-- 	name = 'wisp-drone-violet-capsule',
+	-- 	name = 'wisp-drone-blue-capsule',
 	-- 	flags = {'not-on-map'},
 	-- 	acceleration = 0.005,
 	-- 	action = {
@@ -120,7 +120,7 @@ data:extend{
 	-- 			target_effects = {
 	-- 				{ type = 'create-entity',
 	-- 					show_in_tooltip = true,
-	-- 					entity_name = 'wisp-drone-violet' } } } },
+	-- 					entity_name = 'wisp-drone-blue' } } } },
 	-- 	light = {intensity = 0.5, size = 4},
 	-- 	enable_drawing_with_mask = true,
 	-- 	animation = {
@@ -157,12 +157,12 @@ data:extend{
 	-- 		starting_frame_speed_deviation = 5 }} },
 
 	{ type = 'capsule',
-		name = 'wisp-drone-violet-capsule',
-		icon = '__Will-o-the-Wisps_updated__/graphics/icons/wisp-drone-violet.png',
+		name = 'wisp-drone-blue-capsule',
+		icon = '__Will-o-the-Wisps_updated__/graphics/icons/wisp-drone-blue.png',
 		icon_size = 32,
 		flags = {'goes-to-quickbar'},
 		subgroup = 'capsule',
-		order = 'c[wisp-drone-violet-capsule]',
+		order = 'c[wisp-drone-blue-capsule]',
 		stack_size = 100,
 		capsule_action = {
 			type = 'throw',
@@ -182,11 +182,11 @@ data:extend{
 							target_effects = {
 								{ type = 'create-entity',
 									show_in_tooltip = true,
-									entity_name = 'wisp-drone-violet',
+									entity_name = 'wisp-drone-blue',
 									offsets = {{0.5, -0.5},{-0.5, -0.5},{0, 0.5}} } } } } } } } },
 
 							-- type = 'projectile',
-							-- projectile = 'wisp-drone-violet-capsule',
+							-- projectile = 'wisp-drone-blue-capsule',
 							-- starting_speed = 0.3 } } } } } },
 
 }

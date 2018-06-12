@@ -38,8 +38,8 @@ data:extend{
 		enabled = false },
 
 	{ type = 'recipe',
-		name = 'wisp-drone-violet-capsule',
-		icon = '__Will-o-the-Wisps_updated__/graphics/icons/wisp-drone-violet.png',
+		name = 'wisp-drone-blue-capsule',
+		icon = '__Will-o-the-Wisps_updated__/graphics/icons/wisp-drone-blue.png',
 		icon_size = 32,
 		energy_required = 8,
 		ingredients = {
@@ -47,7 +47,7 @@ data:extend{
 			{'advanced-circuit', 1},
 			{'alien-flora-sample', 1},
 		},
-		result = 'wisp-drone-violet-capsule',
+		result = 'wisp-drone-blue-capsule',
 		enabled = false },
 
 	-- Legacy recipes that are never enabled

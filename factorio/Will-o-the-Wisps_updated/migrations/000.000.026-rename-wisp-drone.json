@@ -1,0 +1,16 @@
+{
+
+	"entity": [
+		["wisp-drone-violet", "wisp-drone-blue"],
+		["wisp-drone-violet-capsule", "wisp-drone-blue-capsule"],
+		["wisp-drone-violet-light-01", "wisp-drone-blue-light-01"],
+		["wisp-drone-violet-death", "wisp-drone-blue-death"] ],
+
+	"item": [
+		["wisp-drone-violet", "wisp-drone-blue"],
+		["wisp-drone-violet-capsule", "wisp-drone-blue-capsule"] ],
+
+	"recipe": [
+		["wisp-drone-violet-capsule", "wisp-drone-blue-capsule"] ]
+
+}

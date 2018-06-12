@@ -194,10 +194,10 @@ conf.wisp_light_entities = {
 		{intensity=0.6, size=7, color={r=0.40, g=0.05, b=0.80, a=0.6}},
 		{intensity=0.5, size=3, color={r=0.15, g=0.02, b=0.88, a=0.7}}
 	},
-	['wisp-drone-violet']={
+	['wisp-drone-blue']={
 		{ intensity=0.7, size=60,
 			speed=conf.wisp_light_anim_speed_drone,
-			color={r=0.8, g=0.1, b=0.9, a=0.7} },
+			color={r=0, g=1.0, b=0.95, a=0.7} },
 	},
 }
 conf.wisp_light_name_fmt = '%s-light-%02d'
