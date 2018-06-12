@@ -41,6 +41,7 @@ Technologies:
 - UV will kill wisps without retaliation or replication. Overlapping lamps will amplify effects.
 - Wisps appear in forests after dark (in a day or few), drawn out by nearby pollution and player activity.
 - Wisp detectors range can be set by R signal, see ingame description for more info.
+- Lantern will-o-wisps last a long time, but you can always shoot them down (C key) if they're a bother.
 - Mod only tracks surface darkness changes, not time, so mods that change day/night cycle should be compatible.
 
 

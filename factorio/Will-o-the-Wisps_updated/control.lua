@@ -21,11 +21,7 @@ local UVLightEnergyLimit = 1422.23
 ------------------------------------------------------------
 
 local function entity_is_tree(e) return e.type == 'tree' end
-local function entity_is_rock(e)
-	-- Match any entities with separate "rock" word in it, and not e.g. "rocket"
-	return e.name == 'rock' or (
-		e.name:match('rock') and e.name:match('%W?rock%W?') ~= 'rock' )
-end
+local function entity_is_rock(e) return utils.match_word(e.name, 'rock') end
 
 local wisp_spore_proto = 'wisp-purple'
 local function wisp_spore_proto_check(name) return name:match('^wisp%-purple') end
@@ -309,6 +305,7 @@ local function on_tick_run_task(name, target)
 		if n > steps then n = 1 end
 		ws[name] = n
 	end
+	-- Passed "n" value goes from 1 to "steps"
 	if not iter_task then -- monolithic task
 		res = tasks_monolithic[name](target, n, steps)
 		-- utils.log('tick task - %s [%s/%s] = %s', name, n, steps, res)
@@ -576,6 +573,27 @@ local function apply_version_updates(old_v, new_v)
 	end
 end
 
+local function init_commands()
+	utils.log('Init commands...')
+
+	commands.add_command( 'wisp-zone-update',
+		'Scan all chunks on the whole map for will-o-wisp spawning zones',
+		function(cmd)
+			if not game.players[cmd.player_index].admin then return end
+			zones.full_update()
+			if utils.match_word(cmd.parameter or '', 'stats') and conf.debug_log
+				then zones.print_stats(utils.log) end
+		end )
+
+	commands.add_command( 'wisp-zone-stats',
+		'Print pollution and misc other stats for scanned zones to player console',
+		function(cmd)
+			local player = game.players[cmd.player_index]
+			if not player.admin then return end
+			zones.print_stats(player.print)
+		end )
+end
+
 local function init_globals()
 	local sets = utils.t('wisps wispDrones uvLights detectors')
 	for _, k in ipairs{
@@ -606,6 +624,7 @@ end
 
 script.on_load(function()
 	utils.log('Loading game...')
+	init_commands()
 	init_refs()
 	apply_runtime_settings()
 end)
@@ -636,6 +655,7 @@ end)
 script.on_init(function()
 	utils.log('Initializing mod for a new game...')
 
+	init_commands()
 	init_globals()
 	init_refs()
 

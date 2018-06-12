@@ -215,14 +215,5 @@ conf.wisp_light_counts['wisp-detector'] = 1
 
 -- conf.debug_log = true
 
--- conf.work_steps.zones_spread = 1
--- conf.work_steps.zones_forest = 1
--- conf.intervals.zones_spread = 173
--- conf.intervals.zones_forest = 173
-
--- conf.wisp_forest_spawn_chance_purple = 0.01
--- conf.wisp_forest_spawn_chance_yellow = 0.70
--- conf.wisp_forest_spawn_chance_red = 0.10
-
 
 return conf

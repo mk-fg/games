@@ -89,6 +89,28 @@ function utils.pick_jitter(limit, positive)
 end
 
 
+function utils.match_word(s, word)
+	-- Returns non-nil if s ~ /\bword\b/ (pcre)
+	return s:match('^'..word..'$')
+		or s:match('^'..word..'[%W]')
+		or s:match('[%W]'..word..'$')
+		or s:match('[%W]'..word..'[%W]')
+end
+
+function utils.fmt_n_comma(n, digits)
+	if type(n) == 'number' then n = ('%.'..tostring(digits or 0)..'f'):format(n) end
+	local res, k = n, 1
+	while k ~= 0 do res, k = string.gsub(res, '^(-?%d+)(%d%d%d)', '%1,%2') end
+	return res
+end
+
+function utils.map(t, func)
+	if type(t) == 'function' then t, func = func, t end
+	local res = {}
+	for n = 1, #t do table.insert(res, func(t[n], n)) end
+	return res
+end
+
 function utils.t(s, value)
 	-- Helper to make padded table from other table keys or a string of keys
 	local t = {}

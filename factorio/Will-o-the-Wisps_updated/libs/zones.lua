@@ -54,8 +54,9 @@ function zones.update_wisp_spread(step, steps)
 	local tick, out, k, chunk = game.tick, ChunkSpreadQueue
 	local tick_max_spread = tick - conf.chunk_rescan_spread_interval
 	local tick_max_trees = tick - conf.chunk_rescan_tree_growth_interval
+	local count = 0
 	for n = step, #ChunkList, steps do
-		k = ChunkList[n]; chunk = ChunkMap[k]
+		k, count = ChunkList[n], count + 1; chunk = ChunkMap[k]
 		if chunk.spread
 				or (chunk.scan_spread or 0) > tick_max_spread
 			then goto skip end
@@ -72,16 +73,17 @@ function zones.update_wisp_spread(step, steps)
 			chunk.spread, out.n, out[m] = true, m, k
 		end
 	::skip:: end
-	return (n - step) / steps -- get_pollution count, probably lite
+	return count -- get_pollution count, probably lite
 end
 
 function zones.update_forests_in_spread(step, steps)
 	local tick, set, out = game.tick, ChunkSpreadQueue, ForestSet
 	local tick_min_spread = tick - conf.chunk_rescan_spread_interval
 	local tick_max_trees = tick - conf.chunk_rescan_tree_growth_interval
-	local n, k, chunk, area, trees = step
+	local n, count, k, chunk, area, trees = step, 0
+	if step > set.n and set.n > 0 then step = set.n end -- process at least one
 	while n <= set.n do
-		k = set[n]; chunk = ChunkMap[k]
+		k, count = set[n], count + 1; chunk = ChunkMap[k]
 
 		if not chunk then goto drop -- should not happen normally
 		elseif chunk.scan_spread < tick_min_spread
@@ -98,8 +100,61 @@ function zones.update_forests_in_spread(step, steps)
 		end
 
 		::drop:: set[n], set.n = set[set.n], set.n - 1
+		n = n + steps - 1 -- 1 was dropped
 	end
-	return (n - step) / steps -- find_entities_filtered count
+	return count -- find_entities_filtered count
+end
+
+function zones.full_update()
+	-- Only for manual use from console, can take
+	--  a second or few of real time if nothing was pre-scanned
+	local n
+	utils.log('zones: running full update')
+	n = zones.update_wisp_spread(1, 1)
+	utils.log('zones:  - updated spread chunks: %d', n)
+	n = zones.update_forests_in_spread(1, 1)
+	utils.log('zones:  - scanned chunks for forests: %d', n)
+	utils.log(
+		'zones:  - done, spread-queue=%d forests=%d',
+		ChunkSpreadQueue.n, ForestSet.n )
+end
+
+function zones.print_stats(print_func)
+	local fmt_bign = function(v) return utils.fmt_n_comma(v) end
+	local function percentiles(t, perc)
+		local fmt, fmt_vals = {}, {}
+		for n = 1, #perc do
+			table.insert(fmt, ('p%02d=%%s'):format(perc[n]))
+			table.insert(fmt_vals, fmt_bign(t[math.floor((perc[n]/100) * #t)]))
+		end
+		return fmt, fmt_vals
+	end
+
+	local function pollution_table_stats(key, chunks)
+		local p_table, p_sum, chunk = {}, 0
+		for n = 1, #chunks do
+			chunk = ChunkMap[chunks[n]]
+			if not (chunk.pollution and chunk.pollution > 0) then goto skip end
+			table.insert(p_table, chunk.pollution)
+			p_sum = p_sum + chunk.pollution
+		::skip:: end
+		table.sort(p_table)
+		local p_mean = p_sum / #p_table
+		print_func(
+			('zones:  - %s pollution chunks=%s min=%s max=%s mean=%s sum=%s')
+			:format( key, table.unpack(utils.map( fmt_bign,
+				{#p_table, p_table[1], p_table[#p_table], p_mean, p_sum} )) ) )
+		local fmt, fmt_vals = percentiles(p_table, {10, 25, 50, 75, 90, 95, 99})
+		print_func(('zones:  - %s pollution %s'):format(
+			key, table.concat(fmt, ' ') ):format(table.unpack(fmt_vals)))
+	end
+
+	print_func('zones: stats')
+	pollution_table_stats('chunk', ChunkList)
+	local forest_chunks = {}
+	for n = 1, ForestSet.n
+		do table.insert(forest_chunks, ForestSet[n].chunk_key) end
+	pollution_table_stats('forest', forest_chunks)
 end
 
 
