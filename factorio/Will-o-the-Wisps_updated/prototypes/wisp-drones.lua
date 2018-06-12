@@ -52,20 +52,22 @@ data:extend{{
 		priority = 'high',
 		width = 158,
 		height = 158,
-		frame_count = 3,
-		direction_count = 1,
+		frame_count = 1,
+		direction_count = 8,
+		line_length = 8,
 		animation_speed = 0.7,
-		scale = 0.4
+		scale = 0.3
 	},
 	in_motion = {
 		filename = '__Will-o-the-Wisps_updated__/graphics/entity/wisps/wisp-drone-blue.png',
 		priority = 'high',
 		width = 158,
 		height = 158,
-		frame_count = 3,
-		direction_count = 1,
+		frame_count = 1,
+		direction_count = 8,
+		line_length = 8,
 		animation_speed = 0.7,
-		scale = 0.4
+		scale = 0.3
 	},
 
 	-- Floating light casts no shadow
