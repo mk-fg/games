@@ -12,7 +12,7 @@ local MapStats, WorkSteps
 -- WispSurface must only be used directly on entry points, and passed from there
 local WispSurface
 -- Not sure how UVLightEnergyLimit value is calculated, so re-adjusted if ever seen higher
-local UVLightEnergyLimit = 1422.23
+local UVLightEnergyLimit = 2844.45
 
 
 ------------------------------------------------------------

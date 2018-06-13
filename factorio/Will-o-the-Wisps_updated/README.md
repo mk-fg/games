@@ -8,7 +8,7 @@ Adds enigmatic Will-o'-the-Wisps to the game, which can be seen around forests a
 
 One current goal of the mod is to add some visible consequences to destroying alien forests or dumping pollution into them, but not necessarily damaging ones (see mod options).
 Another one is making alien nature look more alive and mysterious, as nights in particular can look a bit dull there.
-Third optional one, also coming from the original mod, is to make long electricity transmission lines or isolated solar farms a bit less of a no-brainer, with wisps damaging or leeching energy off them over time (not fully implemented yet).
+Third optional one is to add some light wisp-deterrent base-planning element, though still not sure how much.
 
 New alien fauna:
 
@@ -20,7 +20,7 @@ New alien fauna:
     - Physical damage will split them into multiple ones.
 - Purple Will-o'-Wisp
     - Will-o'-the-Wisp spore.
-    - Cause corrosion of structures and power infrastructure in particular.
+    - Cause corrosion of structures and power production infrastructure in particular.
 
 Technologies:
 
@@ -33,9 +33,7 @@ Technologies:
 
 - Avoid burning forests at night.
 - Trees destroyed or mined at night-time might spawn yellow wisps, rocks - red ones.
-- Most production machinery (belts, inserters, assemblers, etc) is not susceptible to corrosion damage from wisps.
-- For affected buildings, corrosion resistance is derived from acid resistance.
-- Power infrastructure is vulnerable to purple wisps, though not wooden poles.
+- Purple wisps are only dangerous to specific building categories, like power production, defences and oil tanks.
 - If your turrets shoot down a wisp, try to stay away from its kind that night.
 - Disable turrets targeting wisps in Mod Options menu to avoid accidental aggression.
 - UV will kill wisps without retaliation or replication. Overlapping lamps will amplify effects.
@@ -52,8 +50,8 @@ Technologies:
 - 0.16.x compatibility update, various bugfixes.
 - Mod Options menu settings for wisps/turrets aggression and spawning.
 - Different spawning algorithm based on pollution.
-- Rebalanced combat stats and material costs for technologies.
-- Some new technologies (e.g. wisp lantern drones), some visual tweaks.
+- Rebalanced stats, resistances, costs of technologies.
+- Some new technologies, visual tweaks.
 - Ingame changelog with full list of features, fixes and tweaks for each version.
 
 See [original Will-o'-the-wisps mod](https://mods.factorio.com/mod/Will-o-the-wisps) and its [forum thread](https://forums.factorio.com/viewtopic.php?f=93&t=41514) for more information.

@@ -1,4 +1,10 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.0.31
+Date: 13. 06. 2018
+  Changes:
+    - Make purple wisps less of a nuisance by not targeting power poles of any kind.
+    - Bump UV lamp energy use 80 -> 160kW, as there should be less things to surround now.
+---------------------------------------------------------------------------------------------------
 Version: 0.0.30
 Date: 13. 06. 2018
   Bugfixes:

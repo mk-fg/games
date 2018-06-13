@@ -16,12 +16,12 @@ data:extend{{
 	selection_box = {{-0.5, -0.5}, {0.5, 0.5}},
 	vehicle_impact_sound = {filename='__base__/sound/car-metal-impact.ogg', volume=0.65},
 
-	energy_usage_per_tick = '80kW', -- lamp = 5kW
+	energy_usage_per_tick = '160kW', -- lamp = 5kW
 	energy_source = {
 		type = 'electric',
 		usage_priority = 'secondary-input',
-		buffer_capacity = '160kJ',
-		input_flow_limit = '160kW',
+		buffer_capacity = '320kJ',
+		input_flow_limit = '320kW',
 	},
 
 	light = uv_light,
