@@ -101,6 +101,13 @@ conf.wisp_forest_on_map_percent = 0.8
 -- Min tree count on 3x3 chunk area to randomly spawn wisps there.
 conf.wisp_forest_min_density = 300
 
+-- Sets how much normalized pollution value (0-1.0 range, with 1.0
+--  being maximum from all forested chunks) factors into random pick.
+-- Random weight for forest chunk is calculated as: 1 + p * pollution_factor
+-- So if pollution_factor is 0, all forested chunks are equal,
+--  and if it's <0 then wisps will be less likely to spawn in polluted areas.
+conf.wisp_forest_spawn_pollution_factor = 100
+
 -- Chances for which wisps rise from forests on their own
 -- Sum should be in 0-1 range (<1 will mean some spawns skipped)
 conf.wisp_forest_spawn_chance_purple = 0.50

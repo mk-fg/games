@@ -518,6 +518,8 @@ local function apply_runtime_settings(event)
 
 	knob = key_update('wisp-map-spawn-count')
 	if knob then conf.wisp_max_count = knob.value end
+	knob = key_update('wisp-map-spawn-pollution-factor')
+	if knob then conf.wisp_forest_spawn_pollution_factor = knob.value end
 
 	local wisp_spawns_sum = 0
 	for _, c in ipairs{'purple', 'yellow', 'red'} do
@@ -584,7 +586,7 @@ local function init_commands()
 	utils.log('Init commands...')
 
 	commands.add_command( 'wisp-zone-update',
-		'Scan all chunks on the whole map for will-o-wisp spawning zones',
+		'Scan all chunks on the map for will-o-wisp spawning zones.',
 		function(cmd)
 			if not game.players[cmd.player_index].admin then return end
 			zones.full_update()
@@ -593,11 +595,25 @@ local function init_commands()
 		end )
 
 	commands.add_command( 'wisp-zone-stats',
-		'Print pollution and misc other stats for scanned zones to player console',
+		'Print pollution and misc other stats for scanned zones to player console.',
 		function(cmd)
 			local player = game.players[cmd.player_index]
 			if not player.admin then return end
 			zones.print_stats(player.print)
+		end )
+
+	commands.add_command( 'wisp-zone-spawn',
+		'Spawn wisps in the forested map zones.'..
+			' Parameter (integer, default=1) sets how many spawn-cycles to simulate.',
+		function(cmd)
+			local player = game.players[cmd.player_index]
+			if not player.admin then return end
+			local cycles = tonumber(cmd.parameter or '1')
+			local ticks = cycles * conf.intervals.spawn_on_map
+			player.print(
+				('Simulating %d spawn-cycle(s) (%s [%s ticks] of night time)')
+				:format(cycles, utils.fmt_ticks(ticks), utils.fmt_n_comma(ticks)) )
+			for n = 1, cycles do tasks_monolithic.spawn_on_map(WispSurface) end
 		end )
 end
 

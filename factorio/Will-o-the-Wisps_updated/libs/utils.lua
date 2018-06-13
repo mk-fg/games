@@ -3,7 +3,7 @@ local utils = {}
 local conf = require('config')
 
 
-function utils.f(msg, ...)
+function utils.fmt(msg, ...)
 	-- Format message using string.format if extra args are passed
 	-- Non-string arguments are formatted via serpent.line
 	local args, fmt_args = table.pack(...), {}
@@ -32,23 +32,31 @@ function utils.f(msg, ...)
 	return msg
 end
 
-function utils.log(msg, ...)
-	if not conf.debug_log then return end
-	local tick, ts_prefix = game and game.tick, ''
-	if tick then
-		local ts, unit = {3600*60,  60*60, 60, 1}
-		for n = 1, #ts do
-			unit, ts[n] = ts[n], math.floor(tick / ts[n])
-			tick = tick - ts[n] * unit
-		end
-		ts[1] = ts[1] % 100 -- not actual daytime hours anyway
-		ts_prefix = ('%02d:%02d:%02d.%02d :: '):format(table.unpack(ts))
-	else ts_prefix = '--:--:--.-- :: ' end
-	local log_func = conf.debug_log_direct and print or log
-	log_func(ts_prefix..utils.f(msg, ...))
+function utils.fmt_n_comma(n, digits)
+	if type(n) == 'number' then n = ('%.'..tostring(digits or 0)..'f'):format(n) end
+	local res, k = n, 1
+	while k ~= 0 do res, k = string.gsub(res, '^(-?%d+)(%d%d%d)', '%1,%2') end
+	return res
 end
 
-function utils.error(msg, ...) error(utils.f(msg, ...)) end
+function utils.fmt_ticks(ticks)
+	if not ticks then return '--:--:--.--' end
+	local ts, unit = {3600*60,  60*60, 60, 1}
+	for n = 1, #ts do
+		unit, ts[n] = ts[n], math.floor(ticks / ts[n])
+		ticks = ticks - ts[n] * unit
+	end
+	ts[1] = ts[1] % 100 -- not actual daytime hours anyway
+	return ('%02d:%02d:%02d.%02d'):format(table.unpack(ts))
+end
+
+function utils.log(msg, ...)
+	if not conf.debug_log then return end
+	local log_func = conf.debug_log_direct and print or log
+	log_func(utils.fmt_ticks(game and game.tick)..' :: '..utils.fmt(msg, ...))
+end
+
+function utils.error(msg, ...) error(utils.fmt(msg, ...)) end
 
 
 function utils.version_to_num(ver, padding)
@@ -106,13 +114,6 @@ function utils.match_word(s, word)
 		or s:match('^'..word..'[%W]')
 		or s:match('[%W]'..word..'$')
 		or s:match('[%W]'..word..'[%W]')
-end
-
-function utils.fmt_n_comma(n, digits)
-	if type(n) == 'number' then n = ('%.'..tostring(digits or 0)..'f'):format(n) end
-	local res, k = n, 1
-	while k ~= 0 do res, k = string.gsub(res, '^(-?%d+)(%d%d%d)', '%1,%2') end
-	return res
 end
 
 function utils.map(t, func)

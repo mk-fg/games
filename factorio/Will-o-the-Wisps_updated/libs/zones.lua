@@ -120,7 +120,7 @@ function zones.full_update()
 end
 
 function zones.print_stats(print_func)
-	local fmt_bign = function(v) return utils.fmt_n_comma(v) end
+	local fmt_bign = function(v) return utils.fmt_n_comma(v or '') end
 	local function percentiles(t, perc)
 		local fmt, fmt_vals = {}, {}
 		for n = 1, #perc do
@@ -164,10 +164,16 @@ function zones.get_wisp_trees_anywhere(count)
 	local set, wisp_trees, trees = ForestSet, {}
 	if set.n == 0 then return wisp_trees end
 	while set.n > 0 do
-		local chances, chunk, n = {}
+		local chances, p_max, chunk, p, n = {}, 0
 		for n = 1, set.n do
 			chunk = ChunkMap[set[n].chunk_key]
-			chances[n] = chunk and chunk.pollution or 0
+			p = chunk and chunk.pollution or 0
+			chances[n] = p
+			if p > p_max then p_max = p end
+		end
+		if p_max > 0 then
+			p = conf.wisp_forest_spawn_pollution_factor
+			for n = 1, #chances do chances[n] = 1 + p * chances[n] / p_max end
 		end
 		n = utils.pick_weight(chances)
 		chunk = ChunkMap[set[n].chunk_key]
@@ -237,5 +243,6 @@ function zones.init(zs)
 		' - Zone stats: chunks=%d spread-queue=%d forests=%d',
 		#ChunkList, ChunkSpreadQueue.n, ForestSet.n )
 end
+
 
 return zones
