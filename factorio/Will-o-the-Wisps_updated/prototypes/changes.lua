@@ -9,12 +9,12 @@ function changes.set_corrosion_resistance()
 	-- Entities in vulnerable_categories have no resistance and take extra damage.
 	-- Affected entities have corrosion resistance equal to acid resistance.
 
-	local affected_prototypes = utils.t('player')
+	local affected_prototypes = utils.t('player oil-refinery centrifuge')
 	local immune_prototypes = {}
 
 	local affected_categories = utils.t([[
 		gate wall ammo-turret electric-turret radar car armor
-		offshore-pump storage-tank boiler solar-panel reactor ]])
+		offshore-pump boiler solar-panel reactor ]])
 	local vulnerable_categories = utils.t('boiler solar-panel reactor')
 
 	local corrosion_immunity = {type='corrosion', decrease=0, percent=100}

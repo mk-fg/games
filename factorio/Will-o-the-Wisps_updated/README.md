@@ -33,7 +33,7 @@ Technologies:
 
 - Avoid burning forests at night.
 - Trees destroyed or mined at night-time might spawn yellow wisps, rocks - red ones.
-- Purple wisps are only dangerous to specific building categories, like power production, defences and oil tanks.
+- Purple wisps are only dangerous to specific building categories, like power production, refineries and defences.
 - If your turrets shoot down a wisp, try to stay away from its kind that night.
 - Disable turrets targeting wisps in Mod Options menu to avoid accidental aggression.
 - UV will kill wisps without retaliation or replication. Overlapping lamps will amplify effects.
