@@ -86,7 +86,7 @@ function zones.update_forests_in_spread(step, steps)
 		k, count = set[n], count + 1; chunk = ChunkMap[k]
 
 		if not chunk then goto drop -- should not happen normally
-		elseif chunk.scan_spread < tick_min_spread
+		elseif (chunk.scan_spread or 0) < tick_min_spread
 			then chunk.spread = nil; goto drop -- old spread data
 		elseif (chunk.scan_trees or 0) > tick_max_trees then goto drop end
 

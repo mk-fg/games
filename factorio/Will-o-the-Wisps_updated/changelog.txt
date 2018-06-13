@@ -1,4 +1,9 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.0.30
+Date: 13. 06. 2018
+  Bugfixes:
+    - Fix lua error on forest scans for replaced chunks that are already in ChunkSpreadQueue.
+---------------------------------------------------------------------------------------------------
 Version: 0.0.29
 Date: 13. 06. 2018
   Bugfixes:
