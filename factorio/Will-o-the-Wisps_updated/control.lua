@@ -158,26 +158,6 @@ local function wisp_emit_light(wisp)
 	wisp.entity.surface.create_entity{name=light, position=wisp.entity.position}
 end
 
-local function wisp_group_create_or_join(unit)
-	local pos = unit.position
-	local units_near = unit.surface.find_entities_filtered{
-		name=unit.name, area=utils.get_area(conf.wisp_group_radius[unit.name], pos) }
-	if not (next(units_near) and #units_near > 1) then return end
-	local leader = true
-	for _, unit2 in ipairs(units_near) do
-		if not unit2.unit_group then goto skip end
-		leader, unit.force = false, unit2.force
-		unit2.unit_group.add_member(unit)
-		break
-	::skip:: end
-	if not leader then return end
-	local group = unit.surface.create_unit_group{position=pos, force='wisp_attack'}
-	group.add_member(unit)
-	for _, unit in ipairs(units_near) do group.add_member(unit) end
-	group.set_autonomous()
-	group.start_moving()
-end
-
 
 ------------------------------------------------------------
 -- Tech
@@ -256,15 +236,36 @@ local tasks_monolithic = {
 	end,
 
 	tactics = function(surface)
-		if true then return end -- XXX: fix and test
-		if surface.darkness > conf.min_darkness then return end
-		if Wisps.n > 0 then return end -- was never used due to this
-		local wisp = WispAttackEntities[math.random(Wisps.n)]
-		if (wisp.entity.valid and wisp.entity.type == 'unit')
-				and (not wisp.entity.unit_group and wisp.ttl >= conf.wisp_group_min_ttl) then
-			wisp_group_create_or_join(wisp.entity)
+		local set, e, n = WispAttackEntities
+		while set.n > 0 do
+			n = math.random(set.n); e = set[n]
+			if e and e.valid and not e.unit_group then break
+				else set[n], set.n, e = set[set.n], set.n - 1, nil end
 		end
-		return 20
+		if not e then return 10 end
+
+		local units_near = e.surface.find_entities_filtered{
+			name=e.name, area=utils.get_area(conf.wisp_group_radius[e.name], e.position) }
+		if not (units_near and #units_near > 1) then return 20 end
+
+		local leader = true
+		for _, e2 in ipairs(units_near) do
+			if not e2.unit_group then goto skip end
+			if e2.force ~= e.force then -- instead of disbanding pacified group, make it hostile
+				for _, e3 in ipairs(e2.unit_group.members) do e3.force = e.force end end
+			leader = false
+			e2.unit_group.add_member(e)
+			break
+		::skip:: end
+		if not leader then return 25 end
+
+		local group = e.surface
+			.create_unit_group{position=e.position, force='wisp_attack'}
+		group.add_member(e)
+		for _, e2 in ipairs(units_near) do group.add_member(e2) end
+		group.set_autonomous()
+		group.start_moving()
+		return 30
 	end,
 }
 
