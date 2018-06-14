@@ -36,7 +36,7 @@ Technologies:
 - Purple wisps are only dangerous to specific building categories, like power production, refineries and defences.
 - If your turrets shoot down a wisp, try to stay away from its kind that night.
 - Disable turrets targeting wisps in Mod Options menu to avoid accidental aggression.
-- UV will kill wisps without retaliation or replication. Overlapping lamps will amplify effects.
+- UV will kill wisps without retaliation. Overlapping lamps will amplify effects.
 - Wisps appear in forests after dark (in a day or few), drawn out by nearby pollution and player activity.
 - Wisp detectors range can be set by R signal, see ingame description for more info.
 - Lantern will-o-wisps last a long time, but can always be put down (C key) if they're a bother.

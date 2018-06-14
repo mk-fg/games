@@ -8,7 +8,7 @@ local ticks_gameday = 417 * ticks_sec
 
 -- Disables aggression between wisps and player factions.
 conf.peaceful_wisps = false
-conf.peaceful_defences = false
+conf.peaceful_defences = true
 conf.peaceful_spores = false
 
 -- Max number of wisps on the map
