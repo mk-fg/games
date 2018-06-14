@@ -7,6 +7,7 @@ local zones = require('libs/zones')
 
 -- local references to globals
 local Wisps, WispDrones, UVLights, Detectors
+local WispAttackEntities -- temporary set of aggressive wisp entities
 local MapStats, WorkSteps
 
 -- WispSurface must only be used directly on entry points, and passed from there
@@ -19,29 +20,72 @@ local UVLightEnergyLimit = 2844.45
 -- Politics
 ------------------------------------------------------------
 
+local wisp_forces = utils.t('wisp wisp_attack')
+
 local function get_player_forces()
 	local forces = {}
-	for _, player in ipairs(game.players)
+	for _, player in pairs(game.players)
 		do if player.connected then table.insert(forces, player.force) end end
 	return forces
 end
 
-local function wisp_aggression_set(surface, attack, force)
+local function wisp_force_init(name, attack_players)
+	local peaceful, wisps = not attack_players
+	if not game.forces[name] then
+		wisps = game.create_force(name)
+		wisps.ai_controllable = true
+	else wisps = game.forces[name] end
+	for _, force in ipairs(get_player_forces()) do
+		wisps.set_cease_fire(force, peaceful)
+		force.set_cease_fire(wisps, peaceful and conf.peaceful_defences)
+	end
+	wisps.set_cease_fire(game.forces.enemy, true)
+	game.forces.enemy.set_cease_fire(wisps, true)
+	if wisps.name ~= 'wisp' and game.forces.wisp then
+		wisps.set_cease_fire(game.forces.wisp, true)
+		game.forces.wisp.set_cease_fire(wisps, true)
+	end
+	return wisps
+end
+
+local function wisp_aggression_set(surface, attack, force, area)
+	if force and wisp_forces[force.name] then return end
 	local peace = true
 	if attack
 			and not surface.peaceful_mode
 			and not conf.peaceful_wisps
 		then peace = false end
-	local forces, wisps = {}, game.forces.wisps
-	if force and force ~= wisps
-		then table.insert(forces, force)
-		else forces = get_player_forces() end
-	for _, force in ipairs(forces) do
-		wisps.set_cease_fire(force, peace)
-		if conf.peaceful_defences then force.set_cease_fire(wisps, peace) end
+
+	local set = WispAttackEntities
+	if not area then
+		-- Change force for all wisps on the map
+		if peace then
+			for n = 1, set.n do
+				if set[n] and set[n].valid then set[n].force = 'wisp' end
+				set[n] = nil
+			end
+			set.n = 0
+		else
+			for n = 1, Wisps.n do
+				if Wisps[n].entity.valid
+					then Wisps[n].entity.force = 'wisp_attack' end
+				set[n] = Wisps[n]
+			end
+			set.n = Wisps.n
+		end
+	else
+		-- Change force for wisps in specified area
+		local force = peace and 'wisp_attack' or 'wisp'
+		local entities = surface.find_entities_filtered{force=force, type='unit', area=area}
+		if peace then for _, e in ipairs(entities) do e.force = 'wisp' end
+		else
+			for _, e in ipairs(entities) do e.force = 'wisp_attack' end
+			set[set.n], set.n = e, set.n + 1
+		end
 	end
-	-- utils.log( 'wisp aggression set: %s [attack=%s pm=%s pw=%s pd=%s]',
-	-- 	not peace, attack, surface.peaceful_mode, conf.peaceful_wisps, conf.peaceful_defences )
+	-- utils.log(
+	-- 	'wisp-aggression: peace=%s attack-set=%s attack-force=%s area=%s',
+	-- 	peace, set.n, game.forces.wisp_attack.get_entity_count('wisp-yellow'), area )
 end
 
 
@@ -51,6 +95,7 @@ end
 
 local function entity_is_tree(e) return e.type == 'tree' end
 local function entity_is_rock(e) return utils.match_word(e.name, 'rock') end
+local function entity_is_wisp_unit(e) return e.name == 'wisp-red' or e.name == 'wisp-yellow' end
 
 local wisp_spore_proto = 'wisp-purple'
 local function wisp_spore_proto_check(name) return name:match('^wisp%-purple') end
@@ -61,7 +106,7 @@ local function wisp_init(entity, ttl, n)
 		if not ttl then return end -- not a wisp entity
 		ttl = ttl + utils.pick_jitter(conf.wisp_ttl_jitter)
 	end
-	entity.force = game.forces.wisps
+	entity.force = game.forces.wisp
 	local wisp = {entity=entity, ttl=ttl, uv_level=0}
 	if not n then n = Wisps.n + 1; Wisps.n = n end
 	Wisps[n] = wisp
@@ -71,8 +116,7 @@ local function wisp_create(name, surface, position, ttl, n)
 	local max_distance, step, wisp = 6, 0.3
 	local pos = surface.find_non_colliding_position(name, position, max_distance, step)
 	if pos then
-		wisp = surface.create_entity{
-			name=name, position=pos, force=game.forces.wisps }
+		wisp = surface.create_entity{name=name, position=pos, force='wisp'}
 		wisp_init(wisp, ttl, n)
 	end
 	return wisp
@@ -116,14 +160,12 @@ local function wisp_group_create_or_join(unit)
 		break
 	::skip:: end
 	if not leader then return end
-	local newGroup = unit.surface
-		.create_unit_group{position=pos, force=game.forces.wisps}
-	newGroup.add_member(unit)
-	for _, unit in ipairs(units_near) do newGroup.add_member(unit) end
-	if not game.forces.wisps.get_cease_fire('player') then
-		newGroup.set_autonomous()
-		newGroup.start_moving()
-	end
+	local group = unit.surface
+		.create_unit_group{position=pos, force={'wisp', 'wisp_attack'}}
+	group.add_member(unit)
+	for _, unit in ipairs(units_near) do group.add_member(unit) end
+	group.set_autonomous()
+	group.start_moving()
 end
 
 
@@ -258,10 +300,11 @@ local tasks_entities = {
 
 		-- Effects on unit-type wisps - reds and yellows
 		local wisps, wisp = s.find_entities_filtered{
-			force='wisps', type='unit', area=utils.get_area(conf.uv_lamp_range, e.position) }
+			force={'wisp', 'wisp_attack'}, type='unit',
+			area=utils.get_area(conf.uv_lamp_range, e.position) }
 		if next(wisps) then
 			local damage = conf.uv_lamp_damage_func(energy_percent)
-			for _, entity in ipairs(wisps) do entity.damage(damage, game.forces.wisps, 'fire') end
+			for _, entity in ipairs(wisps) do entity.damage(damage, game.forces.wisp, 'fire') end
 		end
 
 		-- Effects on non-unit wisps - purple
@@ -280,7 +323,7 @@ local tasks_entities = {
 		local counts, wisps = {}
 		if next(Wisps) then
 			wisps = s.find_entities_filtered{
-				force='wisps', area=utils.get_area(range, e.position) }
+				force={'wisp', 'wisp_attack'}, area=utils.get_area(range, e.position) }
 			for _, wisp in ipairs(wisps)
 				do counts[wisp.name] = (counts[wisp.name] or 0) + 1 end
 			wisps = s.count_entities_filtered{
@@ -404,8 +447,11 @@ end
 local function on_death(event)
 	if entity_is_tree(event.entity) then wisp_create_at_random('wisp-yellow', event.entity) end
 	if entity_is_rock(event.entity) then wisp_create_at_random('wisp-red', event.entity) end
-	if event.entity.name == 'wisp-red' or event.entity.name == 'wisp-yellow' then
-		wisp_aggression_set(event.entity.surface, true, event.force)
+	if entity_is_wisp_unit(event.entity) then
+		local area
+		if conf.wisp_death_retaliation_radius > 0
+			then area = utils.get_area(conf.wisp_death_retaliation_radius, event.entity.position) end
+		wisp_aggression_set(event.entity.surface, true, event.force, area)
 		if game.surfaces.nauvis.darkness >= conf.min_darkness
 			then wisp_create(wisp_spore_proto, event.entity.surface, event.entity.position) end
 	end
@@ -501,23 +547,27 @@ local function apply_runtime_settings(event)
 		local v_old, v = conf.peaceful_wisps, not knob.value
 		conf.peaceful_wisps = v
 		if game and v_old ~= v then
-			if v then for _, force in ipairs(get_player_forces()) do
-				game.forces.wisps.set_cease_fire(force, true)
-			end end
-			for _, wisp in ipairs(Wisps) do
-				if not wisp.entity.valid or wisp_spore_proto_check(wisp.entity.name) then goto skip end
-				wisp.entity.set_command{ type=defines.command.wander,
+			if v then
+				local wisps = game.forces.wisp_attack
+				for _, force in ipairs(get_player_forces()) do wisps.set_cease_fire(force, true) end
+			end
+			for n = 1, WispAttackEntities.n do
+				local e = WispAttackEntities[n]
+				if not e or not e.valid or wisp_spore_proto_check(e.name) then goto skip end
+				e.set_command{ type=defines.command.wander,
 					distraction=v and defines.distraction.none or defines.distraction.by_damage }
 			::skip:: end
 		end
 	end
+	knob = key_update('wisp-death-retaliation-radius')
+	if knob then conf.wisp_death_retaliation_radius = knob.value end
 
 	knob = key_update('defences-shoot-wisps')
 	if knob then
 		local v_old, v = conf.peaceful_wisps, not knob.value
 		conf.peaceful_defences = v
 		if game and v_old ~= v then for _, force in ipairs(get_player_forces()) do
-			force.set_cease_fire(game.forces.wisps, conf.peaceful_defences)
+			force.set_cease_fire(game.forces.wisp, conf.peaceful_defences)
 		end end
 	end
 
@@ -603,6 +653,14 @@ local function apply_version_updates(old_v, new_v)
 		global.map_stats, global.mapUVLevel = MapStats
 		global.work_steps, global.workSteps = WorkSteps
 	end
+
+	if utils.version_less_than(old_v, '0.0.34') then
+		local wisps = game.forces.wisps
+		for _, force in ipairs(get_player_forces()) do wisps.set_cease_fire(force, true) end
+		wisp_force_init('wisp')
+		wisp_force_init('wisp_attack', true)
+		game.merge_forces('wisps', 'wisp')
+	end
 end
 
 local function init_commands()
@@ -641,10 +699,11 @@ local function init_commands()
 end
 
 local function init_globals()
-	local sets = utils.t('wisps wisp_drones uv_lights detectors')
-	for _, k in ipairs{
-			'wisps', 'wisp_drones', 'uv_lights', 'detectors',
-			'zones', 'map_stats', 'work_steps' } do
+	local sets = utils.t([[
+		wisps wisp_drones wisp_attack_entities uv_lights detectors ]])
+	for k, _ in pairs(utils.t([[
+			wisps wisp_drones wisp_attack_entities
+			uv_lights detectors zones map_stats work_steps ]])) do
 		if global[k] then goto skip end
 		global[k] = {}
 		if sets[k] and not global[k].n then global[k].n = #(global[k]) end
@@ -655,6 +714,7 @@ local function init_refs()
 	utils.log('Init local references to globals...')
 	Wisps, WispDrones = global.wisps, global.wisp_drones
 	UVLights, Detectors = global.uv_lights, global.detectors
+	WispAttackEntities = global.wisp_attack_entities
 	MapStats, WorkSteps = global.map_stats, global.work_steps
 	utils.log(
 		' - Object stats: wisps=%s drones=%s uvs=%s detectors=%s%s',
@@ -703,17 +763,8 @@ script.on_init(function()
 	init_refs()
 
 	utils.log('Init wisps force...')
-	local wisps
-	if not game.forces.wisps then
-		wisps = game.create_force('wisps')
-		wisps.ai_controllable = true
-	else wisps = game.forces.wisps end
-	for _, force in ipairs(get_player_forces()) do
-		wisps.set_cease_fire(force, true)
-		force.set_cease_fire(wisps, conf.peaceful_defences)
-	end
-	wisps.set_cease_fire(game.forces.enemy, true)
-	game.forces.enemy.set_cease_fire(wisps, true)
+	wisp_force_init('wisp')
+	wisp_force_init('wisp_attack', true)
 
 	apply_runtime_settings()
 end)

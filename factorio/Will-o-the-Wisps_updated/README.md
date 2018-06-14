@@ -34,12 +34,13 @@ Technologies:
 - Avoid burning forests at night.
 - Trees destroyed or mined at night-time might spawn yellow wisps, rocks - red ones.
 - Purple wisps are only dangerous to specific building categories, like power production, refineries and defences.
-- If your turrets shoot down a wisp, try to stay away from its kind that night.
+- Wisps in the area attack when one of them is killed, but are not very fast or dangerous in low numbers.
 - Disable turrets targeting wisps in Mod Options menu to avoid accidental aggression.
-- UV will kill wisps without retaliation. Overlapping lamps will amplify effects.
-- Wisps appear in forests after dark (in a day or few), drawn out by nearby pollution and player activity.
+- UV will chase wisps away without any retaliation. Overlapping lamps will amplify effects.
+- Circuit control wires can switch UV lamps on/off for power saving reasons - they eat quite a lot.
 - Wisp detectors range can be set by R signal, see ingame description for more info.
 - Lantern will-o-wisps last a long time, but can always be put down (C key) if they're a bother.
+- Wisps appear in forests after dark (in a day or few), drawn out by nearby pollution and player activity.
 - Mod only tracks surface darkness changes, not time, so mods that change day/night cycle should be compatible.
 - There are mod options to control where, which and how many will-o'-the-wisps can be seen on the map.
 - See [forum thread](https://forums.factorio.com/viewtopic.php?f=190&t=60876&p=366660#p366660) for more technical info and debug commands.
@@ -62,3 +63,4 @@ See [original Will-o'-the-wisps mod](https://mods.factorio.com/mod/Will-o-the-wi
 - [Day Night Extender](https://mods.factorio.com/mod/DayNightExtender) - more nights, more shinies!
 - [Time Tools](https://mods.factorio.com/mods/binbinhfr/TimeTools) - UI clock and speed settings plus time/darkness-tracking combinators.
 - [Bullet Trails](https://mods.factorio.com/mod/bullet-trails) - essential visual upgrade, which can also be seen on images here.
+- [Picker Extended](https://mods.factorio.com/mod/PickerExtended) - probably the best Quality-of-Life mod, including distance/radius measuring tool.

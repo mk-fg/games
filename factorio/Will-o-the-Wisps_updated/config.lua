@@ -12,6 +12,9 @@ conf.peaceful_defences = true
 conf.peaceful_spores = false
 
 -- Max number of wisps on the map
+conf.wisp_death_retaliation_radius = 96
+
+-- Max number of wisps on the map
 conf.wisp_max_count = 1250
 
 -- Damage parameters for the purple wisps prototypes
