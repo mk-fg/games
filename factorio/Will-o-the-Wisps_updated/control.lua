@@ -100,6 +100,17 @@ local function entity_is_wisp_unit(e) return e.name == 'wisp-red' or e.name == '
 local wisp_spore_proto = 'wisp-purple'
 local function wisp_spore_proto_check(name) return name:match('^wisp%-purple') end
 
+local function wisp_find_units(surface, pos, radius)
+	-- Abstraction layer for find_entities_filtered to work with both experimental and stable factorio
+	-- XXX: replace with force={'wisp', 'wisp_attack'} once stable updates on GoG
+	local area
+	if not radius then area = pos else area = utils.get_area(radius, pos) end
+	local units = surface.find_entities_filtered{force='wisp', type='unit', area=area} or {}
+	for _, unit in ipairs(surface.find_entities_filtered{force='wisp_attack', type='unit', area=area})
+		do table.insert(units, unit) end
+	return units
+end
+
 local function wisp_init(entity, ttl, n)
 	if not ttl then
 		ttl = conf.wisp_ttl[entity.name]
@@ -150,18 +161,17 @@ end
 local function wisp_group_create_or_join(unit)
 	local pos = unit.position
 	local units_near = unit.surface.find_entities_filtered{
-		name=name, area=utils.get_area(conf.wisp_group_radius[unit.name], pos) }
+		name=unit.name, area=utils.get_area(conf.wisp_group_radius[unit.name], pos) }
 	if not (next(units_near) and #units_near > 1) then return end
 	local leader = true
-	for _, units_near in ipairs(units_near) do
-		if not units_near.unit_group then goto skip end
-		units_near.unit_group.add_member(unit)
-		leader = false
+	for _, unit2 in ipairs(units_near) do
+		if not unit2.unit_group then goto skip end
+		leader, unit.force = false, unit2.force
+		unit2.unit_group.add_member(unit)
 		break
 	::skip:: end
 	if not leader then return end
-	local group = unit.surface
-		.create_unit_group{position=pos, force={'wisp', 'wisp_attack'}}
+	local group = unit.surface.create_unit_group{position=pos, force='wisp_attack'}
 	group.add_member(unit)
 	for _, unit in ipairs(units_near) do group.add_member(unit) end
 	group.set_autonomous()
@@ -246,9 +256,10 @@ local tasks_monolithic = {
 	end,
 
 	tactics = function(surface)
+		if true then return end -- XXX: fix and test
 		if surface.darkness > conf.min_darkness then return end
-		if Wisps.n > 0 then return end
-		local wisp = Wisps[math.random(Wisps.n)]
+		if Wisps.n > 0 then return end -- was never used due to this
+		local wisp = WispAttackEntities[math.random(Wisps.n)]
 		if (wisp.entity.valid and wisp.entity.type == 'unit')
 				and (not wisp.entity.unit_group and wisp.ttl >= conf.wisp_group_min_ttl) then
 			wisp_group_create_or_join(wisp.entity)
@@ -299,9 +310,7 @@ local tasks_entities = {
 		if energy_percent < conf.uv_lamp_energy_min then return end
 
 		-- Effects on unit-type wisps - reds and yellows
-		local wisps, wisp = s.find_entities_filtered{
-			force={'wisp', 'wisp_attack'}, type='unit',
-			area=utils.get_area(conf.uv_lamp_range, e.position) }
+		local wisps, wisp = wisp_find_units(s, e.position, conf.uv_lamp_range)
 		if next(wisps) then
 			local damage = conf.uv_lamp_damage_func(energy_percent)
 			for _, entity in ipairs(wisps) do entity.damage(damage, game.forces.wisp, 'fire') end
@@ -322,8 +331,7 @@ local tasks_entities = {
 
 		local counts, wisps = {}
 		if next(Wisps) then
-			wisps = s.find_entities_filtered{
-				force={'wisp', 'wisp_attack'}, area=utils.get_area(range, e.position) }
+			wisps = wisp_find_units(s, e.position, range)
 			for _, wisp in ipairs(wisps)
 				do counts[wisp.name] = (counts[wisp.name] or 0) + 1 end
 			wisps = s.count_entities_filtered{
@@ -472,7 +480,7 @@ end
 local function on_drone_placed(event)
 	local surface = game.players[event.player_index].surface
 	local drones = surface.find_entities_filtered{
-		utils.get_area(1, event.position), name='wisp-drone-blue' }
+		name='wisp-drone-blue', area=utils.get_area(1, event.position) }
 	if not next(drones) then return end
 	for _, entity in ipairs(drones) do
 		for n = 1, WispDrones.n do
