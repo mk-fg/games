@@ -205,7 +205,7 @@ conf.wisp_light_entities = {
 		{intensity=0.5, size=3, color={r=0.15, g=0.02, b=0.88, a=0.7}}
 	},
 	['wisp-drone-blue']={
-		{ intensity=0.7, size=60,
+		{ intensity=0.7, size=100,
 			speed=conf.wisp_light_anim_speed_drone,
 			color={r=0, g=1.0, b=0.95, a=0.7} },
 	},

@@ -88,6 +88,18 @@ local function wisp_aggression_set(surface, attack, force, area)
 	-- 	peace, set.n, game.forces.wisp_attack.get_entity_count('wisp-yellow'), area )
 end
 
+local function wisp_aggression_stop(surface)
+	-- Commands all attacking wisps to stop in addition to making them non-hostile
+	local set, e = WispAttackEntities
+	for n = 1, set.n do
+		e = set[n]
+		if not e or not e.valid then goto skip end
+		e.set_command{ type=defines.command.wander,
+			distraction=v and defines.distraction.none or defines.distraction.by_damage }
+	::skip:: end
+	wisp_aggression_set(surface, false)
+end
+
 
 ------------------------------------------------------------
 -- Wisps
@@ -559,13 +571,7 @@ local function apply_runtime_settings(event)
 			if v then
 				local wisps = game.forces.wisp_attack
 				for _, force in ipairs(get_player_forces()) do wisps.set_cease_fire(force, true) end
-			end
-			for n = 1, WispAttackEntities.n do
-				local e = WispAttackEntities[n]
-				if not e or not e.valid or wisp_spore_proto_check(e.name) then goto skip end
-				e.set_command{ type=defines.command.wander,
-					distraction=v and defines.distraction.none or defines.distraction.by_damage }
-			::skip:: end
+			elseif not v then wisp_aggression_stop(WispSurface) end
 		end
 	end
 	knob = key_update('wisp-death-retaliation-radius')
@@ -705,6 +711,21 @@ local function init_commands()
 				:format(cycles, utils.fmt_ticks(ticks), utils.fmt_n_comma(ticks)) )
 			for n = 1, cycles do tasks_monolithic.spawn_on_map(WispSurface) end
 		end )
+
+	commands.add_command( 'wisp-attack',
+		'Have all will-o-wisps on the map turn hostile towards players.',
+		function(cmd)
+			local player = game.players[cmd.player_index]
+			if not player.admin then return end
+			wisp_aggression_set(WispSurface, true) end )
+
+	commands.add_command( 'wisp-peace',
+		'Pacify all will-o-the-wisps on the map, command them to stop attacking.',
+		function(cmd)
+			local player = game.players[cmd.player_index]
+			if not player.admin then return end
+			wisp_aggression_stop(WispSurface) end )
+
 end
 
 local function init_globals()

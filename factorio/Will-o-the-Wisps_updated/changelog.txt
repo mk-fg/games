@@ -1,4 +1,11 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.0.37
+Date: 15. 06. 2018
+  Features:
+    - Add /wisp-attack and /wisp-peace commands to set current wisp aggression.
+  Changes:
+    - Increase lantern drone light radius 60 -> 100.
+---------------------------------------------------------------------------------------------------
 Version: 0.0.36
 Date: 15. 06. 2018
   Bugfixes:
