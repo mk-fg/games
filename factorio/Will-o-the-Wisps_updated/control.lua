@@ -56,7 +56,7 @@ local function wisp_aggression_set(surface, attack, force, area)
 			and not conf.peaceful_wisps
 		then peace = false end
 
-	local set = WispAttackEntities
+	local set, e = WispAttackEntities
 	if not area then
 		-- Change force for all wisps on the map
 		if peace then
@@ -66,22 +66,24 @@ local function wisp_aggression_set(surface, attack, force, area)
 			end
 			set.n = 0
 		else
+			set.n = 0
 			for n = 1, Wisps.n do
-				if Wisps[n].entity.valid
-					then Wisps[n].entity.force = 'wisp_attack' end
-				set[n] = Wisps[n]
+				e = Wisps[n].entity
+				if e.valid and e.type == 'unit' then
+					e.force = 'wisp_attack'
+					set[set.n+1], set.n = e, set.n+1
+				end
 			end
-			set.n = Wisps.n
 		end
 	else
 		-- Change force for wisps in specified area
 		local force = peace and 'wisp_attack' or 'wisp'
 		local entities = surface.find_entities_filtered{force=force, type='unit', area=area}
 		if peace then for _, e in ipairs(entities) do e.force = 'wisp' end
-		else
-			for _, e in ipairs(entities) do e.force = 'wisp_attack' end
-			set[set.n], set.n = e, set.n + 1
-		end
+		else for _, e in ipairs(entities) do
+			e.force = 'wisp_attack'
+			set[set.n+1], set.n = e, set.n+1
+		end end
 	end
 	-- utils.log(
 	-- 	'wisp-aggression: peace=%s attack-set=%s attack-force=%s area=%s',
@@ -250,8 +252,8 @@ local tasks_monolithic = {
 		local set, e, n = WispAttackEntities
 		while set.n > 0 do
 			n = math.random(set.n); e = set[n]
-			if e and e.valid and not e.unit_group then break
-				else set[n], set.n, e = set[set.n], set.n - 1, nil end
+			if e and e.valid and e.force.name == 'wisp_attack' and not e.unit_group
+				then break else set[n], set.n, e = set[set.n], set.n - 1, nil end
 		end
 		if not e then return 10 end
 
@@ -261,9 +263,7 @@ local tasks_monolithic = {
 
 		local leader = true
 		for _, e2 in ipairs(units_near) do
-			if not e2.unit_group then goto skip end
-			if e2.force ~= e.force then -- instead of disbanding pacified group, make it hostile
-				for _, e3 in ipairs(e2.unit_group.members) do e3.force = e.force end end
+			if not e2.unit_group or e2.force ~= e.force then goto skip end
 			leader = false
 			e2.unit_group.add_member(e)
 			break
@@ -273,7 +273,7 @@ local tasks_monolithic = {
 		local group = e.surface
 			.create_unit_group{position=e.position, force='wisp_attack'}
 		group.add_member(e)
-		for _, e2 in ipairs(units_near) do group.add_member(e2) end
+		for _, e2 in ipairs(units_near) do e2.force = e.force; group.add_member(e2) end
 		group.set_autonomous()
 		group.start_moving()
 		return 30
@@ -736,30 +736,38 @@ local function init_commands()
 			if not player.admin then return end
 
 			local c, e = {types={}, types_hostile={}}
-			for n = 1, WispAttackEntities.n do
-				e = WispAttackEntities[n]
-				if not (e and e.valid) then goto skip end
-				c.types_hostile[e.name] = (c.types_hostile[e.name] or 0) + 1
-				c.hostile = (c.hostile or 0) + 1
-			::skip:: end
 			for n = 1, Wisps.n do
 				e = Wisps[n].entity
 				if not e.valid then goto skip end
 				c.types[e.name] = (c.types[e.name] or 0) + 1
 				c.total = (c.total or 0) + 1
 			::skip:: end
+			for n = 1, WispAttackEntities.n do
+				e = WispAttackEntities[n]
+				if not (e and e.valid) then goto skip end
+				c.types_hostile[e.name] = (c.types_hostile[e.name] or 0) + 1
+				c.hostile = (c.hostile or 0) + 1
+			::skip:: end
 
 			local fmt = utils.fmt_n_comma
-			player.print(('wisps: total=%s hostile=%s'):format(fmt(c.total or 0), fmt(c.hostile or 0)))
-			local function print_types(name, key)
+			local function print_types(name, key, force)
 				local types = {}
 				for t, count in pairs(c[key])
 					do table.insert(types, ('%s=%s'):format(t:gsub('^wisp%-', ''), fmt(count))) end
-				if #types <= 0 then return end
 				player.print(('wisps: types %s - %s'):format(name, table.concat(types, ' ')))
 			end
+			local function print_types_force(name, force_name)
+				local types, force = {yellow=0, red=0}, game.forces[force_name]
+				for t, count in pairs(types) do table.insert( types,
+					('%s=%s'):format(t, fmt(force.get_entity_count(('wisp-%s'):format(t)))) ) end
+				player.print(('wisps: types %s - %s'):format(name, table.concat(types, ' ')))
+			end
+
+			player.print(('wisps: total=%s hostile=%s'):format(fmt(c.total or 0), fmt(c.hostile or 0)))
 			print_types('all', 'types')
 			print_types('hostile', 'types_hostile')
+			print_types_force('force-peaceful', 'wisp')
+			print_types_force('force-hostile', 'wisp_attack')
 		end )
 
 end
