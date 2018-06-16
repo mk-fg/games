@@ -1,4 +1,10 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.0.38
+Date: 16. 06. 2018
+  Features:
+    - Make yellow/red wisps flee from UV lamps, not just die to them.
+    - Add /wisp-stats command to print counts of wisps on the map.
+---------------------------------------------------------------------------------------------------
 Version: 0.0.37
 Date: 15. 06. 2018
   Features:

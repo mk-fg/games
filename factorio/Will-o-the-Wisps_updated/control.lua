@@ -94,8 +94,7 @@ local function wisp_aggression_stop(surface)
 	for n = 1, set.n do
 		e = set[n]
 		if not e or not e.valid then goto skip end
-		e.set_command{ type=defines.command.wander,
-			distraction=v and defines.distraction.none or defines.distraction.by_damage }
+		e.set_command{type=defines.command.wander, distraction=defines.distraction.none}
 	::skip:: end
 	wisp_aggression_set(surface, false)
 end
@@ -326,7 +325,11 @@ local tasks_entities = {
 		local wisps, wisp = wisp_find_units(s, e.position, conf.uv_lamp_range)
 		if next(wisps) then
 			local damage = conf.uv_lamp_damage_func(energy_percent)
-			for _, entity in ipairs(wisps) do entity.damage(damage, game.forces.wisp, 'fire') end
+			for _, entity in ipairs(wisps) do
+				entity.set_command{ type=defines.command.flee,
+					from=e, distraction=defines.distraction.none }
+				entity.damage(damage, game.forces.wisp, 'fire')
+			end
 		end
 
 		-- Effects on non-unit wisps - purple
@@ -725,6 +728,39 @@ local function init_commands()
 			local player = game.players[cmd.player_index]
 			if not player.admin then return end
 			wisp_aggression_stop(WispSurface) end )
+
+	commands.add_command( 'wisp-stats',
+		'Print some stats about wisps on the map.',
+		function(cmd)
+			local player = game.players[cmd.player_index]
+			if not player.admin then return end
+
+			local c, e = {types={}, types_hostile={}}
+			for n = 1, WispAttackEntities.n do
+				e = WispAttackEntities[n]
+				if not (e and e.valid) then goto skip end
+				c.types_hostile[e.name] = (c.types_hostile[e.name] or 0) + 1
+				c.hostile = (c.hostile or 0) + 1
+			::skip:: end
+			for n = 1, Wisps.n do
+				e = Wisps[n].entity
+				if not e.valid then goto skip end
+				c.types[e.name] = (c.types[e.name] or 0) + 1
+				c.total = (c.total or 0) + 1
+			::skip:: end
+
+			local fmt = utils.fmt_n_comma
+			player.print(('wisps: total=%s hostile=%s'):format(fmt(c.total or 0), fmt(c.hostile or 0)))
+			local function print_types(name, key)
+				local types = {}
+				for t, count in pairs(c[key])
+					do table.insert(types, ('%s=%s'):format(t:gsub('^wisp%-', ''), fmt(count))) end
+				if #types <= 0 then return end
+				player.print(('wisps: types %s - %s'):format(name, table.concat(types, ' ')))
+			end
+			print_types('all', 'types')
+			print_types('hostile', 'types_hostile')
+		end )
 
 end
 
