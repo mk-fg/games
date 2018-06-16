@@ -469,15 +469,16 @@ end
 ------------------------------------------------------------
 
 local function on_death(event)
-	if entity_is_tree(event.entity) then wisp_create_at_random('wisp-yellow', event.entity) end
-	if entity_is_rock(event.entity) then wisp_create_at_random('wisp-red', event.entity) end
-	if entity_is_wisp_unit(event.entity) then
+	local e = event.entity
+	if entity_is_tree(e) then wisp_create_at_random('wisp-yellow', e) end
+	if entity_is_rock(e) then wisp_create_at_random('wisp-red', e) end
+	if entity_is_wisp_unit(e) then
 		local area
 		if conf.wisp_death_retaliation_radius > 0
-			then area = utils.get_area(conf.wisp_death_retaliation_radius, event.entity.position) end
-		wisp_aggression_set(event.entity.surface, true, event.force, area)
+			then area = utils.get_area(conf.wisp_death_retaliation_radius, e.position) end
+		wisp_aggression_set(e.surface, true, event.force, area)
 		if game.surfaces.nauvis.darkness >= conf.min_darkness
-			then wisp_create(wisp_spore_proto, event.entity.surface, event.entity.position) end
+			then wisp_create(wisp_spore_proto, e.surface, e.position) end
 	end
 end
 
@@ -510,16 +511,14 @@ local function on_drone_placed(event)
 end
 
 local function on_built_entity(event)
-	local entity = event.created_entity
-
-	if entity.name == 'UV-lamp' then return uv_light_init(entity) end
-	if entity.name == 'wisp-detector' then return detector_init(entity) end
-
-	if entity.name == 'wisp-purple' then
-		local surface, pos = entity.surface, entity.position
-		entity.destroy()
+	local e = event.created_entity
+	if e.name == 'UV-lamp' then return uv_light_init(e) end
+	if e.name == 'wisp-detector' then return detector_init(e) end
+	if e.name == 'wisp-purple' then
+		local surface, pos = e.surface, e.position
+		e.destroy()
 		local wisp =  wisp_create(wisp_spore_proto, surface, pos)
-	else wisp_init(entity) end
+	else wisp_init(e) end
 end
 
 local function on_chunk_generated(event)
@@ -539,147 +538,8 @@ end
 
 
 ------------------------------------------------------------
--- Init
+-- Console Commands
 ------------------------------------------------------------
-
-local function update_recipes(with_reset)
-	for _, force in pairs(game.forces) do
-		if with_reset then force.reset_recipes() end
-		if force.technologies['alien-bio-technology'].researched then
-			force.recipes['alien-flora-sample'].enabled = true
-			force.recipes['wisp-detector'].enabled = true
-		end
-		if force.technologies['solar-energy'].researched then
-			force.recipes['UV-lamp'].enabled = true
-		end
-		if force.technologies['combat-robotics'].researched then
-			force.recipes['wisp-drone-blue-capsule'].enabled = true
-		end
-	end
-end
-
-local function apply_runtime_settings(event)
-	local key, knob = event and event.setting
-	local function key_update(k)
-		if not (not key or key == k) then return end
-		utils.log('Updating runtime option: %s', k)
-		return settings.global[k]
-	end
-
-	knob = key_update('wisps-can-attack')
-	if knob then
-		local v_old, v = conf.peaceful_wisps, not knob.value
-		conf.peaceful_wisps = v
-		if game and v_old ~= v then
-			if v then
-				local wisps = game.forces.wisp_attack
-				for _, force in ipairs(get_player_forces()) do wisps.set_cease_fire(force, true) end
-			elseif not v then wisp_aggression_stop(WispSurface) end
-		end
-	end
-	knob = key_update('wisp-death-retaliation-radius')
-	if knob then conf.wisp_death_retaliation_radius = knob.value end
-
-	knob = key_update('defences-shoot-wisps')
-	if knob then
-		local v_old, v = conf.peaceful_wisps, not knob.value
-		conf.peaceful_defences = v
-		if game and v_old ~= v then for _, force in ipairs(get_player_forces()) do
-			force.set_cease_fire(game.forces.wisp, conf.peaceful_defences)
-		end end
-	end
-
-	knob = key_update('purple-wisp-damage')
-	if knob then
-		local v_old, v = conf.peaceful_spores, not knob.value
-		conf.peaceful_spores = v
-		wisp_spore_proto = v and 'wisp-purple-harmless' or 'wisp-purple'
-		if game and v_old ~= v then
-			-- Replace all existing spores with harmless/corroding variants
-			for n, wisp in ipairs(Wisps) do
-				if not wisp.entity.valid
-						or not wisp_spore_proto_check(wisp.entity.name)
-					then goto skip end
-				local surface, pos = wisp.entity.surface, wisp.entity.position
-				wisp.entity.destroy()
-				wisp = wisp_create(wisp_spore_proto, surface, pos, wisp.ttl, n)
-			::skip:: end
-		end
-	end
-
-	knob = key_update('wisp-map-spawn-count')
-	if knob then conf.wisp_max_count = knob.value end
-	knob = key_update('wisp-map-spawn-pollution-factor')
-	if knob then conf.wisp_forest_spawn_pollution_factor = knob.value end
-
-	local wisp_spawns_sum = 0
-	for _, c in ipairs{'purple', 'yellow', 'red'} do
-		local k, k_conf = 'wisp-map-spawn-'..c, 'wisp_forest_spawn_chance_'..c
-		knob = key_update(k)
-		if knob then conf[k_conf] = knob.value end
-		wisp_spawns_sum = wisp_spawns_sum + conf[k_conf]
-	end
-	if wisp_spawns_sum > 1 then
-		for _, c in ipairs{'purple', 'yellow', 'red'} do
-			local k = 'wisp_forest_spawn_chance_'..c
-			conf[k] = conf[k] / wisp_spawns_sum
-		end
-	end
-end
-
-local function apply_version_updates(old_v, new_v)
-	local function remap_key(o, k_old, k_new, default)
-		if not o[k_new] then o[k_new], o[k_old] = o[k_old] end
-		if not o[k_new] then o[k_new] = default end
-	end
-
-	if utils.version_less_than(old_v, '0.0.3') then
-		utils.log('    - Updating TTL/TTU keys in global objects')
-		for _,wisp in ipairs(Wisps) do remap_key(wisp, 'TTL', 'ttl') end
-	end
-
-	if utils.version_less_than(old_v, '0.0.7') then
-		for _,k in ipairs{
-				'stepLIGTH', 'stepTTL', 'stepGC',
-				'stepUV', 'stepDTCT', 'recentDayTime' }
-			do global[k] = nil end
-	end
-
-	if utils.version_less_than(old_v, '0.0.10')
-		then remap_key(WorkSteps, 'ttl', 'expire') end
-
-	if utils.version_less_than(old_v, '0.0.13') then
-		Wisps.n, UVLights.n, Detectors.n = #Wisps, #UVLights, #Detectors
-		WorkSteps.gc, global.chunks, global.forests = nil
-	end
-
-	if utils.version_less_than(old_v, '0.0.17') then
-		WorkSteps.spawn, WorkSteps.expire = nil
-		for _, wisp in ipairs(Wisps) do wisp.uv_level = 0 end
-	end
-
-	if utils.version_less_than(old_v, '0.0.25') then
-		WorkSteps.light = nil
-		for _, force in pairs(game.forces) do
-			for _, k in ipairs{'wisp-yellow', 'wisp-purple', 'wisp-red'}
-				do force.recipes[k].enabled = false end end
-	end
-
-	if utils.version_less_than(old_v, '0.0.28') then
-		global.wisp_drones, global.wispDrones = WispDrones
-		global.uv_lights, global.uvLights = UVLights
-		global.map_stats, global.mapUVLevel = MapStats
-		global.work_steps, global.workSteps = WorkSteps
-	end
-
-	if utils.version_less_than(old_v, '0.0.34') then
-		local wisps = game.forces.wisps
-		for _, force in ipairs(get_player_forces()) do wisps.set_cease_fire(force, true) end
-		wisp_force_init('wisp')
-		wisp_force_init('wisp_attack', true)
-		game.merge_forces('wisps', 'wisp')
-	end
-end
 
 local function init_commands()
 	utils.log('Init commands...')
@@ -772,6 +632,150 @@ local function init_commands()
 
 end
 
+
+------------------------------------------------------------
+-- Init / updates / settings
+------------------------------------------------------------
+
+local function apply_runtime_settings(event)
+	local key, knob = event and event.setting
+	local function key_update(k)
+		if not (not key or key == k) then return end
+		utils.log('Updating runtime option: %s', k)
+		return settings.global[k]
+	end
+
+	knob = key_update('wisps-can-attack')
+	if knob then
+		local v_old, v = conf.peaceful_wisps, not knob.value
+		conf.peaceful_wisps = v
+		if game and v_old ~= v then
+			if v then
+				local wisps = game.forces.wisp_attack
+				for _, force in ipairs(get_player_forces()) do wisps.set_cease_fire(force, true) end
+			elseif not v then wisp_aggression_stop(WispSurface) end
+		end
+	end
+	knob = key_update('wisp-death-retaliation-radius')
+	if knob then conf.wisp_death_retaliation_radius = knob.value end
+
+	knob = key_update('defences-shoot-wisps')
+	if knob then
+		local v_old, v = conf.peaceful_wisps, not knob.value
+		conf.peaceful_defences = v
+		if game and v_old ~= v then for _, force in ipairs(get_player_forces()) do
+			force.set_cease_fire(game.forces.wisp, conf.peaceful_defences)
+		end end
+	end
+
+	knob = key_update('purple-wisp-damage')
+	if knob then
+		local v_old, v = conf.peaceful_spores, not knob.value
+		conf.peaceful_spores = v
+		wisp_spore_proto = v and 'wisp-purple-harmless' or 'wisp-purple'
+		if game and v_old ~= v then
+			-- Replace all existing spores with harmless/corroding variants
+			for n, wisp in ipairs(Wisps) do
+				if not wisp.entity.valid
+						or not wisp_spore_proto_check(wisp.entity.name)
+					then goto skip end
+				local surface, pos = wisp.entity.surface, wisp.entity.position
+				wisp.entity.destroy()
+				wisp = wisp_create(wisp_spore_proto, surface, pos, wisp.ttl, n)
+			::skip:: end
+		end
+	end
+
+	knob = key_update('wisp-map-spawn-count')
+	if knob then conf.wisp_max_count = knob.value end
+	knob = key_update('wisp-map-spawn-pollution-factor')
+	if knob then conf.wisp_forest_spawn_pollution_factor = knob.value end
+
+	local wisp_spawns_sum = 0
+	for _, c in ipairs{'purple', 'yellow', 'red'} do
+		local k, k_conf = 'wisp-map-spawn-'..c, 'wisp_forest_spawn_chance_'..c
+		knob = key_update(k)
+		if knob then conf[k_conf] = knob.value end
+		wisp_spawns_sum = wisp_spawns_sum + conf[k_conf]
+	end
+	if wisp_spawns_sum > 1 then
+		for _, c in ipairs{'purple', 'yellow', 'red'} do
+			local k = 'wisp_forest_spawn_chance_'..c
+			conf[k] = conf[k] / wisp_spawns_sum
+		end
+	end
+end
+
+local function update_recipes(with_reset)
+	for _, force in pairs(game.forces) do
+		if with_reset then force.reset_recipes() end
+		if force.technologies['alien-bio-technology'].researched then
+			force.recipes['alien-flora-sample'].enabled = true
+			force.recipes['wisp-detector'].enabled = true
+		end
+		if force.technologies['solar-energy'].researched then
+			force.recipes['UV-lamp'].enabled = true
+		end
+		if force.technologies['combat-robotics'].researched then
+			force.recipes['wisp-drone-blue-capsule'].enabled = true
+		end
+	end
+end
+
+local function apply_version_updates(old_v, new_v)
+	local function remap_key(o, k_old, k_new, default)
+		if not o[k_new] then o[k_new], o[k_old] = o[k_old] end
+		if not o[k_new] then o[k_new] = default end
+	end
+
+	if utils.version_less_than(old_v, '0.0.3') then
+		utils.log('    - Updating TTL/TTU keys in global objects')
+		for _,wisp in ipairs(Wisps) do remap_key(wisp, 'TTL', 'ttl') end
+	end
+
+	if utils.version_less_than(old_v, '0.0.7') then
+		for _,k in ipairs{
+				'stepLIGTH', 'stepTTL', 'stepGC',
+				'stepUV', 'stepDTCT', 'recentDayTime' }
+			do global[k] = nil end
+	end
+
+	if utils.version_less_than(old_v, '0.0.10')
+		then remap_key(WorkSteps, 'ttl', 'expire') end
+
+	if utils.version_less_than(old_v, '0.0.13') then
+		Wisps.n, UVLights.n, Detectors.n = #Wisps, #UVLights, #Detectors
+		WorkSteps.gc, global.chunks, global.forests = nil
+	end
+
+	if utils.version_less_than(old_v, '0.0.17') then
+		WorkSteps.spawn, WorkSteps.expire = nil
+		for _, wisp in ipairs(Wisps) do wisp.uv_level = 0 end
+	end
+
+	if utils.version_less_than(old_v, '0.0.25') then
+		WorkSteps.light = nil
+		for _, force in pairs(game.forces) do
+			for _, k in ipairs{'wisp-yellow', 'wisp-purple', 'wisp-red'}
+				do force.recipes[k].enabled = false end end
+	end
+
+	if utils.version_less_than(old_v, '0.0.28') then
+		global.wisp_drones, global.wispDrones = WispDrones
+		global.uv_lights, global.uvLights = UVLights
+		global.map_stats, global.mapUVLevel = MapStats
+		global.work_steps, global.workSteps = WorkSteps
+	end
+
+	if utils.version_less_than(old_v, '0.0.34') then
+		local wisps = game.forces.wisps
+		for _, force in ipairs(get_player_forces()) do wisps.set_cease_fire(force, true) end
+		wisp_force_init('wisp')
+		wisp_force_init('wisp_attack', true)
+		game.merge_forces('wisps', 'wisp')
+	end
+end
+
 local function init_globals()
 	local sets = utils.t([[
 		wisps wisp_drones wisp_attack_entities uv_lights detectors ]])
@@ -798,6 +802,7 @@ local function init_refs()
 	utils.log('Init zones module...')
 	if global.zones then zones.init(global.zones) end -- nil before on_configuration_changed
 end
+
 
 script.on_load(function()
 	utils.log('Loading game...')
