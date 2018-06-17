@@ -3,8 +3,10 @@ local zones = {}
 local conf = require('config')
 local utils = require('libs/utils')
 
+local InitDone
 local ChunkList, ChunkMap -- always up-to-date, existing chunks never removed
 local ChunkSpreadQueue, ForestSet -- see control.lua for info on how sets are managed
+local ChartLabels
 
 
 local cs = 32 -- chunk size, to name all "32" where it's that
@@ -188,15 +190,18 @@ function zones.refresh_chunks(surface)
 end
 
 function zones.init(zs)
+	if InitDone then return end
 	for _, k in ipairs{'chunk_list', 'chunk_map'}
 		do if not zs[k] then zs[k] = {} end end
-	for _, k in ipairs{'chunk_spread_queue', 'forest_set'}
+	for _, k in ipairs{'chunk_spread_queue', 'forest_set', 'chart_labels'}
 		do if not zs[k] then zs[k] = {n=0} end end
 	ChunkList, ChunkMap = zs.chunk_list, zs.chunk_map
 	ChunkSpreadQueue, ForestSet = zs.chunk_spread_queue, zs.forest_set
+	ChartLabels = zs.chart_labels
 	utils.log(
-		' - Zone stats: chunks=%d spread-queue=%d forests=%d',
-		#ChunkList, ChunkSpreadQueue.n, ForestSet.n )
+		' - Zone stats: chunks=%d spread-queue=%d forests=%d labels=%d',
+		#ChunkList, ChunkSpreadQueue.n, ForestSet.n, ChartLabels.n )
+	InitDone = true
 end
 
 
@@ -256,11 +261,10 @@ function zones.print_stats(print_func)
 	pollution_table_stats('forest', forest_chunks)
 end
 
-local chart_labels = {n=0}
 function zones.forest_labels_add(surface, force, threshold)
 	-- Adds map ("chart") labels for each forest on the map
 	zones.forest_labels_remove(force)
-	local set, chances, chance_sum = chart_labels, get_forest_spawn_chances()
+	local set, chances, chance_sum = ChartLabels, get_forest_spawn_chances()
 	for n = 1, ForestSet.n do
 		label = ForestSet[n].area
 		label = {label[1][1] + cs/2, label[1][2] + cs/2}
@@ -274,7 +278,7 @@ function zones.forest_labels_add(surface, force, threshold)
 	end
 end
 function zones.forest_labels_remove(force)
-	local set, n = chart_labels, 1
+	local set, n = ChartLabels, 1
 	while n <= set.n do
 		if force.name ~= set[n].force_name then goto skip end
 		if set[n].label.valid then set[n].label.destroy() end

@@ -146,8 +146,9 @@ local function wisp_print_stats(print_func)
 	print_types_force('force-hostile', 'wisp_attack')
 end
 
+
 ------------------------------------------------------------
--- Wisps
+-- Wisp entities
 ------------------------------------------------------------
 
 local function entity_is_tree(e) return e.type == 'tree' end
@@ -572,6 +573,7 @@ end
 
 local function on_tick_init(event)
 	WispSurface = game.surfaces[conf.surface_name]
+	zones.init(global.zones)
 
 	-- script.on_nth_tick can be used here,
 	--  but central on_tick can de-duplicate bunch of common checks,
@@ -812,9 +814,6 @@ local function init_refs()
 		' - Object stats: wisps=%s drones=%s uvs=%s detectors=%s%s',
 		Wisps and Wisps.n, WispDrones and WispDrones.n,
 		UVLights and UVLights.n, Detectors and Detectors.n, '' )
-
-	utils.log('Init zones module...')
-	if global.zones then zones.init(global.zones) end -- nil before on_configuration_changed
 end
 
 
@@ -832,6 +831,7 @@ script.on_configuration_changed(function(data)
 	init_refs()
 
 	utils.log('Refreshing chunks...')
+	zones.init(global.zones)
 	zones.refresh_chunks(game.surfaces[conf.surface_name])
 
 	utils.log('Processing mod updates...')
