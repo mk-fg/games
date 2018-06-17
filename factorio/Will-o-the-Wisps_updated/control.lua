@@ -5,8 +5,17 @@ local utils = require('libs/utils')
 local zones = require('libs/zones')
 
 
+-- Note on how "set" tables are handled:
+-- Value example: {1=..., 2=..., 3=..., n=3}
+-- Add element X: set[set.n+1], set.n = X, set.n+1
+-- Iteration (read only): for n = 1, set.n do ... end
+-- Iteration (read/remove): local n = 1; while n <= set.n do ... n = n + 1 end
+-- Remove element n: set[n], set.n, set[set.n] = set[set.n], set.n-1
+-- Order of elements is not important there, while add/removal is O(1),
+--  unlike table.insert/table.remove (which are O(n) and are very slow comparatively).
+
 -- local references to globals
-local Wisps, WispDrones, UVLights, Detectors
+local Wisps, WispDrones, UVLights, Detectors -- sets
 local WispAttackEntities -- temporary set of aggressive wisp entities
 local MapStats, WorkSteps
 
@@ -101,6 +110,41 @@ local function wisp_aggression_stop(surface)
 	wisp_aggression_set(surface, false)
 end
 
+local function wisp_print_stats(print_func)
+	local c, e = {types={}, types_hostile={}}
+	for n = 1, Wisps.n do
+		e = Wisps[n].entity
+		if not e.valid then goto skip end
+		c.types[e.name] = (c.types[e.name] or 0) + 1
+		c.total = (c.total or 0) + 1
+	::skip:: end
+	for n = 1, WispAttackEntities.n do
+		e = WispAttackEntities[n]
+		if not (e and e.valid) then goto skip end
+		c.types_hostile[e.name] = (c.types_hostile[e.name] or 0) + 1
+		c.hostile = (c.hostile or 0) + 1
+	::skip:: end
+
+	local fmt = utils.fmt_n_comma
+	local function print_types(name, key, force)
+		local types = {}
+		for t, count in pairs(c[key])
+			do table.insert(types, ('%s=%s'):format(t:gsub('^wisp%-', ''), fmt(count))) end
+		print_func(('wisps: types %s - %s'):format(name, table.concat(types, ' ')))
+	end
+	local function print_types_force(name, force_name)
+		local types, force = {yellow=0, red=0}, game.forces[force_name]
+		for t, count in pairs(types) do table.insert( types,
+			('%s=%s'):format(t, fmt(force.get_entity_count(('wisp-%s'):format(t)))) ) end
+		print_func(('wisps: types %s - %s'):format(name, table.concat(types, ' ')))
+	end
+
+	print_func(('wisps: total=%s hostile=%s'):format(fmt(c.total or 0), fmt(c.hostile or 0)))
+	print_types('all', 'types')
+	print_types('hostile', 'types_hostile')
+	print_types_force('force-peaceful', 'wisp')
+	print_types_force('force-hostile', 'wisp_attack')
+end
 
 ------------------------------------------------------------
 -- Wisps
@@ -538,98 +582,62 @@ end
 
 
 ------------------------------------------------------------
--- Console Commands
+-- Console command-line Interface
 ------------------------------------------------------------
 
-local function init_commands()
-	utils.log('Init commands...')
+local cmd_help = [[
+zone update - Scan all chunks on the map for will-o-wisp spawning zones.
+zone stats - Print pollution and misc other stats for scanned zones to console.
+zone labels [n] - Add map labels to all found forest spawning zones.
+... Parameter (double, default=0.005) is a min threshold to display a spawn chance number in the label.
+zone labels remove - Remove map labels from scanned zones.
+zone spawn - Spawn wisps in the forested map zones.
+... Parameter (integer, default=1) sets how many spawn-cycles to simulate.
+attack - Have all will-o-wisps on the map turn hostile towards player(s).
+peace - Pacify all will-o-the-wisps on the map, command them to stop attacking.
+stats - Print some stats about wisps on the map.
+]]
 
-	commands.add_command( 'wisp-zone-update',
-		'Scan all chunks on the map for will-o-wisp spawning zones.',
-		function(cmd)
-			if not game.players[cmd.player_index].admin then return end
-			zones.full_update()
-			if utils.match_word(cmd.parameter or '', 'stats') and conf.debug_log
-				then zones.print_stats(utils.log) end
-		end )
+local function run_wisp_command(cmd)
+	if not cmd
+		then return 'Will-o\'-the-Wisps mod-specific'..
+			' admin commands. Run without parameters for more info.' end
+	local player = game.players[cmd.player_index]
+	local function usage()
+		player.print('Usage: /wisp [command...]')
+		player.print('Supported subcommands:')
+		for line in cmd_help:gmatch('%s*%S.-\n') do player.print('  '..line:sub(1, -2)) end
+	end
+	if not cmd.parameter or cmd.parameter == '' then return usage() end
+	if not player.admin then
+		player.print('ERROR: all wisp-commands are only available to admin player')
+		return
+	end
+	local args = {}
+	cmd.parameter:gsub('(%S+)', function(v) table.insert(args, v) end)
 
-	commands.add_command( 'wisp-zone-stats',
-		'Print pollution and misc other stats for scanned zones to player console.',
-		function(cmd)
-			local player = game.players[cmd.player_index]
-			if not player.admin then return end
-			zones.print_stats(player.print)
-		end )
-
-	commands.add_command( 'wisp-zone-spawn',
-		'Spawn wisps in the forested map zones.'..
-			' Parameter (integer, default=1) sets how many spawn-cycles to simulate.',
-		function(cmd)
-			local player = game.players[cmd.player_index]
-			if not player.admin then return end
-			local cycles = tonumber(cmd.parameter or '1')
+	cmd = args[1]
+	if cmd == 'zone' then
+		cmd = args[2]
+		if cmd == 'update' then zones.full_update()
+		elseif cmd == 'stats' then zones.print_stats(player.print)
+		elseif cmd == 'labels' then
+			if args[3] ~= 'remove' then
+				local label_threshold = tonumber(args[3] or '0.005')
+				zones.forest_labels_add(WispSurface, player.force, label_threshold)
+			else zones.forest_labels_remove(player.force) end
+		elseif cmd == 'spawn' then
+			local cycles = tonumber(args[3] or '1')
 			local ticks = cycles * conf.intervals.spawn_on_map
 			player.print(
 				('Simulating %d spawn-cycle(s) (%s [%s ticks] of night time)')
 				:format(cycles, utils.fmt_ticks(ticks), utils.fmt_n_comma(ticks)) )
 			for n = 1, cycles do tasks_monolithic.spawn_on_map(WispSurface) end
-		end )
-
-	commands.add_command( 'wisp-attack',
-		'Have all will-o-wisps on the map turn hostile towards players.',
-		function(cmd)
-			local player = game.players[cmd.player_index]
-			if not player.admin then return end
-			wisp_aggression_set(WispSurface, true) end )
-
-	commands.add_command( 'wisp-peace',
-		'Pacify all will-o-the-wisps on the map, command them to stop attacking.',
-		function(cmd)
-			local player = game.players[cmd.player_index]
-			if not player.admin then return end
-			wisp_aggression_stop(WispSurface) end )
-
-	commands.add_command( 'wisp-stats',
-		'Print some stats about wisps on the map.',
-		function(cmd)
-			local player = game.players[cmd.player_index]
-			if not player.admin then return end
-
-			local c, e = {types={}, types_hostile={}}
-			for n = 1, Wisps.n do
-				e = Wisps[n].entity
-				if not e.valid then goto skip end
-				c.types[e.name] = (c.types[e.name] or 0) + 1
-				c.total = (c.total or 0) + 1
-			::skip:: end
-			for n = 1, WispAttackEntities.n do
-				e = WispAttackEntities[n]
-				if not (e and e.valid) then goto skip end
-				c.types_hostile[e.name] = (c.types_hostile[e.name] or 0) + 1
-				c.hostile = (c.hostile or 0) + 1
-			::skip:: end
-
-			local fmt = utils.fmt_n_comma
-			local function print_types(name, key, force)
-				local types = {}
-				for t, count in pairs(c[key])
-					do table.insert(types, ('%s=%s'):format(t:gsub('^wisp%-', ''), fmt(count))) end
-				player.print(('wisps: types %s - %s'):format(name, table.concat(types, ' ')))
-			end
-			local function print_types_force(name, force_name)
-				local types, force = {yellow=0, red=0}, game.forces[force_name]
-				for t, count in pairs(types) do table.insert( types,
-					('%s=%s'):format(t, fmt(force.get_entity_count(('wisp-%s'):format(t)))) ) end
-				player.print(('wisps: types %s - %s'):format(name, table.concat(types, ' ')))
-			end
-
-			player.print(('wisps: total=%s hostile=%s'):format(fmt(c.total or 0), fmt(c.hostile or 0)))
-			print_types('all', 'types')
-			print_types('hostile', 'types_hostile')
-			print_types_force('force-peaceful', 'wisp')
-			print_types_force('force-hostile', 'wisp_attack')
-		end )
-
+		else return usage() end
+	elseif cmd == 'attack' then wisp_aggression_set(WispSurface, true)
+	elseif cmd == 'peace' then wisp_aggression_stop(WispSurface)
+	elseif cmd == 'stats' then wisp_print_stats(player.print)
+	else return usage() end
 end
 
 
@@ -774,6 +782,12 @@ local function apply_version_updates(old_v, new_v)
 		wisp_force_init('wisp_attack', true)
 		game.merge_forces('wisps', 'wisp')
 	end
+end
+
+local function init_commands()
+	utils.log('Init commands...')
+	commands.add_command( 'wisp',
+		run_wisp_command(), run_wisp_command )
 end
 
 local function init_globals()

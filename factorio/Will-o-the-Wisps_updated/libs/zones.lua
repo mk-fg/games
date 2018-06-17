@@ -4,7 +4,7 @@ local conf = require('config')
 local utils = require('libs/utils')
 
 local ChunkList, ChunkMap -- always up-to-date, existing chunks never removed
-local ChunkSpreadQueue, ForestSet
+local ChunkSpreadQueue, ForestSet -- see control.lua for info on how sets are managed
 
 
 local cs = 32 -- chunk size, to name all "32" where it's that
@@ -105,81 +105,36 @@ function zones.update_forests_in_spread(step, steps)
 	return count -- find_entities_filtered count
 end
 
-function zones.full_update()
-	-- Only for manual use from console, can take
-	--  a second or few of real time if nothing was pre-scanned
-	local n
-	utils.log('zones: running full update')
-	n = zones.update_wisp_spread(1, 1)
-	utils.log('zones:  - updated spread chunks: %d', n)
-	n = zones.update_forests_in_spread(1, 1)
-	utils.log('zones:  - scanned chunks for forests: %d', n)
-	utils.log(
-		'zones:  - done, spread-queue=%d forests=%d',
-		ChunkSpreadQueue.n, ForestSet.n )
-end
 
-function zones.print_stats(print_func)
-	local fmt_bign = function(v) return utils.fmt_n_comma(v or '') end
-	local function percentiles(t, perc)
-		local fmt, fmt_vals = {}, {}
-		for n = 1, #perc do
-			table.insert(fmt, ('p%02d=%%s'):format(perc[n]))
-			table.insert(fmt_vals, fmt_bign(t[math.floor((perc[n]/100) * #t)]))
+local function get_forest_spawn_chances()
+	local set, chances, chance_sum, p_max, chunk, p, n = ForestSet, {}, 0, 0
+	for n = 1, set.n do
+		chunk = ChunkMap[set[n].chunk_key]
+		p = chunk and chunk.pollution or 0
+		chances[n] = p
+		if p > p_max then p_max = p end
+	end
+	if p_max > 0 then
+		for n = 1, #chances do
+			p = 1 + conf.wisp_forest_spawn_pollution_factor * chances[n] / p_max
+			chances[n], chance_sum = p, chance_sum + p
 		end
-		return fmt, fmt_vals
 	end
-
-	local function pollution_table_stats(key, chunks)
-		local p_table, p_sum, chunk = {}, 0
-		for n = 1, #chunks do
-			chunk = ChunkMap[chunks[n]]
-			if not (chunk.pollution and chunk.pollution > 0) then goto skip end
-			table.insert(p_table, chunk.pollution)
-			p_sum = p_sum + chunk.pollution
-		::skip:: end
-		table.sort(p_table)
-		local p_mean = p_sum / #p_table
-		print_func(
-			('zones:  - %s pollution chunks=%s min=%s max=%s mean=%s sum=%s')
-			:format( key, table.unpack(utils.map( fmt_bign,
-				{#p_table, p_table[1], p_table[#p_table], p_mean, p_sum} )) ) )
-		local fmt, fmt_vals = percentiles(p_table, {10, 25, 50, 75, 90, 95, 99})
-		print_func(('zones:  - %s pollution %s'):format(
-			key, table.concat(fmt, ' ') ):format(table.unpack(fmt_vals)))
-	end
-
-	print_func('zones: stats')
-	pollution_table_stats('spread', ChunkList)
-	local forest_chunks = {}
-	for n = 1, ForestSet.n
-		do table.insert(forest_chunks, ForestSet[n].chunk_key) end
-	pollution_table_stats('forest', forest_chunks)
+	return chances, chance_sum
 end
-
 
 function zones.get_wisp_trees_anywhere(count)
 	-- Return up to N random trees from same
 	--  pollution-weighted-random forest_radius area for spawning wisps around.
-	local set, wisp_trees, trees = ForestSet, {}
+	local set, wisp_trees, n, chunk, trees = ForestSet, {}
 	if set.n == 0 then return wisp_trees end
 	while set.n > 0 do
-		local chances, p_max, chunk, p, n = {}, 0
-		for n = 1, set.n do
-			chunk = ChunkMap[set[n].chunk_key]
-			p = chunk and chunk.pollution or 0
-			chances[n] = p
-			if p > p_max then p_max = p end
-		end
-		if p_max > 0 then
-			p = conf.wisp_forest_spawn_pollution_factor
-			for n = 1, #chances do chances[n] = 1 + p * chances[n] / p_max end
-		end
-		n = utils.pick_weight(chances)
+		n = get_forest_spawn_chances()
+		n = utils.pick_weight(n)
 		chunk = ChunkMap[set[n].chunk_key]
 		trees = chunk.surface.find_entities_filtered{type='tree', area=set[n].area}
 		if #trees >= conf.wisp_forest_min_density then break end
-		trees, chunk.forest, set[n], set.n = nil, false, set[set.n], set.n - 1
+		trees, chunk.forest, set[n], set.n, set[set.n] = nil, false, set[set.n], set.n - 1
 	end
 	if trees then for n = 1, count do
 		table.insert(wisp_trees, trees[math.random(#trees)])
@@ -244,5 +199,87 @@ function zones.init(zs)
 		#ChunkList, ChunkSpreadQueue.n, ForestSet.n )
 end
 
+
+------------------------------------------------------------
+-- Various debug info routines
+------------------------------------------------------------
+
+function zones.full_update()
+	-- Only for manual use from console, can take
+	--  a second or few of real time if nothing was pre-scanned
+	local n
+	utils.log('zones: running full update')
+	n = zones.update_wisp_spread(1, 1)
+	utils.log('zones:  - updated spread chunks: %d', n)
+	n = zones.update_forests_in_spread(1, 1)
+	utils.log('zones:  - scanned chunks for forests: %d', n)
+	utils.log(
+		'zones:  - done, spread-queue=%d forests=%d',
+		ChunkSpreadQueue.n, ForestSet.n )
+end
+
+function zones.print_stats(print_func)
+	local fmt_bign = function(v) return utils.fmt_n_comma(v or '') end
+	local function percentiles(t, perc)
+		local fmt, fmt_vals = {}, {}
+		for n = 1, #perc do
+			table.insert(fmt, ('p%02d=%%s'):format(perc[n]))
+			table.insert(fmt_vals, fmt_bign(t[math.floor((perc[n]/100) * #t)]))
+		end
+		return fmt, fmt_vals
+	end
+
+	local function pollution_table_stats(key, chunks)
+		local p_table, p_sum, chunk = {}, 0
+		for n = 1, #chunks do
+			chunk = ChunkMap[chunks[n]]
+			if not (chunk.pollution and chunk.pollution > 0) then goto skip end
+			table.insert(p_table, chunk.pollution)
+			p_sum = p_sum + chunk.pollution
+		::skip:: end
+		table.sort(p_table)
+		local p_mean = p_sum / #p_table
+		print_func(
+			('zones:  - %s pollution chunks=%s min=%s max=%s mean=%s sum=%s')
+			:format( key, table.unpack(utils.map( fmt_bign,
+				{#p_table, p_table[1], p_table[#p_table], p_mean, p_sum} )) ) )
+		local fmt, fmt_vals = percentiles(p_table, {10, 25, 50, 75, 90, 95, 99})
+		print_func(('zones:  - %s pollution %s'):format(
+			key, table.concat(fmt, ' ') ):format(table.unpack(fmt_vals)))
+	end
+
+	print_func('zones: stats')
+	pollution_table_stats('spread', ChunkList)
+	local forest_chunks = {}
+	for n = 1, ForestSet.n
+		do table.insert(forest_chunks, ForestSet[n].chunk_key) end
+	pollution_table_stats('forest', forest_chunks)
+end
+
+local chart_labels = {n=0}
+function zones.forest_labels_add(surface, force, threshold)
+	-- Adds map ("chart") labels for each forest on the map
+	zones.forest_labels_remove(force)
+	local set, chances, chance_sum = chart_labels, get_forest_spawn_chances()
+	for n = 1, ForestSet.n do
+		label = ForestSet[n].area
+		label = {label[1][1] + cs/2, label[1][2] + cs/2}
+		n = chances[n] / chance_sum
+		if n < threshold then n = nil end
+		label = {force_name=force.name, label=force.add_chart_tag(
+			surface, { position=label,
+				icon={type='item', name='raw-wood'},
+				text=n and ('%.2f%%'):format(100 * n) } )}
+		set[set.n+1], set.n = label, set.n+1
+	end
+end
+function zones.forest_labels_remove(force)
+	local set, n = chart_labels, 1
+	while n <= set.n do
+		if force.name ~= set[n].force_name then goto skip end
+		if set[n].label.valid then set[n].label.destroy() end
+		n, set[n], set.n, set[set.n] = n-1, set[set.n], set.n-1
+	::skip:: n = n + 1 end
+end
 
 return zones

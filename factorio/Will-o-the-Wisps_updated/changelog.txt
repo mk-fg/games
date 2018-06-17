@@ -1,4 +1,11 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.0.40
+Date: 17. 06. 2018
+  Changes:
+    - Use one /wisp command-prefix for all mod commands, to avoid polluting /h too much.
+  Features:
+    - Add "zone labels" console command to add map labels for all scanned spawn zones.
+---------------------------------------------------------------------------------------------------
 Version: 0.0.39
 Date: 16. 06. 2018
   Bugfixes:
