@@ -267,7 +267,7 @@ function zones.forest_labels_add(surface, force, threshold)
 	local set, chances, chance_sum = ChartLabels, get_forest_spawn_chances()
 	for n = 1, ForestSet.n do
 		label = ForestSet[n].area
-		label = {label[1][1] + cs/2, label[1][2] + cs/2}
+		label = {(label[1][1] + label[2][1])/2, (label[1][2] + label[2][2])/2}
 		n = chances[n] / chance_sum
 		if n < threshold then n = nil end
 		label = {force_name=force.name, label=force.add_chart_tag(
