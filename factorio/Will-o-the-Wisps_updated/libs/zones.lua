@@ -111,9 +111,11 @@ function zones.update_forests_in_spread(step, steps)
 end
 
 
-local function get_forest_spawn_chances()
+local function get_forest_spawn_chances(pollution_factor)
 	if SpawnChanceCache then return table.unpack(SpawnChanceCache) end
 	local set, chances, chance_sum, p_max, chunk, p, n = ForestSet, {}, 0, 0
+	if not pollution_factor
+		then pollution_factor = conf.wisp_forest_spawn_pollution_factor end
 	for n = 1, set.n do
 		chunk = ChunkMap[set[n].chunk_key]
 		p = chunk and chunk.pollution or 0
@@ -122,7 +124,7 @@ local function get_forest_spawn_chances()
 	end
 	if p_max > 0 then
 		for n = 1, #chances do
-			p = 1 + conf.wisp_forest_spawn_pollution_factor * chances[n] / p_max
+			p = 1 + pollution_factor * chances[n] / p_max
 			chances[n], chance_sum = p, chance_sum + p
 		end
 	end
@@ -130,13 +132,13 @@ local function get_forest_spawn_chances()
 	return chances, chance_sum
 end
 
-function zones.get_wisp_trees_anywhere(count)
+function zones.get_wisp_trees_anywhere(count, pollution_factor)
 	-- Return up to N random trees from same
 	--  pollution-weighted-random forest_radius area for spawning wisps around.
 	local set, wisp_trees, n, chunk, trees = ForestSet, {}
 	if set.n == 0 then return wisp_trees end
 	while set.n > 0 do
-		n = utils.pick_weight(get_forest_spawn_chances())
+		n = utils.pick_weight(get_forest_spawn_chances(pollution_factor))
 		chunk = ChunkMap[set[n].chunk_key]
 		trees = chunk.surface.find_entities_filtered{type='tree', area=set[n].area}
 		if #trees >= conf.wisp_forest_min_density then break end
@@ -156,6 +158,41 @@ function zones.get_wisp_trees_near_pos(surface, pos, radius)
 	for n = 1, math.floor(#trees * conf.wisp_near_player_percent)
 		do wisp_trees[#wisp_trees+1] = trees[math.random(#trees)] end
 	return wisp_trees
+end
+
+function zones.find_industrial_pos(surface, pos, radius)
+	-- Find center of the most polluted chunk in the vicinity of position.
+	-- Done by checking chunks in straight/diagonal + player directions,
+	--  while pollution value keeps increasing and until radius is reached,
+	--  picking max of the resulting chunks.
+	local directions, cx, cy, p = {{-1,-1},{0,-1},{1,-1},{-1,0},{1,0},{-1,1},{0,1},{1,1}}
+	for _, p in pairs(game.connected_players) do
+		if not p.valid then goto skip end
+		cx, cy = p.position.x - pos.x, p.position.y - pos.y
+		p = math.max(math.abs(cx), math.abs(cy))
+		table.insert(directions, {cx/p, cy/p})
+	::skip:: end
+
+	cx, cy, p = pos_chunk_xy(pos)
+	pos, p = {}, surface.get_pollution{cx * cs, cy * cs}
+	for n, dd in pairs(directions) do pos[n] = {cx, cy, p} end
+
+	local p0 = true
+	while p0 and radius >= 0 do
+		radius, p0 = radius - 1
+		for n, dd in pairs(directions) do
+			cx, cy, p0 = table.unpack(pos[n])
+			cx, cy = cx + dd[1], cy + dd[2]
+			p = {cx * cs, cy * cs}
+			p = surface.is_chunk_generated{cx, cy} and surface.get_pollution(p) or 0
+			if p >= p0 then pos[n] = {cx, cy, p} else directions[n] = nil end
+		end
+	end
+
+	p = {[3]=0}
+	for _, dd in pairs(pos) do if dd[3] >= p[3] then p = dd end end
+	cx, cy, p = table.unpack(p)
+	return {x=(cx + 0.5) * cs, y=(cy + 0.5) * cs}
 end
 
 

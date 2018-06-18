@@ -1,6 +1,8 @@
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.41
 Date: 18. 06. 2018
+  Features:
+    - Implement wisp groups exploring player's base, but not enabled yet due to what looks like a bug.
   Bugfixes:
     - Fix "/wisp zone labels" positioning - were offset to left-top by a chunk or so.
 ---------------------------------------------------------------------------------------------------

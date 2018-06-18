@@ -182,8 +182,7 @@ local function wisp_init(entity, ttl, n)
 end
 
 local function wisp_create(name, surface, position, ttl, n)
-	local max_distance, step, wisp = 6, 0.3
-	local pos = surface.find_non_colliding_position(name, position, max_distance, step)
+	local pos, wisp = surface.find_non_colliding_position(name, position, 6, 0.3)
 	if pos then
 		wisp = surface.create_entity{name=name, position=pos, force='wisp'}
 		wisp_init(wisp, ttl, n)
@@ -202,6 +201,7 @@ local function wisp_create_at_random(name, near_entity)
 			type=defines.command.wander,
 			distraction=defines.distraction.by_damage }
 	end
+	return e
 end
 
 local function wisp_emit_light(wisp)
@@ -274,11 +274,12 @@ local tasks_monolithic = {
 	spawn_on_map = function(surface)
 		if Wisps.n >= conf.wisp_max_count * conf.wisp_forest_on_map_percent then return end
 		trees = zones.get_wisp_trees_anywhere(conf.wisp_forest_spawn_count)
+		local wisp_chances, wisp_name = {
+			[wisp_spore_proto]=conf.wisp_forest_spawn_chance_purple,
+			['wisp-yellow']=conf.wisp_forest_spawn_chance_yellow,
+			['wisp-red']=conf.wisp_forest_spawn_chance_red }
 		for _, tree in ipairs(trees) do
-			local wisp_name = utils.pick_chance{ -- nil - neither
-				[wisp_spore_proto]=conf.wisp_forest_spawn_chance_purple,
-				['wisp-yellow']=conf.wisp_forest_spawn_chance_yellow,
-				['wisp-red']=conf.wisp_forest_spawn_chance_red }
+			wisp_name = utils.pick_chance(wisp_chances)
 			if wisp_name then wisp_create_at_random(wisp_name, tree) end
 		end
 		return #trees
@@ -323,6 +324,56 @@ local tasks_monolithic = {
 		group.start_moving()
 		return 30
 	end,
+
+	congregate = function(surface)
+		local group_size, factor, target_cr, target_area = 100, 500, 10, 16
+		local wisp_chances, wisp_chances_sum = {
+				['wisp-yellow']=conf.wisp_forest_spawn_chance_yellow,
+				['wisp-red']=conf.wisp_forest_spawn_chance_red },
+			conf.wisp_forest_spawn_chance_yellow + conf.wisp_forest_spawn_chance_red
+		group_size = math.ceil(group_size * math.min( 1,
+			conf.wisp_forest_spawn_chance_purple + wisp_chances_sum ))
+		local wisps, trees, wisp_name = {}, zones.get_wisp_trees_anywhere(group_size, factor)
+		for _, tree in ipairs(trees) do
+			wisp = utils.pick_weight(wisp_chances, wisp_chances_sum)
+			wisp = wisp_create_at_random(wisp, tree)
+			if wisp then table.insert(wisps, wisp) end
+		end
+
+		wisp = wisps[1]
+		if not wisp then return end
+		surface = wisp.surface
+		local group = surface.create_unit_group{position=wisp.position, force='wisp'}
+		for _, wisp in ipairs(wisps) do group.add_member(wisp) end
+
+		local pos = zones.find_industrial_pos(surface, wisp.position, target_cr)
+		game.forces.player.add_chart_tag( surface,
+			{position=wisp.position, icon={type='item', name='wisp-red'}, text='wisps'} )
+		game.forces.player.add_chart_tag( surface,
+			{position=pos, icon={type='item', name='wisp-purple'}, text='industry'} )
+
+		local target
+		for _, player in pairs(game.connected_players) do
+			target = surface.find_entities_filtered{
+				area=utils.get_area(target_area, pos), force=player.force }
+			if #target == 0 then goto skip end
+			target = target[math.random(#target)]
+			pos = target.position
+			break
+		::skip:: end
+
+		pos = surface.find_non_colliding_position(wisp.name, pos, 32, 0.3)
+		game.forces.player.add_chart_tag( surface,
+			{position=pos, icon={type='item', name='wisp-yellow'}, text='target'} )
+
+		group.set_command{
+			type=defines.command.compound,
+			structure_type=defines.compound_command.return_last,
+			commands={
+				{type=defines.command.go_to_location, destination=pos},
+				{type=defines.command.wander} } }
+	end,
+
 }
 
 local tasks_entities = {
@@ -636,6 +687,7 @@ local function run_wisp_command(cmd)
 				:format(cycles, utils.fmt_ticks(ticks), utils.fmt_n_comma(ticks)) )
 			for n = 1, cycles do tasks_monolithic.spawn_on_map(WispSurface) end
 		else return usage() end
+	elseif cmd == 'congregate' then tasks_monolithic.congregate(WispSurface)
 	elseif cmd == 'attack' then wisp_aggression_set(WispSurface, true)
 	elseif cmd == 'peace' then wisp_aggression_stop(WispSurface)
 	elseif cmd == 'stats' then wisp_print_stats(player.print)
