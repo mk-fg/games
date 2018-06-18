@@ -8,6 +8,8 @@ local ChunkList, ChunkMap -- always up-to-date, existing chunks never removed
 local ChunkSpreadQueue, ForestSet -- see control.lua for info on how sets are managed
 local ChartLabels
 
+local SpawnChanceCache
+
 
 local cs = 32 -- chunk size, to name all "32" where it's that
 local forest_radius = cs * 3 / 2 -- radius in which to look for forests, centered on chunk
@@ -99,9 +101,10 @@ function zones.update_forests_in_spread(step, steps)
 		if #trees >= conf.wisp_forest_min_density then
 			local m = out.n + 1
 			chunk.forest, out.n, out[m] = true, m, {area=area, chunk_key=k}
+			SpawnChanceCache = nil
 		end
 
-		::drop:: set[n], set.n = set[set.n], set.n - 1
+		::drop:: set[n], set.n, set[set.n] = set[set.n], set.n - 1
 		n = n + steps - 1 -- 1 was dropped
 	end
 	return count -- find_entities_filtered count
@@ -109,6 +112,7 @@ end
 
 
 local function get_forest_spawn_chances()
+	if SpawnChanceCache then return table.unpack(SpawnChanceCache) end
 	local set, chances, chance_sum, p_max, chunk, p, n = ForestSet, {}, 0, 0
 	for n = 1, set.n do
 		chunk = ChunkMap[set[n].chunk_key]
@@ -122,6 +126,7 @@ local function get_forest_spawn_chances()
 			chances[n], chance_sum = p, chance_sum + p
 		end
 	end
+	SpawnChanceCache = {chances, chance_sum}
 	return chances, chance_sum
 end
 
@@ -131,8 +136,7 @@ function zones.get_wisp_trees_anywhere(count)
 	local set, wisp_trees, n, chunk, trees = ForestSet, {}
 	if set.n == 0 then return wisp_trees end
 	while set.n > 0 do
-		n = get_forest_spawn_chances()
-		n = utils.pick_weight(n)
+		n = utils.pick_weight(get_forest_spawn_chances())
 		chunk = ChunkMap[set[n].chunk_key]
 		trees = chunk.surface.find_entities_filtered{type='tree', area=set[n].area}
 		if #trees >= conf.wisp_forest_min_density then break end

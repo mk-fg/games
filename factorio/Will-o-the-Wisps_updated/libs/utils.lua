@@ -77,14 +77,15 @@ function utils.version_less_than(v1, v2)
 end
 
 
-function utils.pick_weight(...)
-	-- Returns key for randomly-picked weight value from args/table
+function utils.pick_weight(chances, sum)
+	-- Returns key for randomly-picked weight value from table
 	-- E.g. pick_weight{a=0.3, b=0.7} will return 'b' with 70% chance
-	local args, sum, dice = {...}, 0, math.random()
-	if #args == 1 and type(args[1]) == 'table' then args = args[1] end
-	for _,v in pairs(args) do sum = sum + v end
-	dice, sum = dice * sum, 0
-	for k,v in pairs(args) do
+	if not sum then
+		sum = 0
+		for _,v in pairs(chances) do sum = sum + v end
+	end
+	local dice, sum = math.random() * sum, 0
+	for k,v in pairs(chances) do
 		sum = sum + v
 		if dice <= sum then return k end
 	end

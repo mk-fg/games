@@ -298,7 +298,7 @@ local tasks_monolithic = {
 		while set.n > 0 do
 			n = math.random(set.n); e = set[n]
 			if e and e.valid and e.force.name == 'wisp_attack' and not e.unit_group
-				then break else set[n], set.n, e = set[set.n], set.n - 1, nil end
+				then break else set[n], set.n, set[set.n], e = set[set.n], set.n - 1 end
 		end
 		if not e then return 10 end
 
@@ -423,7 +423,7 @@ local function run_on_object_set(set, task_func, step, steps)
 		obj = set[n]; e = obj.entity
 		if e.valid
 			then task_func(obj, e, e.surface); n = n + steps
-			else set[n], set.n = set[set.n], set.n - 1 end
+			else set[n], set.n, set[set.n] = set[set.n], set.n - 1 end
 	end
 	return (n - step) / steps -- count
 end
@@ -765,8 +765,8 @@ local function apply_version_updates(old_v, new_v)
 
 	if utils.version_less_than(old_v, '0.0.25') then
 		WorkSteps.light = nil
-		for _, force in pairs(game.forces) do
-			for _, k in ipairs{'wisp-yellow', 'wisp-purple', 'wisp-red'}
+		for _, force in pairs(game.forces)
+			do for _, k in ipairs{'wisp-yellow', 'wisp-purple', 'wisp-red'}
 				do force.recipes[k].enabled = false end end
 	end
 
