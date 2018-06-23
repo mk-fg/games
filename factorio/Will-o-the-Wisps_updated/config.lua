@@ -48,6 +48,7 @@ conf.detection_range_signal = 'signal-R'
 conf.wisp_ttl = {
 	['wisp-purple']=120 * ticks_sec,
 	['wisp-purple-harmless']=120 * ticks_sec,
+	['wisp-green']=60 * ticks_sec,
 	['wisp-yellow']=100 * ticks_sec,
 	['wisp-red']=100 * ticks_sec }
 conf.wisp_ttl_jitter = 40 * ticks_sec -- -40s to +40s
@@ -115,6 +116,7 @@ conf.wisp_forest_spawn_pollution_factor = 100
 -- Sum should be in 0-1 range (<1 will mean some spawns skipped)
 conf.wisp_forest_spawn_chance_purple = 0.50
 conf.wisp_forest_spawn_chance_yellow = 0.07
+conf.wisp_forest_spawn_chance_green = 0.02
 conf.wisp_forest_spawn_chance_red = 0.01
 
 -- How many wisps will try to spawn, subject to wisp_forest_spawn_chance_*
@@ -139,24 +141,43 @@ conf.chunk_rescan_jitter = 5 * 60 * ticks_sec
 conf.surface_name = 'nauvis'
 
 
+-- ---------- Parameters for wisps visiting player
+
+c = {}
+conf.congregate = c
+
+c.entity = 'wisp-green'
+c.chance_factor = 5 -- chance = wisp_forest_spawn_chance_green * chance_factor
+c.group_size = 16 -- affected by wisp_chance_func
+c.group_size_min_factor = 0.3 -- actual group-size is random(group_size * min_factor, group_size)
+c.source_pollution_factor = 500 -- pollution_factor for spawning visiting group
+c.dst_chunk_radius = 10 -- distance in chunks to scan for destination
+c.dst_find_building_radius = 16 -- radius to pick target building in from dst pos
+c.dst_arrival_radius = 16 -- when group is that close, assign new dst
+c.dst_arrival_ticks = 3000 -- ticks before assigning new dst
+c.dst_next_building_radius = 128 -- radius to pick target building in from dst pos
+
+
 -- ---------- Performance stuff
 
 -- Intervals don't really have to be primes, but it might help to
 --  space them out on ticks more evenly, to minimize clashes/backlog.
 -- Spreading workload as thinly as possible is probably the best option.
----  3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67,
----  71, 73, 79, 83, 89, 97, 101, 103, 107, 109, 113, 127, 131, 137,
----  139, 149, 151, 157, 163, 167, 173, 179, 181, 191, 193, 197, 199
---- 211  223 227 229 233 239 241 251 257 263 269 271 277 281
---- 283  293 307 311 313 317 331 337 347 349 353
+---  3 5 7 11 13 17 19 23 29 31 37 41 43 47 53 59 61 67 71 73 79 83
+---  89 97 101 103 107 109 113 127 131 137 139 149 151 157 163 167
+---  173 179 181 191 193 197 199 211 223 227 229 233 239 241 251 257
+---  263 269 271 277 281 283 293 307 311 313 317 331 337 347 349 353
+---  547 557 563 569 571 577 587 593 599 601 607 613 617 619 631 641
+---  643 647 653 659 811 821 823 827 829 839 853 857 859 863 877 881
 
 conf.intervals = {
 	spawn_near_players=107, spawn_on_map=113, pacify=311, tactics=97,
 	light_wisps=3, light_detectors=17, light_drones=5,
+	congregate=3607, recongregate=353,
 	detectors=47, uv=31, expire_ttl=73, expire_uv=61 }
 conf.work_steps = {
 	light_wisps=2, light_detectors=4, light_drones=1,
-	detectors=4, uv=4, expire_ttl=8, expire_uv=5 }
+	recongregate=5, detectors=4, uv=4, expire_ttl=8, expire_uv=5 }
 
 -- Chunks are checked for pollution/player spread during daytime only, can ~10k chunks
 -- Interval formula: (ticks_gameday * 0.6) / work_steps
@@ -192,6 +213,11 @@ conf.wisp_light_entities = {
 		{intensity=0.7, size=6, color={r=0.95, g=0.84, b=0.1}},
 		{intensity=0.4, size=12, color={r=0.7, g=0.5, b=0.3, a=0.7}},
 		{intensity=0.6, size=7, color={r=0.8, g=0.7, b=0.1, a=0.8}}
+	},
+	['wisp-green']={
+		{intensity=0.7, size=7, color={r=0.01, g=0.91, b=0.5}},
+		{intensity=0.4, size=11, color={r=0.27, g=0.73, b=0.16, a=0.7}},
+		{intensity=0.6, size=9, color={r=0.32, g=0.95, b=0.55, a=0.8}}
 	},
 	['wisp-red']={
 		{intensity=0.5, size=5},

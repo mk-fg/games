@@ -138,4 +138,8 @@ function utils.get_area(radius, x, y)
 	return {{x - radius, y - radius}, {x + radius, y + radius}}
 end
 
+function utils.get_distance(pos1, pos2)
+	return ((pos1.x - pos2.x)^2 + (pos1.y - pos2.y)^2)^0.5
+end
+
 return utils

@@ -15,7 +15,7 @@ local zones = require('libs/zones')
 --  unlike table.insert/table.remove (which are O(n) and are very slow comparatively).
 
 -- local references to globals
-local Wisps, WispDrones, UVLights, Detectors -- sets
+local Wisps, WispDrones, WispCongregations, UVLights, Detectors -- sets
 local WispAttackEntities -- temporary set of aggressive wisp entities
 local MapStats, WorkSteps
 
@@ -78,11 +78,12 @@ local function wisp_aggression_set(surface, attack, force, area)
 			set.n = 0
 			for n = 1, Wisps.n do
 				e = Wisps[n].entity
-				if e.valid and e.type == 'unit' then
-					e.force = 'wisp_attack'
-					set[set.n+1], set.n = e, set.n+1
-				end
-			end
+				if not ( e.valid and e.type == 'unit'
+						and conf.wisp_group_radius[e.name] )
+					then goto skip end
+				e.force = 'wisp_attack'
+				set[set.n+1], set.n = e, set.n+1
+			::skip:: end
 		end
 	else
 		-- Change force for wisps in specified area
@@ -90,9 +91,10 @@ local function wisp_aggression_set(surface, attack, force, area)
 		local entities = surface.find_entities_filtered{force=force, type='unit', area=area}
 		if peace then for _, e in ipairs(entities) do e.force = 'wisp' end
 		else for _, e in ipairs(entities) do
+			if not conf.wisp_group_radius[e.name] then goto skip end
 			e.force = 'wisp_attack'
 			set[set.n+1], set.n = e, set.n+1
-		end end
+		::skip:: end end
 	end
 	-- utils.log(
 	-- 	'wisp-aggression: peace=%s attack-set=%s attack-force=%s area=%s',
@@ -133,7 +135,7 @@ local function wisp_print_stats(print_func)
 		print_func(('wisps: types %s - %s'):format(name, table.concat(types, ' ')))
 	end
 	local function print_types_force(name, force_name)
-		local types, force = {yellow=0, red=0}, game.forces[force_name]
+		local types, force = {yellow=0, red=0, green=0}, game.forces[force_name]
 		for t, count in pairs(types) do table.insert( types,
 			('%s=%s'):format(t, fmt(force.get_entity_count(('wisp-%s'):format(t)))) ) end
 		print_func(('wisps: types %s - %s'):format(name, table.concat(types, ' ')))
@@ -153,7 +155,8 @@ end
 
 local function entity_is_tree(e) return e.type == 'tree' end
 local function entity_is_rock(e) return utils.match_word(e.name, 'rock') end
-local function entity_is_wisp_unit(e) return e.name == 'wisp-red' or e.name == 'wisp-yellow' end
+local function entity_is_wisp_unit(e)
+	return e.name == 'wisp-red' or e.name == 'wisp-yellow' or e.name == 'wisp-green' end
 
 local wisp_spore_proto = 'wisp-purple'
 local function wisp_spore_proto_check(name) return name:match('^wisp%-purple') end
@@ -277,6 +280,7 @@ local tasks_monolithic = {
 		local wisp_chances, wisp_name = {
 			[wisp_spore_proto]=conf.wisp_forest_spawn_chance_purple,
 			['wisp-yellow']=conf.wisp_forest_spawn_chance_yellow,
+			['wisp-green']=conf.wisp_forest_spawn_chance_green,
 			['wisp-red']=conf.wisp_forest_spawn_chance_red }
 		for _, tree in ipairs(trees) do
 			wisp_name = utils.pick_chance(wisp_chances)
@@ -325,53 +329,53 @@ local tasks_monolithic = {
 		return 30
 	end,
 
-	congregate = function(surface)
-		local group_size, factor, target_cr, target_area = 100, 500, 10, 16
-		local wisp_chances, wisp_chances_sum = {
-				['wisp-yellow']=conf.wisp_forest_spawn_chance_yellow,
-				['wisp-red']=conf.wisp_forest_spawn_chance_red },
-			conf.wisp_forest_spawn_chance_yellow + conf.wisp_forest_spawn_chance_red
-		group_size = math.ceil(group_size * math.min( 1,
-			conf.wisp_forest_spawn_chance_purple + wisp_chances_sum ))
-		local wisps, trees, wisp_name = {}, zones.get_wisp_trees_anywhere(group_size, factor)
+	congregate = function(surface, n)
+		local c = conf.congregate
+		local chance = conf.wisp_forest_spawn_chance_green * c.chance_factor
+		if n and not (math.random() < chance) then return end
+
+		local group_size = math.random(
+			math.ceil(c.group_size * c.group_size_min_factor), c.group_size )
+		local wisps, trees, wisp = {},
+			zones.get_wisp_trees_anywhere(group_size, c.source_pollution_factor)
 		for _, tree in ipairs(trees) do
-			wisp = utils.pick_weight(wisp_chances, wisp_chances_sum)
-			wisp = wisp_create_at_random(wisp, tree)
+			wisp = wisp_create_at_random(c.entity, tree)
 			if wisp then table.insert(wisps, wisp) end
 		end
-
 		wisp = wisps[1]
-		if not wisp then return end
-		surface = wisp.surface
+		if not wisp then return 10 end
+		local surface = wisp.surface
 		local group = surface.create_unit_group{position=wisp.position, force='wisp'}
-		for _, wisp in ipairs(wisps) do group.add_member(wisp) end
+		for _, e in ipairs(wisps) do group.add_member(e) end
 
-		local pos = zones.find_industrial_pos(surface, wisp.position, target_cr)
-		game.forces.player.add_chart_tag( surface,
-			{position=wisp.position, icon={type='item', name='wisp-red'}, text='wisps'} )
-		game.forces.player.add_chart_tag( surface,
-			{position=pos, icon={type='item', name='wisp-purple'}, text='industry'} )
-
-		local target
+		local pos = zones.find_industrial_pos(surface, wisp.position, c.dst_chunk_radius)
+		-- game.forces.player.add_chart_tag( surface,
+		-- 	{position=wisp.position, icon={type='item', name='wisp-red'}, text='wisps'} )
+		-- game.forces.player.add_chart_tag( surface,
+		-- 	{position=pos, icon={type='item', name='wisp-purple'}, text='industry'} )
+		local target, force_name
 		for _, player in pairs(game.connected_players) do
 			target = surface.find_entities_filtered{
-				area=utils.get_area(target_area, pos), force=player.force }
+				area=utils.get_area(c.dst_find_building_radius, pos), force=player.force }
 			if #target == 0 then goto skip end
-			target = target[math.random(#target)]
+			target, force_name = target[math.random(#target)], player.force.name
 			pos = target.position
 			break
 		::skip:: end
 
 		pos = surface.find_non_colliding_position(wisp.name, pos, 32, 0.3)
-		game.forces.player.add_chart_tag( surface,
-			{position=pos, icon={type='item', name='wisp-yellow'}, text='target'} )
-
+		-- game.forces.player.add_chart_tag( surface,
+		-- 	{position=pos, icon={type='item', name='wisp-yellow'}, text='target'} )
 		group.set_command{
 			type=defines.command.compound,
 			structure_type=defines.compound_command.return_last,
 			commands={
 				{type=defines.command.go_to_location, destination=pos},
 				{type=defines.command.wander} } }
+		local cg = {dst=pos, dst_ts=game.tick, force_name=force_name, entity=group}
+		local set = WispCongregations
+		set[set.n+1], set.n = cg, set.n+1
+		return 100
 	end,
 
 }
@@ -459,6 +463,33 @@ local tasks_entities = {
 
 		e.get_control_behavior().parameters = {parameters=params}
 	end},
+
+	recongregate = {work=20, func=function(cg, group, s)
+		if not #group.members then group.destroy(); return end
+		local tick, dst_dist = game.tick, cg.dst
+		if not dst_dist then return end
+		local dst_dist = utils.get_distance(dst_dist, group.position)
+		if dst_dist > conf.congregate.dst_arrival_radius
+				and (tick - cg.dst_ts) < c.dst_arrival_ticks
+			then return end
+		local force = game.forces[cg.force_name]
+		if not force then cg.dst, cg.dst_ts = nil; return end
+		local target = s.find_entities_filtered{
+			area=utils.get_area(c.dst_next_building_radius, cg.dst), force=force }
+		if #target == 0 then return end
+		target = target[math.random(#target)]
+		local pos = s.find_non_colliding_position(conf.congregate.entity, target.position, 32, 0.3)
+		cg.dst, cg.dst_ts = pos, tick
+		-- game.forces.player.add_chart_tag( s,
+		-- 	{position=pos, icon={type='item', name='wisp-yellow'}, text='target-next'} )
+		group.set_command{
+			type=defines.command.compound,
+			structure_type=defines.compound_command.return_last,
+			commands={
+				{type=defines.command.go_to_location, destination=pos},
+				{type=defines.command.wander} } }
+	end},
+
 }
 
 
@@ -532,13 +563,14 @@ local function on_tick(event)
 	end
 
 	local is_dark = surface.darkness > conf.min_darkness
-	local wisps, drones = Wisps.n > 0, WispDrones.n > 0
+	local wisps, drones, cgs = Wisps.n > 0, WispDrones.n > 0, WispCongregations.n > 0
 	local uvlights, detectors = UVLights.n > 0, Detectors.n > 0
 
 	if is_dark then
 		run('spawn_near_players', surface)
 		run('spawn_on_map', surface)
 		run('tactics', surface)
+		run('congregate', surface)
 		if surface.darkness > conf.min_darkness_to_emit_light then
 			if drones then run('light_drones', WispDrones) end
 			if wisps then run('light_wisps', Wisps) end
@@ -553,6 +585,7 @@ local function on_tick(event)
 
 	if wisps then
 		if uvlights then run('uv', UVLights) end
+		if cgs then run('recongregate', WispCongregations) end
 		run('expire_uv', Wisps)
 		run('expire_ttl', Wisps)
 		run('pacify', surface)
@@ -573,7 +606,7 @@ local function on_death(event)
 		if conf.wisp_death_retaliation_radius > 0
 			then area = utils.get_area(conf.wisp_death_retaliation_radius, e.position) end
 		wisp_aggression_set(e.surface, true, event.force, area)
-		if game.surfaces.nauvis.darkness >= conf.min_darkness
+		if e.surface.darkness >= conf.min_darkness
 			then wisp_create(wisp_spore_proto, e.surface, e.position) end
 	end
 end
@@ -754,14 +787,14 @@ local function apply_runtime_settings(event)
 	if knob then conf.wisp_forest_spawn_pollution_factor = knob.value end
 
 	local wisp_spawns_sum = 0
-	for _, c in ipairs{'purple', 'yellow', 'red'} do
+	for _, c in ipairs{'purple', 'yellow', 'red', 'green'} do
 		local k, k_conf = 'wisp-map-spawn-'..c, 'wisp_forest_spawn_chance_'..c
 		knob = key_update(k)
 		if knob then conf[k_conf] = knob.value end
 		wisp_spawns_sum = wisp_spawns_sum + conf[k_conf]
 	end
 	if wisp_spawns_sum > 1 then
-		for _, c in ipairs{'purple', 'yellow', 'red'} do
+		for _, c in ipairs{'purple', 'yellow', 'red', 'green'} do
 			local k = 'wisp_forest_spawn_chance_'..c
 			conf[k] = conf[k] / wisp_spawns_sum
 		end
@@ -846,9 +879,10 @@ end
 
 local function init_globals()
 	local sets = utils.t([[
-		wisps wisp_drones wisp_attack_entities uv_lights detectors ]])
+		wisps wisp_drones wisp_congregations
+		uv_lights detectors wisp_attack_entities ]])
 	for k, _ in pairs(utils.t([[
-			wisps wisp_drones wisp_attack_entities
+			wisps wisp_drones wisp_congregations wisp_attack_entities
 			uv_lights detectors zones map_stats work_steps ]])) do
 		if global[k] then goto skip end
 		global[k] = {}
@@ -859,6 +893,7 @@ end
 local function init_refs()
 	utils.log('Init local references to globals...')
 	Wisps, WispDrones = global.wisps, global.wisp_drones
+	WispCongregations = global.wisp_congregations
 	UVLights, Detectors = global.uv_lights, global.detectors
 	WispAttackEntities = global.wisp_attack_entities
 	MapStats, WorkSteps = global.map_stats, global.work_steps

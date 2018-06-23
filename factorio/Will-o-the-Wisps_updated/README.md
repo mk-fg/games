@@ -18,6 +18,8 @@ New alien fauna:
 - Red Will-o'-Wisp
     - Rare wisps that live under rocks.
     - Physical damage will split them into multiple ones.
+- Green Will-o'-the-Wisp
+    - Smaller harmless will-o-wisps that are faster and more curious than others.
 - Purple Will-o'-Wisp
     - Will-o'-the-Wisp spore.
     - Cause corrosion of structures and power production infrastructure in particular.

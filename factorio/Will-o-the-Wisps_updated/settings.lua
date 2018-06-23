@@ -58,5 +58,12 @@ data:extend{
 		minimum_value = 0,
 		maximum_value = 1.0,
 		default_value = conf.wisp_forest_spawn_chance_red },
+	{ order = '0250',
+		setting_type = 'runtime-global',
+		name = 'wisp-map-spawn-green',
+		type = 'double-setting',
+		minimum_value = 0,
+		maximum_value = 1.0,
+		default_value = conf.wisp_forest_spawn_chance_green },
 
 }

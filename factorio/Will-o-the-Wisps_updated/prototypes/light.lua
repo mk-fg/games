@@ -39,6 +39,21 @@ data:extend{{
 	rotate = false,
 	light = {intensity=0.3, size=7, color={r=0.95, g=0.0, b=0.8}} }}
 
+-- Null effect for attack_parameters
+data:extend{{
+	type = 'explosion',
+	name = 'wisp-null-effect',
+	flags = {'not-on-map', 'placeable-off-grid'},
+	animations = {
+		{ filename = '__Will-o-the-Wisps_updated__/graphics/null.png',
+			priority = 'high',
+			width = 0,
+			height = 0,
+			frame_count = 1,
+			animation_speed = 1,
+			shift = {0, 0} } },
+	rotate = false }}
+
 -- For compatibility with old versions
 for _, light in pairs{'wisp-light-generic', 'wisp-flash'}
 do data:extend{{
