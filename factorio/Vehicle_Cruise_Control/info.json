@@ -1,6 +1,6 @@
 {
 	"name": "Vehicle_Cruise_Control",
-	"version": "0.0.1",
+	"version": "0.0.2",
 	"factorio_version": "0.16",
 	"dependencies": ["base >= 0.16.0"],
 	"title": "Vehicle Cruise Control",

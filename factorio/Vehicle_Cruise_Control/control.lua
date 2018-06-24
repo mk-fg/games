@@ -51,8 +51,8 @@ end
 
 local function gui_destroy(player)
 	local cc = GUIs[player.index]
-	if not cc then return end
-	cc.destroy()
+	if cc then cc.destroy() end
+	GUIs[player.index], CCState[player.index] = nil
 end
 
 
