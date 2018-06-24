@@ -125,6 +125,12 @@ Easy to fix with mods though, which are one of the best parts of the game.
   by Betep3akata, which seem to be abandoned since 0.15.x.
   License: `CC BY-NC-SA <https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode>`_
 
+- `Vehicle Cruise Control
+  <https://mods.factorio.com/mod/Vehicle_Cruise_Control>`_
+
+  Adds GUI panel with buttons to toggle acceleration and brakes, so that you
+  don't have to hold W or S.
+
 - ReducedResearchX
 
   Local mod to reduce all research costs by somewhat complicated formula,
