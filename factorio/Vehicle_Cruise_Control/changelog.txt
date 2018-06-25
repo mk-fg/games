@@ -1,0 +1,10 @@
+---------------------------------------------------------------------------------------------------
+Version: 0.0.2
+Date: 24. 06. 2018
+  Bugfixes:
+    - Fix gui/state reset on exiting/re-entering the vehicle.
+---------------------------------------------------------------------------------------------------
+Version: 0.0.1
+Date: 24. 06. 2018
+  Features:
+    - Initial release with Cruise/Brake buttons and associated hotkeys.
