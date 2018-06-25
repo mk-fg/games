@@ -1,23 +1,45 @@
-version: 0.15.34
+version: 0.16.51
 mods:
   - enabled: true
     name: base
   - enabled: true
-    name: advanced-logistics-system
-  - enabled: false
+    name: '200 Inventory Size'
+  - enabled: true
     name: auto-research
   - enabled: true
-    name: beltSorter
+    name: beautiful_bridge_railway
   - enabled: true
     name: Big_Brother
   - enabled: true
     name: Bottleneck
   - enabled: true
+    name: bullet-trails
+  - enabled: true
+    name: Burner_Drill_4x4_Area
+  - enabled: true
+    name: DayNightExtender
+  - enabled: true
+    name: DeadlockLoaders
+  - enabled: true
+    name: DeadlockStacking
+  - enabled: true
+    name: even-distribution
+  - enabled: true
     name: EvoGUI
+  - enabled: true
+    name: far-reach
   - enabled: true
     name: FARL
   - enabled: true
-    name: Honk
+    name: FasterStart
+  - enabled: true
+    name: 'Flow Control'
+  - enabled: true
+    name: GDIW
+  - enabled: true
+    name: GDIWHotkey
+  - enabled: true
+    name: InserterFuelLeech
   - enabled: true
     name: Laser_Beam_Turrets
   - enabled: true
@@ -25,18 +47,30 @@ mods:
   - enabled: true
     name: nixie-tubes
   - enabled: true
-    name: 'Orbital Ion Cannon'
+    name: PickerExtended
   - enabled: true
     name: ReducedResearchX
   - enabled: true
-    name: research-queue
-  - enabled: false
-    name: rso-mod
+    name: ResourceLabels
   - enabled: true
     name: 'Side Inserters'
-  - enabled: false
-    name: TheFatController
   - enabled: true
-    name: themightygugi_longreach
+    name: Single-Splitter
+  - enabled: true
+    name: 'Squeak Through'
+  - enabled: true
+    name: TimeTools
+  - enabled: true
+    name: 'Underground Indicators'
+  - enabled: true
+    name: 'Vehicle Wagon'
+  - enabled: true
+    name: Vehicle_Cruise_Control
+  - enabled: true
+    name: Waterfill_v15
+  - enabled: true
+    name: WideChests
+  - enabled: true
+    name: Will-o-the-Wisps_updated
   - enabled: true
     name: YARM
