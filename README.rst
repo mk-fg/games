@@ -137,22 +137,16 @@ Easy to fix with mods though, which are one of the best parts of the game.
   designed to keep early-game tech costs pretty-much as-is, but have massive
   reductions for late-game techs.
 
-  Formula (python3): ``cost = lambda v: (a + max(0,v-a)*b**(v/(v+c)))``
+  Formula (python3 notation): ``cost = lambda v: (a + max(0,v-a)*b**(v/(v+c)))``
 
-  a, b and c there are tweakable via config.lua, and can be tested like this::
-
-    % python3
-    cost = lambda v: (a + max(0,v-a)*b**(v/(v+c)))
-    a,b,c=50,0.2,200
-    list(map(int, [cost(100),cost(200),cost(300),cost(500),cost(1000),cost(2000),cost(5000)]))
-    # output: [100=79, 200=117, 300=145, 500=192, 1000=298, 2000=501, 5000=1103]
+  Chart for what costs end up being can be checked in `doc/research-cost-chart.html
+  <https://mk-fg.github.io/games/factorio/ReducedResearchX/doc/research-cost-chart.html>`_
 
   Shows how late-game techs that cost 1k/2k/5k research units get down to
-  ~300/500/1k, while early-game ones get much smaller reductions.
+  ~300/500/1k, while early-game ones get much smaller to no reductions.
 
   | Does not change research time by default, as it's not a bottleneck anyway.
-  | Based on very simple "ReducedResearch" mod (~10 lines of lua), which was a
-    bit too linear for me.
+  | Based on simple "ReducedResearch" mod (~10 lines of lua), but with updated formula.
 
 - mod-list.yaml - list of mods from when I last played (should include base game
   version number) and backed it up.
