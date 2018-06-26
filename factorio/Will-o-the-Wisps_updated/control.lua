@@ -413,7 +413,7 @@ local tasks_entities = {
 
 	uv = {work=4, func=function(uv, e, s)
 		local control  = e.get_control_behavior()
-		if not (control and control.valid and not control.disabled) then return end
+		if control and control.valid and control.disabled then return end
 
 		if e.energy > UVLightEnergyLimit then UVLightEnergyLimit = e.energy end
 		local energy_percent = e.energy / UVLightEnergyLimit
