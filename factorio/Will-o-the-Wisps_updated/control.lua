@@ -311,6 +311,7 @@ local tasks_monolithic = {
 			name=e.name, area=utils.get_area(conf.wisp_group_radius[e.name], e.position) }
 		if not (units_near and #units_near > 1) then return 20 end
 
+		-- If there's a group in the area already, just join that one
 		local leader = true
 		for _, e2 in ipairs(units_near) do
 			if not e2.unit_group or e2.force ~= e.force then goto skip end
@@ -334,6 +335,7 @@ local tasks_monolithic = {
 		local chance = conf.wisp_forest_spawn_chance_green * c.chance_factor
 		if n and not (math.random() < chance) then return end
 
+		-- Find polluted-forest spawn area with custom pollution factor and create group there
 		local group_size = math.random(
 			math.ceil(c.group_size * c.group_size_min_factor), c.group_size )
 		local wisps, trees, wisp = {},
@@ -348,11 +350,8 @@ local tasks_monolithic = {
 		local group = surface.create_unit_group{position=wisp.position, force='wisp'}
 		for _, e in ipairs(wisps) do group.add_member(e) end
 
+		-- Find nearby high-pollution chunk, pick random player thing there as target
 		local pos = zones.find_industrial_pos(surface, wisp.position, c.dst_chunk_radius)
-		-- game.forces.player.add_chart_tag( surface,
-		-- 	{position=wisp.position, icon={type='item', name='wisp-red'}, text='wisps'} )
-		-- game.forces.player.add_chart_tag( surface,
-		-- 	{position=pos, icon={type='item', name='wisp-purple'}, text='industry'} )
 		local target, force_name
 		for _, player in pairs(game.connected_players) do
 			target = surface.find_entities_filtered{
@@ -363,9 +362,8 @@ local tasks_monolithic = {
 			break
 		::skip:: end
 
+		-- Send group to target, registering it in WispCongregations for target updates
 		pos = surface.find_non_colliding_position(wisp.name, pos, 32, 0.3)
-		-- game.forces.player.add_chart_tag( surface,
-		-- 	{position=pos, icon={type='item', name='wisp-yellow'}, text='target'} )
 		group.set_command{
 			type=defines.command.compound,
 			structure_type=defines.compound_command.return_last,
@@ -415,7 +413,7 @@ local tasks_entities = {
 
 	uv = {work=4, func=function(uv, e, s)
 		local control  = e.get_control_behavior()
-		if control and control.valid and not control.disabled then return end
+		if not (control and control.valid and not control.disabled) then return end
 
 		if e.energy > UVLightEnergyLimit then UVLightEnergyLimit = e.energy end
 		local energy_percent = e.energy / UVLightEnergyLimit

@@ -1,6 +1,11 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.0.43
+Date: 26. 06. 2018
+  Bugfixes:
+    - Fix control network enabled/disabled state check on UV lamps.
+---------------------------------------------------------------------------------------------------
 Version: 0.0.42
-Date: 18. 06. 2018
+Date: 23. 06. 2018
   Features:
     - Add harmless green wisps to safely explore players stuff without attacking anything.
     - Enable green wisp groups to spawn and roam around player's stuff.
