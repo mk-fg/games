@@ -11,7 +11,7 @@ end
 local function cc_state_apply(player)
 	local state = CCState[player.index]
 	if not player.riding_state then
-		if state then CCState[player.index] = nil end
+		if state then gui_destroy(player) end
 		return
 	end
 	if state == 'cruise' then state = defines.riding.acceleration.accelerating
@@ -40,18 +40,25 @@ local function gui_update(player, event)
 end
 
 local function gui_create(player)
-	local cc = GUIs[player.index]
+	local cc, cc_new = GUIs[player.index]
 	if cc then return end
-	cc = player.gui.left.add{type='frame', name='VCC-Frame', flow='vertical'}
-	cc.add{type='button', name='VCC-Cruise'}
-	cc.add{type='button', name='VCC-Brake'}
+	cc_new, cc = pcall( player.gui.left.add,
+		{type='frame', name='VCC-Frame', flow='vertical'} )
+	if cc_new then
+		cc.add{type='button', name='VCC-Cruise'}
+		cc.add{type='button', name='VCC-Brake'}
+	else
+		cc = nil
+		for _, e in pairs(player.gui.left.children)
+			do if e.name == 'VCC-Frame' then cc = e; break end end
+	end
 	GUIs[player.index] = cc
 	gui_update(player)
 end
 
 local function gui_destroy(player)
 	local cc = GUIs[player.index]
-	if cc then cc.destroy() end
+	if cc then pcall(cc.destroy) end
 	GUIs[player.index], CCState[player.index] = nil
 end
 
