@@ -361,6 +361,7 @@ local tasks_monolithic = {
 			pos = target.position
 			break
 		::skip:: end
+		if not force_name then return end -- nothing player-owned was found there
 
 		-- Send group to target, registering it in WispCongregations for target updates
 		pos = surface.find_non_colliding_position(wisp.name, pos, 32, 0.3)
@@ -478,8 +479,6 @@ local tasks_entities = {
 		target = target[math.random(#target)]
 		local pos = s.find_non_colliding_position(conf.congregate.entity, target.position, 32, 0.3)
 		cg.dst, cg.dst_ts = pos, tick
-		-- game.forces.player.add_chart_tag( s,
-		-- 	{position=pos, icon={type='item', name='wisp-yellow'}, text='target-next'} )
 		group.set_command{
 			type=defines.command.compound,
 			structure_type=defines.compound_command.return_last,
