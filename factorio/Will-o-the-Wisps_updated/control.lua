@@ -172,6 +172,17 @@ local function wisp_find_units(surface, pos, radius)
 	return units
 end
 
+local function wisp_find_player_target_pos(surface, area, entity_name, force)
+	local forces, targets = force and {force} or utils.map(game.connected_players, 'force')
+	for _, force in ipairs(forces) do
+		targets = surface.find_entities_filtered{area=area, force=force}
+		if #targets == 0 then goto skip end
+		targets = surface.find_non_colliding_position(
+			entity_name, targets[math.random(#targets)].position, 32, 0.3 )
+		if targets then return targets, force.name end
+	::skip:: end
+end
+
 local function wisp_init(entity, ttl, n)
 	if not ttl then
 		ttl = conf.wisp_ttl[entity.name]
@@ -351,20 +362,12 @@ local tasks_monolithic = {
 		for _, e in ipairs(wisps) do group.add_member(e) end
 
 		-- Find nearby high-pollution chunk, pick random player thing there as target
-		local pos = zones.find_industrial_pos(surface, wisp.position, c.dst_chunk_radius)
-		local target, force_name
-		for _, player in pairs(game.connected_players) do
-			target = surface.find_entities_filtered{
-				area=utils.get_area(c.dst_find_building_radius, pos), force=player.force }
-			if #target == 0 then goto skip end
-			target, force_name = target[math.random(#target)], player.force.name
-			pos = target.position
-			break
-		::skip:: end
-		if not force_name then return end -- nothing player-owned was found there
+		local pos_chunk = zones.find_industrial_pos(surface, wisp.position, c.dst_chunk_radius)
+		local pos, force_name = wisp_find_player_target_pos(
+			surface, utils.get_area(c.dst_find_building_radius, pos_chunk), wisp.name )
+		if not pos then pos = pos_chunk end
 
 		-- Send group to target, registering it in WispCongregations for target updates
-		pos = surface.find_non_colliding_position(wisp.name, pos, 32, 0.3)
 		group.set_command{
 			type=defines.command.compound,
 			structure_type=defines.compound_command.return_last,
@@ -471,13 +474,10 @@ local tasks_entities = {
 		if dst_dist > conf.congregate.dst_arrival_radius
 				and (tick - cg.dst_ts) < c.dst_arrival_ticks
 			then return end
-		local force = game.forces[cg.force_name]
-		if not force then cg.dst, cg.dst_ts = nil; return end
-		local target = s.find_entities_filtered{
-			area=utils.get_area(c.dst_next_building_radius, cg.dst), force=force }
-		if #target == 0 then return end
-		target = target[math.random(#target)]
-		local pos = s.find_non_colliding_position(conf.congregate.entity, target.position, 32, 0.3)
+		local pos = wisp_find_player_target_pos(
+			s, utils.get_area(c.dst_next_building_radius, cg.dst),
+			conf.congregate.entity, cg.force_name )
+		if not pos then cg.dst, cg.dst_ts = nil; return end
 		cg.dst, cg.dst_ts = pos, tick
 		group.set_command{
 			type=defines.command.compound,

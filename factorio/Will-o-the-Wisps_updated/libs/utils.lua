@@ -118,9 +118,14 @@ function utils.match_word(s, word)
 end
 
 function utils.map(t, func)
-	if type(t) == 'function' then t, func = func, t end
+	if type(t) ~= 'table' then t, func = func, t end
+	if not func then return t
+	elseif type(func) ~= 'function' then
+		local key = func
+		func = function(v) return v[key] end
+	end
 	local res = {}
-	for n = 1, #t do table.insert(res, func(t[n], n)) end
+	for n, v in ipairs(t) do table.insert(res, func(v, n)) end
 	return res
 end
 
