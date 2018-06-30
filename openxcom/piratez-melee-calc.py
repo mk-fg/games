@@ -270,6 +270,7 @@ class WeaponCalc:
 						vs, acc_mods = list(), list()
 						for k, s in self.stats.items():
 							vk = v.get(k, 0)
+							if isinstance(vk, list): vk = max(vk)
 							if not vk: continue
 							acc_mods.append('{}*{}'.format(k, vk))
 							vs.append(vk*s)
@@ -421,8 +422,10 @@ def filter_items(items_all, pats, types=None):
 				if re.search(p[3:], name): break
 			elif p.startswith('x:'):
 				if p[2:] == name: break
+			elif p.startswith('c:'):
+				if p[2:] in name: break
 			elif p.startswith('STR_') and t == p: break
-			elif p in name: break
+			elif p.lower() in name.lower(): break
 		else: continue
 		items[t] = item
 	return items

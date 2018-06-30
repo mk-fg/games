@@ -349,7 +349,7 @@ Main field is "dpu" - Damage per TU - which is calculated as "damage-per-hit *
 accuracy / TU" for melee weapons, with no accuracy multiplier for ranged.
 
 Also shows all special effects in addition to that, allowing to easily pick
-something good for specific purpose, taking specifici soldier's attributes into
+something good for specific purpose, taking specific soldier's attributes into
 account (input on top).
 
 piratez-extract-rulesets.sh is a helper script to run ``piratez-melee-calc.py
