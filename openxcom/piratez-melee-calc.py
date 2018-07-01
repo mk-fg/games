@@ -285,6 +285,7 @@ class WeaponCalc:
 					vs, dmg_mods = list(), list()
 					for k, s in self.stats.items():
 						vk = v.get(k, 0)
+						if isinstance(vk, list): vk = max(vk)
 						if not vk: continue
 						dmg_mods.append('{}*{}'.format(k, vk))
 						vs.append(vk*s)

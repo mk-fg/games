@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<meta charset='utf-8'>
+<style>
+
+body {
+	margin: 0 auto;
+	padding: 1em;
+	max-width: 1000px;
+}
+
+form {
+	border: outset 1px #ccc;
+	padding: .5em;
+	display: grid;
+	grid-template-columns: 30% 70%;
+	grid-template-rows: repeat(2, [row] auto);
+	grid-template-areas:
+		'stats stats'
+		'weapons info';
+}
+
+form label { margin: .2em; display: inline-block; }
+form input { height: 1.5em; border: 1px #ccc inset; margin: .2em; padding: .1em; }
+form input:invalid { background: #fee; }
+
+form .stats { grid-area: stats; }
+form .stats input { width: 3.5em; }
+
+form .weapons {
+	grid-area: weapons;
+	display: grid;
+	grid-template-rows: 3em 20em;
+	grid-template-areas:
+		'search'
+		'list';
+}
+form .weapons .search { grid-area: search; }
+form .weapons .list { width: 100%; grid-area: list; }
+
+form .info th, form .info td { height: 1.5em; }
+form .info th { cursor: pointer; }
+
+</style>
+<body>
+
+<script src='d3.v5.min.js'></script>
+<script>
+
+let main, d3, data
+
+let d3js_url = 'https://d3js.org/d3.v5.min.js',
+	data_url = 'piratez-melee-calc.json'
+
+let d3js_loaded = new Promise((resolve, reject) => {
+		if (window.d3) return resolve(window.d3)
+		let include = (url) => {
+			let req = new XMLHttpRequest()
+			req.open('GET', url)
+			req.onreadystatechange = d => {
+				if (req.status != 200 || req.readyState != 4) return
+				eval(req.responseText)
+				resolve(window.d3) }
+			req.send() }
+		console.log(`WARNING: loading d3 from ${d3js_url}`)
+		include(d3js_url) })
+
+window.onload = () => d3js_loaded
+	.then(d3_local => { d3 = d3_local; return d3.json(data_url) })
+	.then(json => { data = json; main() })
+
+main = () => {
+
+if (!d3) {
+	document.body.innerHTML = `
+		<h2>ERROR: failed to load d3.js library</h2>
+		<p>Check uMatrix/NoScript/adblocker setttings or download
+			<a href='${d3js_url}'>d3.v4.min.js</a> into same dir as this html.</p>`
+	return
+}
+
+if (!data) {
+	document.body.innerHTML = `
+		<h2>ERROR: failed to load item data json</h2>
+		<p>Check uMatrix/NoScript/adblocker setttings or put json file into same dir as this html.</p>`
+	return
+}
+
+
+// Helpers
+
+let
+	// Usage: s.call(attrs(vals))
+	attrs = vals => s => Object.entries(vals).forEach(([k,v]) => s.attr(k, v)),
+	// Usage: s.call(fire_event('input'))
+	fire_event = ev => s => s.each((d, n, ns) => s.on(ev)(d, n, ns)),
+	// Usage: s.sort(sort_by_func(d3.ascending, d => d.fields[key]))
+	sort_by_func = (cmp, func) => (a, b) => cmp(func(a), func(b)),
+	// Usage: s.sort(sort_by_func(d3.ascending, d => d.fields[key]))
+	map_entries = map => Array.from(map.entries(map)).map(d => ({key: d[0], value: d[1]}))
+
+let debounce_enabled = true
+let debounce = (delay_ms, mode, func) => {
+	// Modes:
+	//  last - delay after last call; usage: not called on fast typing until delay passes
+	//  now - now + delay; usage: rate-limiting calls, where first one works, next one delayed
+	//  first - delay after first call; usage: same as "now" but with first call delayed as well
+	let timeout, timeout_calls
+	return (...args) => {
+		if (!debounce_enabled) return func(...args)
+		if (mode === 'now' && !timeout) func(...args)
+		if (timeout) {
+			timeout_calls++
+			if (mode === 'last') { clearTimeout(timeout); timeout = null } }
+		else timeout_calls = 0
+		if (!timeout) timeout = setTimeout(() => {
+			timeout = null; if (!(mode === 'now' && !timeout_calls)) func(...args) }, delay_ms) } }
+
+let state_tracker = (state={}) => {
+	let cbs = d3.dispatch('update')
+	let tracker = (k, v, v_def) => {
+		// Returns (v=null) and/or sets state value
+		//  v_def only gets set/returned if there's no such key already
+		if (k === undefined) return state
+		if (v !== undefined) {
+			let updated = false
+			if (k in state) {
+				if (v !== null) {
+					updated = state[k] !== v
+					state[k] = v }
+			} else {
+				updated = v !== null
+				state[k] = v !== null ? v : v_def }
+			if (updated) cbs.call('update', null, k, state[k], state) }
+		return k in state ? state[k] : null }
+	tracker.on = (t, cb) => {
+		let ret = cbs.on(`update.${t}`, cb)
+		return !cb ? ret : tracker }
+	tracker.prefix = (pre, cb) => {
+		if (cb) tracker.on( pre,
+			(k, v, vs) => k.startsWith(pre) && cb(k.slice(pre.length), v, vs) )
+		return (k, v, v_def) => tracker(pre + k, v, v_def) }
+	return tracker
+}
+
+let url_enc = v => {
+	if (typeof v === 'boolean') v = v ? '!t' : '!f'
+	else if (typeof v === 'number')
+		v = Number.isInteger(v) ? `!n{v}` : `!f{v.toFixed(2)}`
+	else if (v.length && v[0] === '!')
+		throw `ERROR: url_enc value cannot start with excl-mark - "${v}"`
+	return v }
+let url_dec = v => {
+	if (v.length >= 2 && v[0] === '!') {
+		v = v.slice(1)
+		if ('ft'.split('').includes(v)) v = Boolean('ft'.split('').indexOf(v))
+		else if (v.length && 'nf'.split('').includes(v[0]))
+			v = (v[0] === 'n' ? Number.parseInt : Number.parseFloat)(v.slice(1))
+		else v = null }
+	return v }
+
+
+// Data form
+
+let
+	state_defaults = {},
+	state = state_tracker(
+		[...(new window.URL(window.location.href)).searchParams.entries()]
+			.reduce((o, [k,v]) => { o[k] = url_dec(v); return o }, {}) )
+		.on('url', (k, v) => {
+			let url = new window.URL(window.location.href)
+			if (v === state_defaults[k]) url.searchParams.delete(k)
+			else url.searchParams.set(k, url_enc(v))
+			window.history.replaceState(history.state, document.title, url.href) })
+
+let
+	items = data,
+	items_info = d3.set( (state('i') || '').split('.').filter(d => d.length > 0)
+		.map(d => (d.startsWith('str_') ? d : `str_${d}`).toUpperCase()) ),
+	items_battle = Object.values(data).filter(e => e.battleType)
+
+let stats = new Map([ ['strength', 35], ['melee', 70],
+		['throwing', 40], ['TUs', 65], ['bravery', 30], ['reactions', 40] ]),
+	info_fields = [ 'weight', 'weapon', '--', 'type',
+		'damage', 'accuracy',  'dpu', '-', 'costs', '[specials]' ]
+
+
+let item_stats = d => {
+	let info = {
+		weapon: {name: d.name, title: `id: ${d.type.toLowerCase()}`}
+	}
+	return { id: d.type,
+		fields: new Map(info_fields.map(d => [ d,
+			{text: (info[d] || {}).name, title: (info[d] || {}).title} ])) }
+
+}
+
+
+let refresh = () => {
+	d3.select('#info').selectAll('tr')
+		.data(items_info.values().map(d => item_stats(items[d])), d => d.id)
+		.call(s => s.exit().remove())
+		.call(s => s
+			.enter().append('tr').merge(s)
+			.each((d, n, ns) => {
+				let s = d3.select(ns[n])
+					.selectAll('td').data(d => map_entries(d.fields), d => d.key)
+					.call(s => s.exit().remove())
+					.call(s => s
+						.enter().append('td').attr('headers', d => `info-th-${d.key}`).merge(s)
+						.text(d => d.value.text || '').attr('title', d => d.value.title)) }))
+}
+
+
+let weapon_search = (d, n, ns) => {
+	let input = ns[n].value
+	state('q', input)
+	if (input.length <= 0) return
+	let items = items_battle.filter( e => e.name == input ||
+		e.name.includes(input) || e.name.toLowerCase().includes(input.toLowerCase()) ||
+		e.type == input || e.type.toLowerCase().includes(input.toLowerCase()) )
+	d3.select('#input-weapon-select')
+		.selectAll('option').data(items, d => d.type)
+		.call(s => s.exit().remove())
+		.enter().append('option')
+			.attr('value', d => d.type).text(d => d.name)
+			.attr('selected', d => items_info.has(d.type) || null)
+}
+
+
+let state_attrs = state.prefix('a.')
+
+let form = d3.select('body').append('form')
+	.call(s => s
+		.append('fieldset').attr('class', 'stats')
+		.call(s => s.append('legend').text('stats'))
+		.selectAll('input').data(map_entries(stats))
+		.enter()
+			.append('label').attr('for', d => `input-stats-${d.key}`).text(d => d.key)
+			.append('input').on('input', (d, n, ns) => {state_attrs(d.key, ns[n].value); refresh() })
+				.call(attrs({
+					type: 'number', required: true,
+					title: d => `Soldier stat value (${d.key})`,
+					min: 0, max: 200, step: 1,value: d => state_attrs(d.key) || d.value,
+					id: d => `input-stats-${d.key}`, name: d => d.key })))
+	.call(s => s
+		.append('fieldset').attr('class', 'weapons')
+		.call(s => {
+			s.append('legend').text('weapons')
+			s.append('input').on('input', debounce(300, 'last', weapon_search))
+				.call(attrs({ 'class': 'search', type: 'search',
+					title: 'Item Search Box - type in any part of item names or IDs here',
+					value: state('q'), list: 'input-weapons-datalist',
+					id: 'input-weapon-search', name: 'weapon-search' }))
+				.call(fire_event('input'))
+			s.append('datalist').attr('id', 'input-weapon-datalist')
+				.call(s => items_battle.map(e => {
+					s.append('option').attr('value', e.type)
+					s.append('option').attr('value', e.name) }))
+			s.append('select')
+				.on('input', (d, n, ns) => {
+					d3.select(ns[n]).selectAll('option').each(
+						(d, n, ns) => ns[n].selected ?
+							items_info.add(d.type): items_info.remove(d.type) )
+					state('i', items_info.values().map(d => d.replace(/^STR_/, '')).join('.').toLowerCase())
+					refresh() })
+				.call(attrs({ 'class': 'list', multiple: true,
+					title: "Select items to display info on here.\n"+
+						"Use CTRL/SHIFT keys and mouse-drag to pick multiple ones.",
+					id: 'input-weapon-select', name: 'weapon-select' }))}))
+	.call(s => s
+		.append('table').attr('class', 'info')
+		.call(s => s.append('thead').append('tr')
+			.selectAll('th').data(info_fields)
+			.enter().append('th').text(d => d)
+			.call(attrs({id: d => `info-th-${d}`, title: d => `Click to sort table by this field (${d})`}))
+			.on( 'click', (d, n, ns) => d3.select('#info').selectAll('tr')
+				.sort(sort_by_func(d3.ascending, d2 => d2.fields.get(d).text)) ))
+		.call(s => s.append('tbody').attr('id', 'info'))
+		.call(s => s.append('tfoot').append('tr')))
+
+refresh()
+
+}
+</script>
+</body>
