@@ -5,7 +5,7 @@
 body {
 	margin: 0 auto;
 	padding: 1em;
-	max-width: 1000px;
+	max-width: 1300px;
 }
 
 form {
@@ -30,19 +30,20 @@ form .stats input { width: 3.5em; }
 form .weapons {
 	grid-area: weapons;
 	display: grid;
-	grid-template-rows: 3em 20em;
+	grid-template-rows: 3em minmax(20em, auto);
 	grid-template-areas:
 		'search'
 		'list';
 }
 form .weapons .search { grid-area: search; }
-form .weapons .list { width: 100%; grid-area: list; }
+form .weapons .list { width: 100%; grid-area: list; height: auto; resize: vertical; }
 
 form .info { border-collapse: collapse; border-style: hidden; }
 form .info th, form .info td { height: 1.5em; border: 1px dotted #ccc; padding: .2em .5em; }
 form .info th { cursor: pointer; }
 
 form .info th:hover { background: linear-gradient(to bottom, rgba(0,0,0,0) 0%,rgba(0,0,0,0.30) 100%); }
+form .info tbody tr:hover { background: linear-gradient(to bottom, rgba(0,0,0,0) 0%,rgba(0,0,0,0.10) 100%); }
 form .info tbody tr:nth-child(odd) { background-color: #eee; }
 
 form .tips { grid-area: tips; }
@@ -196,7 +197,7 @@ let
 let stats = new Map([ ['strength', 35], ['melee', 70],
 		['throwing', 40], ['TUs', 65], ['bravery', 30], ['reactions', 40] ]),
 	info_fields = [ 'weight', 'weapon', 'type',
-		'damage', 'accuracy',  'dpu', 'costs', '[specials]' ],
+		'damage', 'accuracy',  'dpu', 'costs', 'specials' ],
 	// dmg_types are partly hardcoded in RuleItem.h (enum ItemDamageType)
 	// Some are renamed in localization files, e.g. 0=NONE -> CHARM
 	info_dmg_types = {
@@ -313,23 +314,108 @@ let item_stats = d => {
 				let factor = (attr_value * attr_factor[k]) ** (k+1)
 				let factor_str = `${attr_value} * ${attr_factor[k]}`
 				if (k > 0) factor_str = `(${factor_str})^${k+1}`
-				acc_title.push(`- Factor [${attr}]: ${factor_str} = ${d3.format('d')(factor)}`)
+				acc_title.push(`- Factor [${attr}]: ${factor_str} = ${d3.format('.1f')(factor)}`)
 				factor_sum += factor  } }
 		let factor_flat = (obj_pop(factors, 'flatHundred') || 0) * 100
 		if (factor_flat) acc_title.push(`- Factor [flat value]: ${factor_flat}`)
 		k = factor_flat ? `(${factor_flat} + ${factor_sum})` : `${factor_sum}`
-		acc_title.push(`- Formula: ${acc} * ${k} / 100`)
 		acc = acc * (factor_flat + factor_sum) / 100
+		acc_title.push(`- Formula: ${acc_base} * ${k} / 100 = ${acc}`)
 		for (k of Object.keys(factors)) {
 			if (factors[k] == 0) delete factors[k] }
 		if (Object.keys(factors).length > 0) {
 			acc_str_warn = '[!!!] '
 			acc_title.push(`- Factors not applied: ${JSON.stringify(factors)}`) }
-		acc_str = acc_str_warn + `${acc}%`
+		acc_str = acc_str_warn + `${d3.format('.0f')(acc)}%`
 		acc_title = !acc_title.length ? null : acc_title.join('\n')
 		info.accuracy = {text: acc_str, title: acc_title}
 	}
 
+	// Damage
+	let dmg // used in dpu calculation
+	CalcDamage: {
+		let dmg_str = '', dmg_str_warn = '', dmg_title = []
+		dmg = d['power'] || -1
+		if (dmg <= 0) break CalcDamage
+		dmg_title.push(`- Base: ${dmg}`)
+		let factors = obj_clone(d.damageBonus || {}), factor_sum = 0
+		for (let [attr, attr_value] of Object.entries(attrs)) {
+			let attr_factor = obj_pop(factors, attr) || 0
+			if (!attr_factor) continue
+			if (!Array.isArray(attr_factor)) attr_factor = [attr_factor]
+			for (k=0; k<attr_factor.length; k++) {
+				if (attr_factor[k] == 0) continue
+				let factor = (attr_value * attr_factor[k]) ** (k+1)
+				let factor_str = `${attr_value} * ${attr_factor[k]}`
+				if (k > 0) factor_str = `(${factor_str})^${k+1}`
+				dmg_title.push(`- Factor [${attr}]: ${factor_str} = ${d3.format('.1f')(factor)}`)
+				factor_sum += factor  } }
+		k = dmg; dmg += factor_sum
+		dmg_title.push(`- Formula: ${k} + ${factor_sum} = ${dmg}`)
+		dmg_title = !dmg_title.length ? null : dmg_title.join('\n')
+		info.damage = {text: `${dmg}`, title: dmg_title}
+	}
+
+	// DPU (normalized damage values)
+	CalcDPU: {
+		if (!(dmg >= 0 && acc >= 0 && cost_tu >= 0)) break CalcDPU
+		let dpu = dmg * (acc / 100) / cost_tu
+		info.dpu = { text: `${d3.format('.1f')(dpu)}`,
+			title: `- Formula: ${dmg} * (${acc} / 100) / ${cost_tu} = ${d3.format('.2f')(dpu)}\n`+
+				'- Note: with probabilities over multiple attempts, accuracy is *not* a linear factor.' }
+	}
+
+	// Special stuff like damage to stats and armor effectiveness
+	CalcSpecials: {
+		let ext = [], ext_title = []
+		let da = obj_clone(d.meleeAlter || d.damageAlter || {})
+		obj_pop_run(da, 'ArmorEffectiveness', d => {
+			if (d == 1) return
+			ext.push(`kArmor=${d}`)
+			ext_title.push( '- kArmor is "Enemy Armor Effectiveness" (lower = better),\n'+
+				'  so e.g. kArmor=2 means 2x damage thresholds/resistance vs weapon.' )
+		})
+		obj_pop_run(da, 'ResistType', d => {
+			let dt = info_dmg_types[d]
+			if (!dt) { dt = 'DT#${d}'; ext_title.push(`- Unrecognized damage type id = ${d}.`) }
+			ext.push(`resist=${dt}`)
+			ext_title.push(`- Armor resistance "${dt}" (reduction %) is used for calculating damage value.`)
+		})
+		let k, kx
+		for ([k, kx] of [
+				['ToHealth', 'toH'], ['ToStun', 'toStn'],
+				['ToEnergy', 'toE'], ['ToMorale', 'toM'],
+				['ToTime', 'toTU'], ['ToArmorPre', 'toAP'] ]) {
+			obj_pop_run(da, k, d => {
+				ext.push(`${kx}=${d}`)
+				ext_title.push(`- "${kx}" is a "damageAlter.${k}" value, if it helps.`) })
+		}
+		obj_pop_run(da, 'RandomType', d => {
+			ext.push(`d${d}`)
+			ext_title.push(`- "d${d}" is a RandomType value, I think d1 (50-150%) is a default.`)
+		})
+		obj_pop_run(da, 'IgnoreOverKill', d => {
+			ext.push(`no-ok`)
+			ext_title.push(`- no-ok = IgnoreOverKill, probably for stun damage.`)
+		})
+		obj_pop_run(da, 'IgnoreDirection', d => {
+			ext.push(`unidir`)
+			ext_title.push(`- unidir = IgnoreDirection, .`)
+		})
+		obj_pop(da, 'FixRadius')
+		if (Object.keys(da).length > 0) {
+			ext.push('+')
+			ext_title.push(`- More modifiers: ${JSON.stringify(da)}`)
+		}
+		if (d.meleeAlter && d.damageAlter) {
+			ext.push('++')
+			ext_title.push( '- Showing stuff from meleeAlter section,'+
+				` separate damageAlter section (for other attack types): ${JSON.stringify(d.damageAlter)}` )
+		}
+		ext = !ext.length ? null : ext.join(' ')
+		ext_title = !ext_title.length ? null : ext_title.join('\n')
+		info.specials = {text: ext, title: ext_title}
+	}
 
 	return { id: d.type,
 		fields: new Map(info_fields.map(d => [ d,
@@ -350,6 +436,9 @@ let refresh = () => {
 					.call(s => s
 						.enter().append('td').attr('headers', d => `info-th-${d.key}`).merge(s)
 						.text(d => d.value.text || '').attr('title', d => d.value.title)) }))
+	let box_info = document.getElementById('info'),
+		box_weapons = document.getElementById('fields-weapons')
+	box_weapons.style.height = `${box_info.offsetHeight}px`
 }
 
 
@@ -385,7 +474,7 @@ let form = d3.select('body').append('form')
 					min: 0, max: 200, step: 1,value: d => state_attrs(d.key) || d.value,
 					id: d => `input-stats-${d.key}`, name: d => d.key })))
 	.call(s => s
-		.append('fieldset').attr('class', 'weapons')
+		.append('fieldset').call(attrs({'class': 'weapons', id: 'fields-weapons'}))
 		.call(s => {
 			s.append('legend').text('weapons')
 			s.append('input').on('input', debounce(300, 'last', weapon_search))
@@ -406,8 +495,8 @@ let form = d3.select('body').append('form')
 					state('i', items_info.values().map(d => d.replace(/^STR_/, '')).join('.').toLowerCase())
 					refresh() })
 				.call(attrs({ 'class': 'list', multiple: true,
-					title: "Select items to display info on here.\n"+
-						"Use CTRL/SHIFT keys and mouse-drag to pick multiple ones.",
+					title: 'Select items to display info on here.\n'+
+						'Use CTRL/SHIFT keys and mouse-drag to pick multiple ones.',
 					id: 'input-weapon-select', name: 'weapon-select' }))}))
 	.call(s => s
 		.append('table').attr('class', 'info')
@@ -425,7 +514,8 @@ let form = d3.select('body').append('form')
 			'CTRL/SHIFT + click in Weapons box, as found + unselected items there are removed from table.',
 			'Clicking table headers will sort on that column.',
 			'Hovering over table values (e.g. accuracy, costs) will show tooltips about what stuff there means.',
-			'"!!!" alongside value usually means some kind of data anomaly and that it can be incorrect.' ])
+			'"!!!" alongside value usually means some kind of data anomaly and that it can be incorrect.',
+			'Implemented in py but not here: stuff with ammo types (e.g. guns, need more UI), more "specials" stuff.' ])
 		.enter().append('li').text(d => d))
 
 refresh()
