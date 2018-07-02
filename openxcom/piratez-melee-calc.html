@@ -47,6 +47,46 @@ form .info tbody tr:hover { background: linear-gradient(to bottom, rgba(0,0,0,0)
 form .info tbody tr:nth-child(odd) { background-color: #eee; }
 
 form .tips { grid-area: tips; }
+
+
+/* CSS ticker for news or such */
+@keyframes ticker {
+	0% { transform: translate3d(0, 0, 0); visibility: visible; }
+	100% { transform: translate3d(-100%, 0, 0); }
+}
+.ticker-wrap * { cursor: default; }
+.ticker-wrap {
+	position: fixed;
+	display: block;
+	left: 0;
+	bottom: 0;
+	width: 100%;
+	overflow: hidden;
+	height: 4rem;
+	background-color: rgba(0, 0, 0, 0.8);
+	padding-left: 100%;
+	box-sizing: content-box;
+}
+.ticker-wrap .ticker {
+	display: inline-block;
+	height: 4em;
+	line-height: 4em;
+	white-space: nowrap;
+	padding-right: 100%;
+	box-sizing: content-box;
+	animation-iteration-count: infinite;
+	animation-timing-function: linear;
+	animation-name: ticker;
+	animation-duration: 60s;
+}
+.ticker-wrap .ticker .item {
+	display: inline-block;
+	padding: 0 2rem;
+	font-size: 2rem;
+	color: white;
+}
+form { margin-bottom: 4em; }
+
 </style>
 <body>
 
@@ -546,10 +586,28 @@ let form = d3.select('body').append('form')
 			'Clicking table headers will sort on that column.',
 			'Hovering over table values (e.g. accuracy, costs, damage) will show tooltips with more info/help on each.',
 			'"!!!" alongside value usually means some kind of data anomaly and that it can be incorrect.',
-			'Implemented in py but not here: stuff with ammo types (e.g. guns, bows - need more UI), more "specials" stuff.' ])
+			'Implemented in py but not here: stuff with ammo types (e.g. guns, bows - need more UI), more "specials" stuff.',
+			'Click on the newsticker at the bottom to hide/dismiss it.' ])
 		.enter().append('li').text(d => d))
 
 refresh()
+
+let ticker = d3.select('body')
+	.append('div').attr('class', 'ticker-wrap')
+	.on('click', (d, n, ns) => ticker.remove())
+	.call(s => s
+		.append('div').attr('class', 'ticker')
+		.selectAll('div.item').data([
+			'Last Updates - "Fat Volcano" release:',
+			'Fix info-table sorting using just text instead of numeric/composite values.',
+			'Alpha-sort list of weapons under search box.',
+			'Translate RandomType values to 1d(x.5-x1.5), 1d(x0-x2), 2d(x0-x1) and such, better tooltip.',
+			'Fix calculation for formulas with ^2 in them, e.g. Sunblades.',
+			'Fix decimals going crazy in some fields and tooltip formulas, some other formatting.',
+			'Add refresh delay/debounce when typing in stats fields.',
+			'End of the announcement. Click on the thing to dismiss it.' ])
+		.enter().append('div').attr('class', 'item').text(d => d))
+
 
 }
 </script>
