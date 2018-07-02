@@ -46,6 +46,8 @@ form .info th:hover { background: linear-gradient(to bottom, rgba(0,0,0,0) 0%,rg
 form .info tbody tr:hover { background: linear-gradient(to bottom, rgba(0,0,0,0) 0%,rgba(0,0,0,0.10) 100%); }
 form .info tbody tr:nth-child(odd) { background-color: #eee; }
 
+form .info .btn-remove { color: #5d0914; cursor: pointer; float: right; }
+
 form .tips { grid-area: tips; }
 
 
@@ -231,7 +233,14 @@ let url_dec = v => {
 // Data form
 
 let
-	state_defaults = {},
+	stats = new Map([
+		['strength', 35], ['melee', 70], ['throwing', 40],
+		['TUs', 65], ['bravery', 30], ['reactions', 40] ]),
+	fmt = {d: d3.format('d'), f1: d3.format('.1f'), f2: d3.format('.2f')}
+
+let
+	state_defaults = Object.assign( {q: '', i: ''},
+		obj_tuples(map_entries(stats), d => [`a.${d.key}`, `${d.value}`]) ),
 	state = state_tracker(
 		[...(new window.URL(window.location.href)).searchParams.entries()]
 			.reduce((o, [k,v]) => { o[k] = url_dec(v); return o }, {}) )
@@ -247,10 +256,12 @@ let
 		.map(d => ((d.startsWith('str_') || d.toUpperCase() in items) ? d : `str_${d}`).toUpperCase()) ),
 	items_battle = Object.values(data).filter(e => e.battleType)
 
-let stats = new Map([ ['strength', 35], ['melee', 70],
-		['throwing', 40], ['TUs', 65], ['bravery', 30], ['reactions', 40] ]),
+let
 	info_fields = [ 'weight', 'weapon', 'type',
-		'damage', 'accuracy',  'dpu', 'costs', 'specials' ],
+		'damage', 'accuracy',  'dpu', 'costs', 'quirks' ],
+	info_fields_desc = {
+		dpu: 'Weapon Power * Accuracy / TU cost - rough "pure damage" estimate.',
+		quirks: 'Special attributes and modifiers that weapon has.' },
 	// dmg_types are partly hardcoded in RuleItem.h (enum ItemDamageType)
 	// Some are renamed in localization files, e.g. 0=NONE -> CHARM
 	info_dmg_types = {
@@ -260,7 +271,8 @@ let stats = new Map([ ['strength', 35], ['melee', 70],
 	info_random_types = {
 		0: 'vanilla', 1: '1d(x0-x2)', 2: '1d(x.5-x1.5)', 3: 'flat(x1)', 4: 'fire(5-10)', 5: 'no-dmg(x0)', 6: '2d(x0-x1)' }
 
-let fmt = {d: d3.format('d'), f1: d3.format('.1f'), f2: d3.format('.2f')}
+let items_info_state_update =
+	() => state('i', items_info.values().map(d => d.replace(/^STR_/, '')).join('.').toLowerCase())
 
 
 let item_stats = d => {
@@ -425,7 +437,7 @@ let item_stats = d => {
 	}
 
 	// Special stuff like damage to stats and armor effectiveness, there's a lot of these
-	CalcSpecials: {
+	CalcQuirks: {
 		let ext = [], ext_title = []
 		let da = obj_clone(d.meleeAlter || d.damageAlter || {})
 		obj_pop_run(da, 'ArmorEffectiveness', d => {
@@ -479,7 +491,7 @@ let item_stats = d => {
 		}
 		ext = !ext.length ? null : ext.join(' ')
 		ext_title = !ext_title.length ? null : ext_title.join('\n')
-		info.specials = {text: ext, title: ext_title}
+		info.quirks = {text: ext, title: ext_title}
 	}
 
 	return { id: d.type, fields: new Map(info_fields.map(d => {
@@ -498,15 +510,25 @@ let refresh_raw = () => {
 		.call(s => s
 			.enter().append('tr').merge(s)
 			.each((d, n, ns) => {
-				let s = d3.select(ns[n])
+				let row_id = d.id, row = d3.select(ns[n])
+				d3.select(ns[n])
 					.selectAll('td').data(d => map_entries(d.fields), d => d.key)
 					.call(s => s.exit().remove())
 					.call(s => s
 						.enter().append('td').attr('headers', d => `info-th-${d.key}`).merge(s)
-						.text(d => d.value.text || '').attr('title', d => d.value.title)) }))
+						.text(d => d.value.text || '').attr('title', d => d.value.title)
+						.each((d, n, ns) => {
+							if (d.key !== 'weight') return
+							d3.select(ns[n])
+								.append('span').attr('class', 'btn-remove').text('☒')
+								.attr('title', 'Click to remove weapon from the table.')
+								.on('click', (d, n, ns) => {
+									row.remove()
+									items_info.remove(row_id)
+									items_info_state_update() }) })) }))
 	let box_info = document.getElementById('info'),
 		box_weapons = document.getElementById('fields-weapons')
-	box_weapons.style.height = `${box_info.offsetHeight}px`
+	box_weapons.style.min_height = `${box_info.offsetHeight}px`
 }
 let refresh = debounce(300, 'now', refresh_raw)
 
@@ -564,7 +586,7 @@ let form = d3.select('body').append('form')
 					d3.select(ns[n]).selectAll('option').each(
 						(d, n, ns) => ns[n].selected ?
 							items_info.add(d.type): items_info.remove(d.type) )
-					state('i', items_info.values().map(d => d.replace(/^STR_/, '')).join('.').toLowerCase())
+					items_info_state_update()
 					refresh() })
 				.call(attrs({ 'class': 'list', multiple: true,
 					title: 'Select items to display info on here.\n'+
@@ -575,7 +597,11 @@ let form = d3.select('body').append('form')
 		.call(s => s.append('thead').append('tr')
 			.selectAll('th').data(info_fields)
 			.enter().append('th').text(d => d)
-			.call(attrs({id: d => `info-th-${d}`, title: d => `Click to sort table by this field (${d})`}))
+			.call(attrs({
+				id: d => `info-th-${d}`,
+				title: d => {
+					let desc = `Click to sort table by this field (${d}).`
+					return info_fields_desc[d] ? info_fields_desc[d] + '\n' + desc : desc }}))
 			.on( 'click', (d, n, ns) => d3.select('#info').selectAll('tr')
 				.sort(sort_by_func(d3.ascending, d2 => d2.fields.get(d).value)) ))
 		.call(s => s.append('tbody').attr('id', 'info'))
@@ -588,7 +614,6 @@ let form = d3.select('body').append('form')
 			'Clicking table headers will sort on that column.',
 			'Hovering over table values (e.g. accuracy, costs, damage) will show tooltips with more info/help on each.',
 			'"!!!" alongside value usually means some kind of data anomaly and that it can be incorrect.',
-			'Implemented in py but not here: stuff with ammo types (e.g. guns, bows - need more UI), more "specials" stuff.',
 			'Click on the newsticker at the bottom to hide/dismiss it.' ])
 		.enter().append('li').text(d => d))
 
@@ -605,6 +630,7 @@ if (localStorage['ticker'] !== ticker_release) {
 				`Last Updates - "${ticker_release}" release:`,
 				'Fix info-table sorting using just text instead of numeric/composite values.',
 				'Alpha-sort list of weapons under search box.',
+				'Add "remove weapon" button to info table rows.',
 				'Translate RandomType values to 1d(x.5-x1.5), 1d(x0-x2), 2d(x0-x1) and such, better tooltip.',
 				'Fix calculation for formulas with ^2 in them, e.g. Sunblades.',
 				'Fix decimals going crazy in some fields and tooltip formulas, some other formatting.',
