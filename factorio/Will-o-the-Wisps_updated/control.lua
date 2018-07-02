@@ -674,7 +674,7 @@ zone stats - Print pollution and misc other stats for scanned zones to console.
 zone labels [n] - Add map labels to all found forest spawning zones.
 ... Parameter (double, default=0.005) is a min threshold to display a spawn chance number in the label.
 zone labels remove - Remove map labels from scanned zones.
-zone spawn - Spawn wisps in the forested map zones.
+zone spawn [n] - Spawn wisps in the forested map zones.
 ... Parameter (integer, default=1) sets how many spawn-cycles to simulate.
 attack - Have all will-o-wisps on the map turn hostile towards player(s).
 peace - Pacify all will-o-the-wisps on the map, command them to stop attacking.

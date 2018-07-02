@@ -1,4 +1,9 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.0.48
+Date: 02. 07. 2018
+  Bugfixes:
+    - Fix cache invalidation error which can randomly happen when players cut forests fast.
+---------------------------------------------------------------------------------------------------
 Version: 0.0.47
 Date: 01. 07. 2018
   Bugfixes:

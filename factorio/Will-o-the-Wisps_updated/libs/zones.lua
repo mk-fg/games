@@ -143,6 +143,7 @@ function zones.get_wisp_trees_anywhere(count, pollution_factor)
 		trees = chunk.surface.find_entities_filtered{type='tree', area=set[n].area}
 		if #trees >= conf.wisp_forest_min_density then break end
 		trees, chunk.forest, set[n], set.n, set[set.n] = nil, false, set[set.n], set.n - 1
+		SpawnChanceCache = nil
 	end
 	if trees then for n = 1, count do
 		table.insert(wisp_trees, trees[math.random(#trees)])
