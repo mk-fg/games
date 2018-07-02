@@ -47,8 +47,6 @@ form .info tbody tr:hover { background: linear-gradient(to bottom, rgba(0,0,0,0)
 form .info tbody tr:nth-child(odd) { background-color: #eee; }
 
 form .tips { grid-area: tips; }
-
-
 </style>
 <body>
 
@@ -102,8 +100,20 @@ let
 	attrs = vals => s => Object.entries(vals).forEach(([k,v]) => s.attr(k, v)),
 	// Usage: s.call(fire_event('input'))
 	fire_event = ev => s => s.each((d, n, ns) => s.on(ev)(d, n, ns)),
+	// Usage: obj_compare([1,2,30], [1,2,4], d3.ascending) => 1
+	obj_compare = (a1, a2, cmp) => {
+		if (!((Array.isArray(a1) && Array.isArray(a2)) ||
+				(a1 && a2 && typeof a1 === 'object' && typeof a2 === 'object')))
+			return cmp(a1, a2)
+		let keys = [], n
+		if (Array.isArray(a1))
+			for (n=0; n<Math.max(a1.length, a2.length); n++) keys.push(n)
+		else {
+			keys = Object.assign(Object.assign({}, a1), a2)
+			keys = Object.keys(keys).sort(cmp) }
+		for (n of keys) { n = cmp(a1[n], a2[n]); if (n !== 0) return n; } },
 	// Usage: s.sort(sort_by_func(d3.ascending, d => d.fields[key]))
-	sort_by_func = (cmp, func) => (a, b) => cmp(func(a), func(b)),
+	sort_by_func = (cmp, func) => (a, b) => obj_compare(func(a), func(b), cmp),
 	// Usage: s.data(map_entries(es6_map)) // Array of {key: ..., value: ...} like d3.entries()
 	map_entries = map => Array.from(map.entries(map)).map(d => ({key: d[0], value: d[1]})),
 	// Usage: obj_tuples(['asd', 'dfgdgf'], d => [d, d.length])
@@ -112,7 +122,9 @@ let
 	obj_clone = o => Object.assign({}, o),
 	// Usage: value = obj_pop(o, key); obj_pop(o, key, value => ...)
 	obj_pop = (o, key) => { let v = o[key]; delete o[key]; return v },
-	obj_pop_run = (o, key, func) => { let v = o[key]; delete o[key]; if (v) func(v) }
+	obj_pop_run = (o, key, func) => { let v = o[key]; delete o[key]; if (v) func(v) },
+	// Usage: bool_int('asd') => 1, bool_int('') => 0, bool_int(false) => 0
+	bool_int = v => Boolean(v)+0
 
 let debounce_enabled = true
 let debounce = (delay_ms, mode, func) => {
@@ -202,7 +214,10 @@ let stats = new Map([ ['strength', 35], ['melee', 70],
 	// Some are renamed in localization files, e.g. 0=NONE -> CHARM
 	info_dmg_types = {
 		0: 'charm', 1: 'piercing', 2: 'burn', 3: 'concussive', 4: 'laser', 5: 'plasma', 6: 'daze', 7: 'cutting', 8: 'chem', 9: 'choke',
-		10: 'anti-e511', 11: 'bio', 12: 'electric', 13: 'emp', 14: 'warp', 15: 'mind', 16: 'heat', 17: 'cold' }
+		10: 'anti-e511', 11: 'bio', 12: 'electric', 13: 'emp', 14: 'warp', 15: 'mind', 16: 'heat', 17: 'cold' },
+	// From enum in RuleDamageType.h, described under DRT_ stuff
+	info_random_types = {
+		0: 'vanilla', 1: '1d(x0-x2)', 2: '1d(x.5-x1.5)', 3: 'flat(x1)', 4: 'fire(5-10)', 5: 'no-dmg(x0)', 6: '2d(x0-x1)' }
 
 
 let item_stats = d => {
@@ -224,15 +239,15 @@ let item_stats = d => {
 
 	// Weight - can be sometimes weird too
 	GetWeight: {
-		let weight, weight_title
+		let weight, weight_raw, weight_title
 		if ('weight' in d) {
-			weight = d.weight
-			if (weight > 0) weight_title = '- Negative value, might have factors not checked here.'
+			weight = weight_raw = d.weight
+			if (weight < 0) weight_title = '- Negative value, might have factors not checked here.'
 		} else {
-			weight = '---'
+			[weight, weight_raw] = ['---', 0]
 			weight_title = '- Missing value, might be calculated in some way that is not implemented here.'
 		}
-		info.weight = {text: weight, title: weight_title}
+		info.weight = {text: weight, title: weight_title, value: weight_raw}
 	}
 
 	// Attack/use costs
@@ -267,21 +282,21 @@ let item_stats = d => {
 		if (cost_tu_flat) cost_title.push('- Flat TU cost (non-flat shows % in brackets).')
 		cost_str = k + (cost_str ? ' + ' + cost_str : '')
 		cost_title = !cost_title.length ? null : cost_title.join('\n')
-		info.costs = {text: cost_str, title: cost_title}
+		info.costs = {text: cost_str, title: cost_title, value: cost_tu}
 	}
 
 	// Type - 1H/2H + attack/damage types
 	CalcDamageType: {
 		let type_str = '', type_title = []
-		type_str += d.twoHanded ? ( d.oneHandedPenalty ?
-			`2H [-${d.oneHandedPenalty}%]` : '2H-only' ) : '1H'
-		k = d.damageType
-		if (!k) { k = '???'; type_title.push('- No damage type info.') }
-		else if (k in info_dmg_types) k = info_dmg_types[k]
-		else { type_title.push(`- Unrecognized damage type id = ${k}.`); k = `DT#${k}` }
+		let [t2h, t1h_allow] = [bool_int(d.twoHanded), -bool_int(d.oneHandedPenalty)]
+		type_str += t2h ? (t1h_allow ? `2H [-${d.oneHandedPenalty}%]` : '2H-only') : '1H'
+		let tdt = d.damageType
+		if (!tdt) { k = '???'; type_title.push('- No damage type info.') }
+		else if (tdt in info_dmg_types) k = info_dmg_types[tdt]
+		else { type_title.push(`- Unrecognized damage type id = ${tdt}.`); k = `DT#${tdt}` }
 		type_str += `, ${k_type}, ${k}`
 		type_title = !type_title.length ? null : type_title.join('\n')
-		info.type = {text: type_str, title: type_title}
+		info.type = {text: type_str, title: type_title, value: [t2h, t1h_allow, tdt]}
 	}
 
 	// Accuracy
@@ -328,7 +343,7 @@ let item_stats = d => {
 			acc_title.push(`- Factors not applied: ${JSON.stringify(factors)}`) }
 		acc_str = acc_str_warn + `${d3.format('.0f')(acc)}%`
 		acc_title = !acc_title.length ? null : acc_title.join('\n')
-		info.accuracy = {text: acc_str, title: acc_title}
+		info.accuracy = {text: acc_str, title: acc_title, value: acc}
 	}
 
 	// Damage
@@ -353,19 +368,19 @@ let item_stats = d => {
 		k = dmg; dmg += factor_sum
 		dmg_title.push(`- Formula: ${k} + ${factor_sum} = ${dmg}`)
 		dmg_title = !dmg_title.length ? null : dmg_title.join('\n')
-		info.damage = {text: `${dmg}`, title: dmg_title}
+		info.damage = {text: `${dmg}`, title: dmg_title, value: dmg}
 	}
 
 	// DPU (normalized damage values)
 	CalcDPU: {
 		if (!(dmg >= 0 && acc >= 0 && cost_tu >= 0)) break CalcDPU
 		let dpu = dmg * (acc / 100) / cost_tu
-		info.dpu = { text: `${d3.format('.1f')(dpu)}`,
+		info.dpu = { text: `${d3.format('.1f')(dpu)}`, value: dpu,
 			title: `- Formula: ${dmg} * (${acc} / 100) / ${cost_tu} = ${d3.format('.2f')(dpu)}\n`+
 				'- Note: with probabilities over multiple attempts, accuracy is *not* a linear factor.' }
 	}
 
-	// Special stuff like damage to stats and armor effectiveness
+	// Special stuff like damage to stats and armor effectiveness, there's a lot of these
 	CalcSpecials: {
 		let ext = [], ext_title = []
 		let da = obj_clone(d.meleeAlter || d.damageAlter || {})
@@ -391,8 +406,14 @@ let item_stats = d => {
 				ext_title.push(`- "${kx}" is a "damageAlter.${k}" value, if it helps.`) })
 		}
 		obj_pop_run(da, 'RandomType', d => {
-			ext.push(`d${d}`)
-			ext_title.push(`- "d${d}" is a RandomType value, I think d1 (50-150%) is a default.`)
+			k = info_random_types[d]
+			if (!k) {
+				k = `rnd=DRT#${d}`; ext.push(k)
+				ext_title.push(`- ${k} shows raw unrecognized RandomType value.`) }
+			else {
+				k = `rnd=${k}`; ext.push(k)
+				ext_title.push( `- "${k}" is how weapon Power value translates to rnd-ish damage.\n`+
+					'  "XdY" is X uniform dice rolls of Y, e.g. 2d(x0-x1) is a more mid-range 0-200%.' ) }
 		})
 		obj_pop_run(da, 'IgnoreOverKill', d => {
 			ext.push(`no-ok`)
@@ -417,9 +438,12 @@ let item_stats = d => {
 		info.specials = {text: ext, title: ext_title}
 	}
 
-	return { id: d.type,
-		fields: new Map(info_fields.map(d => [ d,
-			{text: (info[d] || {}).text, title: (info[d] || {}).title} ])) }
+	return { id: d.type, fields: new Map(info_fields.map(d => {
+		let field_info = info[d] || {}
+		return [ d, {
+			text: field_info.text && `${field_info.text}`,
+			title: field_info.title,
+			value: field_info.value || field_info.text } ] })) }
 }
 
 
@@ -505,17 +529,18 @@ let form = d3.select('body').append('form')
 			.enter().append('th').text(d => d)
 			.call(attrs({id: d => `info-th-${d}`, title: d => `Click to sort table by this field (${d})`}))
 			.on( 'click', (d, n, ns) => d3.select('#info').selectAll('tr')
-				.sort(sort_by_func(d3.ascending, d2 => d2.fields.get(d).text)) ))
+				.sort(sort_by_func(d3.ascending, d2 => d2.fields.get(d).value)) ))
 		.call(s => s.append('tbody').attr('id', 'info'))
 		.call(s => s.append('tfoot').append('tr')))
 	.call(s => s.append('ul').attr('class', 'tips')
 		.selectAll('li').data([
+			'Use search field at the top of the Weapons box to look for weapons and mark them for comparison.',
+			'CTRL/SHIFT + click/drag in Weapons list to pick many, as found + unselected items there are removed from table.',
 			'Use (SHIFT+)TAB to jump over stat input fields quickly.',
-			'CTRL/SHIFT + click in Weapons box, as found + unselected items there are removed from table.',
 			'Clicking table headers will sort on that column.',
-			'Hovering over table values (e.g. accuracy, costs) will show tooltips about what stuff there means.',
+			'Hovering over table values (e.g. accuracy, costs, damage) will show tooltips with more info/help on each.',
 			'"!!!" alongside value usually means some kind of data anomaly and that it can be incorrect.',
-			'Implemented in py but not here: stuff with ammo types (e.g. guns, need more UI), more "specials" stuff.' ])
+			'Implemented in py but not here: stuff with ammo types (e.g. guns, bows - need more UI), more "specials" stuff.' ])
 		.enter().append('li').text(d => d))
 
 refresh()
