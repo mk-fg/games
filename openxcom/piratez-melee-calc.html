@@ -100,20 +100,19 @@ let
 	attrs = vals => s => Object.entries(vals).forEach(([k,v]) => s.attr(k, v)),
 	// Usage: s.call(fire_event('input'))
 	fire_event = ev => s => s.each((d, n, ns) => s.on(ev)(d, n, ns)),
-	// Usage: obj_compare([1,2,30], [1,2,4], d3.ascending) => 1
-	obj_compare = (a1, a2, cmp) => {
+	// Usage: sort_compare([1,2,30], [1,2,4], d3.ascending) => 1
+	sort_compare = (a1, a2, cmp) => {
 		if (!((Array.isArray(a1) && Array.isArray(a2)) ||
 				(a1 && a2 && typeof a1 === 'object' && typeof a2 === 'object')))
 			return cmp(a1, a2)
 		let keys = [], n
-		if (Array.isArray(a1))
-			for (n=0; n<Math.max(a1.length, a2.length); n++) keys.push(n)
-		else {
-			keys = Object.assign(Object.assign({}, a1), a2)
-			keys = Object.keys(keys).sort(cmp) }
+		if (Array.isArray(a1)) for (n=0; n<Math.max(a1.length, a2.length); n++) keys.push(n)
+		else keys = Object.keys(Object.assign(Object.assign({}, a1), a2)).sort(cmp)
 		for (n of keys) { n = cmp(a1[n], a2[n]); if (n !== 0) return n; } },
 	// Usage: s.sort(sort_by_func(d3.ascending, d => d.fields[key]))
-	sort_by_func = (cmp, func) => (a, b) => obj_compare(func(a), func(b), cmp),
+	sort_by_func = (cmp, func) => (a, b) => sort_compare(func(a), func(b), cmp),
+	// Usage: bool_int('asd') => 1, bool_int('') => 0, bool_int(false) => 0
+	bool_int = v => Boolean(v)+0,
 	// Usage: s.data(map_entries(es6_map)) // Array of {key: ..., value: ...} like d3.entries()
 	map_entries = map => Array.from(map.entries(map)).map(d => ({key: d[0], value: d[1]})),
 	// Usage: obj_tuples(['asd', 'dfgdgf'], d => [d, d.length])
@@ -123,8 +122,8 @@ let
 	// Usage: value = obj_pop(o, key); obj_pop(o, key, value => ...)
 	obj_pop = (o, key) => { let v = o[key]; delete o[key]; return v },
 	obj_pop_run = (o, key, func) => { let v = o[key]; delete o[key]; if (v) func(v) },
-	// Usage: bool_int('asd') => 1, bool_int('') => 0, bool_int(false) => 0
-	bool_int = v => Boolean(v)+0
+	// Usage: obj_repr(obj) => str
+	obj_repr = o => JSON.stringify(o).replace(/"/g, '').replace(/([,:])/g, '$1 ')
 
 let debounce_enabled = true
 let debounce = (delay_ms, mode, func) => {
@@ -219,6 +218,8 @@ let stats = new Map([ ['strength', 35], ['melee', 70],
 	info_random_types = {
 		0: 'vanilla', 1: '1d(x0-x2)', 2: '1d(x.5-x1.5)', 3: 'flat(x1)', 4: 'fire(5-10)', 5: 'no-dmg(x0)', 6: '2d(x0-x1)' }
 
+let fmt = {d: d3.format('d'), f1: d3.format('.1f'), f2: d3.format('.2f')}
+
 
 let item_stats = d => {
 	let attrs = obj_tuples( map_entries(stats),
@@ -274,11 +275,11 @@ let item_stats = d => {
 					: '- Heals stun (STN) damage on user.' ) })
 			if (Object.keys(k).length > 0) {
 				cost_str += ' others'
-				cost_title.push(`- Other costs: ${JSON.stringify(k)}`) }
+				cost_title.push(`- Other costs:\n  ${obj_repr(k)}`) }
 		}
 		k = cost_tu
 		if (!cost_tu_flat) cost_tu *= attrs.TUs / 100
-		k = `${d3.format('d')(cost_tu)} TU` + (cost_tu_flat ? '' : ` [${k}%]`)
+		k = `${fmt.d(cost_tu)} TU` + (cost_tu_flat ? '' : ` [${k}%]`)
 		if (cost_tu_flat) cost_title.push('- Flat TU cost (non-flat shows % in brackets).')
 		cost_str = k + (cost_str ? ' + ' + cost_str : '')
 		cost_title = !cost_title.length ? null : cost_title.join('\n')
@@ -326,32 +327,33 @@ let item_stats = d => {
 			if (!Array.isArray(attr_factor)) attr_factor = [attr_factor]
 			for (k=0; k<attr_factor.length; k++) {
 				if (attr_factor[k] == 0) continue
-				let factor = (attr_value * attr_factor[k]) ** (k+1)
-				let factor_str = `${attr_value} * ${attr_factor[k]}`
-				if (k > 0) factor_str = `(${factor_str})^${k+1}`
-				acc_title.push(`- Factor [${attr}]: ${factor_str} = ${d3.format('.1f')(factor)}`)
+				let factor = attr_factor[k] * attr_value ** (k+1)
+				let factor_str = `${attr_factor[k]} * ${attr_value}`
+				if (k > 0) factor_str += `^${k+1}`
+				acc_title.push(`- Factor [${attr}]: ${factor_str} = ${fmt.f1(factor)}`)
 				factor_sum += factor  } }
 		let factor_flat = (obj_pop(factors, 'flatHundred') || 0) * 100
 		if (factor_flat) acc_title.push(`- Factor [flat value]: ${factor_flat}`)
-		k = factor_flat ? `(${factor_flat} + ${factor_sum})` : `${factor_sum}`
+		k = fmt.f1(factor_sum)
+		k = factor_flat ? `(${factor_flat} + ${k})` : `${k}`
 		acc = acc * (factor_flat + factor_sum) / 100
-		acc_title.push(`- Formula: ${acc_base} * ${k} / 100 = ${acc}`)
+		acc_title.push(`- Formula: ${acc_base} * ${k} / 100 = ${fmt.f2(acc)}`)
 		for (k of Object.keys(factors)) {
 			if (factors[k] == 0) delete factors[k] }
 		if (Object.keys(factors).length > 0) {
 			acc_str_warn = '[!!!] '
-			acc_title.push(`- Factors not applied: ${JSON.stringify(factors)}`) }
-		acc_str = acc_str_warn + `${d3.format('.0f')(acc)}%`
+			acc_title.push(`- Factors not applied:\n  ${obj_repr(factors)}`) }
+		acc_str = acc_str_warn + `${fmt.d(acc)}%`
 		acc_title = !acc_title.length ? null : acc_title.join('\n')
 		info.accuracy = {text: acc_str, title: acc_title, value: acc}
 	}
 
 	// Damage
-	let dmg // used in dpu calculation
+	let dmg = -1 // used in dpu calculation
 	CalcDamage: {
 		let dmg_str = '', dmg_str_warn = '', dmg_title = []
-		dmg = d['power'] || -1
-		if (dmg <= 0) break CalcDamage
+		if (!('power' in d)) break CalcDamage
+		dmg = d['power']
 		dmg_title.push(`- Base: ${dmg}`)
 		let factors = obj_clone(d.damageBonus || {}), factor_sum = 0
 		for (let [attr, attr_value] of Object.entries(attrs)) {
@@ -360,23 +362,23 @@ let item_stats = d => {
 			if (!Array.isArray(attr_factor)) attr_factor = [attr_factor]
 			for (k=0; k<attr_factor.length; k++) {
 				if (attr_factor[k] == 0) continue
-				let factor = (attr_value * attr_factor[k]) ** (k+1)
-				let factor_str = `${attr_value} * ${attr_factor[k]}`
-				if (k > 0) factor_str = `(${factor_str})^${k+1}`
-				dmg_title.push(`- Factor [${attr}]: ${factor_str} = ${d3.format('.1f')(factor)}`)
+				let factor = attr_factor[k] * attr_value ** (k+1)
+				let factor_str = `${attr_factor[k]} * ${attr_value}`
+				if (k > 0) factor_str += `^${k+1}`
+				dmg_title.push(`- Factor [${attr}]: ${factor_str} = ${fmt.f1(factor)}`)
 				factor_sum += factor  } }
 		k = dmg; dmg += factor_sum
 		dmg_title.push(`- Formula: ${k} + ${factor_sum} = ${dmg}`)
 		dmg_title = !dmg_title.length ? null : dmg_title.join('\n')
-		info.damage = {text: `${dmg}`, title: dmg_title, value: dmg}
+		info.damage = {text: fmt.d(dmg), title: dmg_title, value: dmg}
 	}
 
 	// DPU (normalized damage values)
 	CalcDPU: {
 		if (!(dmg >= 0 && acc >= 0 && cost_tu >= 0)) break CalcDPU
 		let dpu = dmg * (acc / 100) / cost_tu
-		info.dpu = { text: `${d3.format('.1f')(dpu)}`, value: dpu,
-			title: `- Formula: ${dmg} * (${acc} / 100) / ${cost_tu} = ${d3.format('.2f')(dpu)}\n`+
+		info.dpu = { text: `${fmt.f1(dpu)}`, value: dpu,
+			title: `- Formula: ${dmg} * (${acc} / 100) / ${cost_tu} = ${fmt.f2(dpu)}\n`+
 				'- Note: with probabilities over multiple attempts, accuracy is *not* a linear factor.' }
 	}
 
@@ -426,12 +428,12 @@ let item_stats = d => {
 		obj_pop(da, 'FixRadius')
 		if (Object.keys(da).length > 0) {
 			ext.push('+')
-			ext_title.push(`- More modifiers: ${JSON.stringify(da)}`)
+			ext_title.push(`- More modifiers:\n  ${obj_repr(da)}`)
 		}
 		if (d.meleeAlter && d.damageAlter) {
 			ext.push('++')
-			ext_title.push( '- Showing stuff from meleeAlter section,'+
-				` separate damageAlter section (for other attack types): ${JSON.stringify(d.damageAlter)}` )
+			ext_title.push( '- Showing meleeAlter only, separate'+
+				` damageAlter (for other attack modes):\n  ${obj_repr(d.damageAlter)}` )
 		}
 		ext = !ext.length ? null : ext.join(' ')
 		ext_title = !ext_title.length ? null : ext_title.join('\n')
@@ -447,7 +449,7 @@ let item_stats = d => {
 }
 
 
-let refresh = () => {
+let refresh_raw = () => {
 	d3.select('#info').selectAll('tr')
 		.data(items_info.values().map(d => item_stats(items[d])), d => d.id)
 		.call(s => s.exit().remove())
@@ -464,7 +466,7 @@ let refresh = () => {
 		box_weapons = document.getElementById('fields-weapons')
 	box_weapons.style.height = `${box_info.offsetHeight}px`
 }
-
+let refresh = debounce(300, 'now', refresh_raw)
 
 let weapon_search = (d, n, ns) => {
 	let input = ns[n].value
@@ -476,9 +478,12 @@ let weapon_search = (d, n, ns) => {
 	d3.select('#input-weapon-select')
 		.selectAll('option').data(items, d => d.type)
 		.call(s => s.exit().remove())
-		.enter().append('option')
-			.attr('value', d => d.type).text(d => d.name)
-			.attr('selected', d => items_info.has(d.type) || null)
+		.call(s => s
+			.enter().append('option')
+				.attr('value', d => d.type).text(d => d.name)
+				.attr('selected', d => items_info.has(d.type) || null)
+			.merge(s)
+				.sort(sort_by_func(d3.ascending, d => d.name)))
 }
 
 
@@ -491,7 +496,8 @@ let form = d3.select('body').append('form')
 		.selectAll('input').data(map_entries(stats))
 		.enter()
 			.append('label').attr('for', d => `input-stats-${d.key}`).text(d => d.key)
-			.append('input').on('input', (d, n, ns) => {state_attrs(d.key, ns[n].value); refresh() })
+			.append('input')
+				.on('input', (d, n, ns) => { state_attrs(d.key, ns[n].value); refresh() })
 				.call(attrs({
 					type: 'number', required: true,
 					title: d => `Soldier stat value (${d.key})`,
