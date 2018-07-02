@@ -142,6 +142,8 @@ let
 	fire_event = ev => s => s.each((d, n, ns) => s.on(ev)(d, n, ns)),
 	// Usage: sort_compare([1,2,30], [1,2,4], d3.ascending) => 1
 	sort_compare = (a1, a2, cmp) => {
+		if (a1 === undefined) return a2 === undefined ? 0 : -1
+		else if (a2 === undefined) return 1
 		if (!((Array.isArray(a1) && Array.isArray(a2)) ||
 				(a1 && a2 && typeof a1 === 'object' && typeof a2 === 'object')))
 			return cmp(a1, a2)
@@ -242,7 +244,7 @@ let
 let
 	items = data,
 	items_info = d3.set( (state('i') || '').split('.').filter(d => d.length > 0)
-		.map(d => (d.startsWith('str_') ? d : `str_${d}`).toUpperCase()) ),
+		.map(d => ((d.startsWith('str_') || d.toUpperCase() in items) ? d : `str_${d}`).toUpperCase()) ),
 	items_battle = Object.values(data).filter(e => e.battleType)
 
 let stats = new Map([ ['strength', 35], ['melee', 70],
@@ -485,7 +487,7 @@ let item_stats = d => {
 		return [ d, {
 			text: field_info.text && `${field_info.text}`,
 			title: field_info.title,
-			value: field_info.value || field_info.text } ] })) }
+			value: 'value' in field_info ? field_info.value : field_info.text } ] })) }
 }
 
 
@@ -592,21 +594,24 @@ let form = d3.select('body').append('form')
 
 refresh()
 
-let ticker = d3.select('body')
-	.append('div').attr('class', 'ticker-wrap')
-	.on('click', (d, n, ns) => ticker.remove())
-	.call(s => s
-		.append('div').attr('class', 'ticker')
-		.selectAll('div.item').data([
-			'Last Updates - "Fat Volcano" release:',
-			'Fix info-table sorting using just text instead of numeric/composite values.',
-			'Alpha-sort list of weapons under search box.',
-			'Translate RandomType values to 1d(x.5-x1.5), 1d(x0-x2), 2d(x0-x1) and such, better tooltip.',
-			'Fix calculation for formulas with ^2 in them, e.g. Sunblades.',
-			'Fix decimals going crazy in some fields and tooltip formulas, some other formatting.',
-			'Add refresh delay/debounce when typing in stats fields.',
-			'End of the announcement. Click on the thing to dismiss it.' ])
-		.enter().append('div').attr('class', 'item').text(d => d))
+let ticker_release = 'Fat Volcano'
+if (localStorage['ticker'] !== ticker_release) {
+	let ticker = d3.select('body')
+		.append('div').attr('class', 'ticker-wrap')
+		.on('click', (d, n, ns) => ticker.remove())
+		.call(s => s
+			.append('div').attr('class', 'ticker')
+			.selectAll('div.item').data([
+				`Last Updates - "${ticker_release}" release:`,
+				'Fix info-table sorting using just text instead of numeric/composite values.',
+				'Alpha-sort list of weapons under search box.',
+				'Translate RandomType values to 1d(x.5-x1.5), 1d(x0-x2), 2d(x0-x1) and such, better tooltip.',
+				'Fix calculation for formulas with ^2 in them, e.g. Sunblades.',
+				'Fix decimals going crazy in some fields and tooltip formulas, some other formatting.',
+				'Add refresh delay/debounce when typing in stats fields.',
+				'End of the announcement. Click on the thing to dismiss it.' ])
+			.enter().append('div').attr('class', 'item').text(d => d))
+	localStorage['ticker'] = ticker_release }
 
 
 }
