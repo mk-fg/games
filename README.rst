@@ -306,10 +306,10 @@ Bunch of delta-V and aerobraking maps, along with some outdated mod tweaks.
 `OpenXCOM XPirateZ mod`_
 ------------------------
 
-Very extensive total conversion for OpenXCOM, and one of the best turn-based
-strategies out there if complexity and longevity is your thing.
+Very extensive total conversion for OpenXCOM, and one of the best strategies of
+its type if complexity, longevity and rather slow pacing is your thing.
 
-Fair warning though - art/text in that mod can get weird.
+Fair warning though - art/text in that mod can get a bit weird.
 
 - piratez-melee-calc.py
 
@@ -365,16 +365,18 @@ Fair warning though - art/text in that mod can get weird.
   each run (as cache-file contains all the info).
 
   piratez-melee-calc.json next to the script is a sample cache file with
-  probably quite out-of-date stats, extracted from some old-ish mod version.
+  probably quite out-of-date stats, extracted from some old-ish mod version
+  (0.99J2 at the time of writing).
 
 - `piratez-melee-calc.html
   <https://mk-fg.github.io/games/openxcom/piratez-melee-calc.html>`_
 
-  Straight-up translation of the calculator script above to JS/D3-based
-  in-browser tool.
+  Straight-up translation of the python/console calculator script above to
+  JS/D3-based in-browser tool, so that it's not so linux-exclusive.
 
   Can be used with json cache file comitted in the repo via link above,
-  otherwise just put both html and json into same path and run html via browser.
+  otherwise just put html and generated json cache into same path and run html
+  via browser.
 
 .. _OpenXCOM XPirateZ mod: https://www.ufopaedia.org/index.php/Piratez
 

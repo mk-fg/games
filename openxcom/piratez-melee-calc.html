@@ -118,6 +118,7 @@ window.onload = () => d3js_loaded
 	.then(json => { data = json; main() })
 
 main = () => {
+'use strict'
 
 if (!d3) {
 	document.body.innerHTML = `
@@ -254,7 +255,9 @@ let
 	items = data,
 	items_info = d3.set( (state('i') || '').split('.').filter(d => d.length > 0)
 		.map(d => ((d.startsWith('str_') || d.toUpperCase() in items) ? d : `str_${d}`).toUpperCase()) ),
-	items_battle = Object.values(data).filter(e => e.battleType)
+	items_battle = Object.values(data).filter(e => e.battleType),
+	// Added manually as e.g.: "STR_VERSION": {"type": "STR_VERSION", "value": "0.99J2"},
+	items_version = (items.STR_VERSION || {}).value || 'unknown'
 
 let
 	info_fields = [ 'weight', 'weapon', 'type',
@@ -357,7 +360,7 @@ let item_stats = d => {
 	// Accuracy
 	let acc // used in dpu calculation
 	CalcAccuracy: {
-		let acc_str = '', acc_str_warn = '', acc_title = []
+		let acc_str = '', acc_str_warn = '', acc_title = [], acc_base
 		acc = acc_base = d[k_acc] || -1
 		if (acc <= 0) break CalcAccuracy
 		acc_title.push(`- Base: ${acc}`)
@@ -407,7 +410,7 @@ let item_stats = d => {
 	CalcDamage: {
 		let dmg_str = '', dmg_str_warn = '', dmg_title = []
 		if (!('power' in d)) break CalcDamage
-		dmg = d['power']
+		dmg = d.power
 		dmg_title.push(`- Base: ${dmg}`)
 		let factors = obj_clone(d.damageBonus || {}), factor_sum = 0
 		for (let [attr, attr_value] of Object.entries(attrs)) {
@@ -503,7 +506,7 @@ let item_stats = d => {
 }
 
 
-let refresh_raw = () => {
+let refresh = debounce(300, 'now', () => {
 	d3.select('#info').selectAll('tr')
 		.data(items_info.values().map(d => item_stats(items[d])), d => d.id)
 		.call(s => s.exit().remove())
@@ -526,34 +529,15 @@ let refresh_raw = () => {
 									row.remove()
 									items_info.remove(row_id)
 									items_info_state_update() }) })) }))
-	let box_info = document.getElementById('info'),
-		box_weapons = document.getElementById('fields-weapons')
-	box_weapons.style.min_height = `${box_info.offsetHeight}px`
-}
-let refresh = debounce(300, 'now', refresh_raw)
-
-let weapon_search = (d, n, ns) => {
-	let input = ns[n].value
-	state('q', input)
-	if (input.length <= 0) return
-	let items = items_battle.filter( e => e.name == input ||
-		e.name.includes(input) || e.name.toLowerCase().includes(input.toLowerCase()) ||
-		e.type == input || e.type.toLowerCase().includes(input.toLowerCase()) )
-	d3.select('#input-weapon-select')
-		.selectAll('option').data(items, d => d.type)
-		.call(s => s.exit().remove())
-		.call(s => s
-			.enter().append('option')
-				.attr('value', d => d.type).text(d => d.name)
-				.attr('selected', d => items_info.has(d.type) || null)
-			.merge(s)
-				.sort(sort_by_func(d3.ascending, d => d.name)))
-}
+	document.getElementById('fields-weapons')
+		.style.min_height = `${document.getElementById('info').offsetHeight}px`
+})
 
 
 let state_attrs = state.prefix('a.')
 
 let form = d3.select('body').append('form')
+
 	.call(s => s
 		.append('fieldset').attr('class', 'stats')
 		.call(s => s.append('legend').text('stats'))
@@ -567,15 +551,32 @@ let form = d3.select('body').append('form')
 					title: d => `Soldier stat value (${d.key})`,
 					min: 0, max: 200, step: 1,value: d => state_attrs(d.key) || d.value,
 					id: d => `input-stats-${d.key}`, name: d => d.key })))
+
 	.call(s => s
 		.append('fieldset').call(attrs({'class': 'weapons', id: 'fields-weapons'}))
 		.call(s => {
-			s.append('legend').text('weapons')
-			s.append('input').on('input', debounce(300, 'last', weapon_search))
+			s.append('legend').text(`weapons [mod version: ${items_version}]`)
+			s.append('input')
 				.call(attrs({ 'class': 'search', type: 'search',
 					title: 'Item Search Box - type in any part of item names or IDs here',
 					value: state('q'), list: 'input-weapons-datalist',
 					id: 'input-weapon-search', name: 'weapon-search' }))
+				.on('input', debounce(300, 'last', (d, n, ns) => {
+					let input = ns[n].value
+					state('q', input)
+					if (input.length <= 0) return
+					let items = items_battle.filter( e => e.name == input ||
+						e.name.includes(input) || e.name.toLowerCase().includes(input.toLowerCase()) ||
+						e.type == input || e.type.toLowerCase().includes(input.toLowerCase()) )
+					d3.select('#input-weapon-select')
+						.selectAll('option').data(items, d => d.type)
+						.call(s => s.exit().remove())
+						.call(s => s
+							.enter().append('option')
+								.attr('value', d => d.type).text(d => d.name)
+								.attr('selected', d => items_info.has(d.type) || null)
+							.merge(s)
+								.sort(sort_by_func(d3.ascending, d => d.name))) }))
 				.call(fire_event('input'))
 			s.append('datalist').attr('id', 'input-weapon-datalist')
 				.call(s => items_battle.map(e => {
@@ -592,6 +593,7 @@ let form = d3.select('body').append('form')
 					title: 'Select items to display info on here.\n'+
 						'Use CTRL/SHIFT keys and mouse-drag to pick multiple ones.',
 					id: 'input-weapon-select', name: 'weapon-select' }))}))
+
 	.call(s => s
 		.append('table').attr('class', 'info')
 		.call(s => s.append('thead').append('tr')
@@ -606,6 +608,7 @@ let form = d3.select('body').append('form')
 				.sort(sort_by_func(d3.ascending, d2 => d2.fields.get(d).value)) ))
 		.call(s => s.append('tbody').attr('id', 'info'))
 		.call(s => s.append('tfoot').append('tr')))
+
 	.call(s => s.append('ul').attr('class', 'tips')
 		.selectAll('li').data([
 			'Use search field at the top of the Weapons box to look for weapons and mark them for comparison.',
@@ -620,7 +623,7 @@ let form = d3.select('body').append('form')
 refresh()
 
 let ticker_release = 'Fat Volcano'
-if (localStorage['ticker'] !== ticker_release) {
+if (localStorage.ticker !== ticker_release) {
 	let ticker = d3.select('body')
 		.append('div').attr('class', 'ticker-wrap')
 		.on('click', (d, n, ns) => ticker.remove())
@@ -635,9 +638,10 @@ if (localStorage['ticker'] !== ticker_release) {
 				'Fix calculation for formulas with ^2 in them, e.g. Sunblades.',
 				'Fix decimals going crazy in some fields and tooltip formulas, some other formatting.',
 				'Add refresh delay/debounce when typing in stats fields.',
+				'Add mod version display for source rul files on top of Weapons box.',
 				'End of the announcement. Click on the thing to dismiss it.' ])
 			.enter().append('div').attr('class', 'item').text(d => d))
-	localStorage['ticker'] = ticker_release }
+	localStorage.ticker = ticker_release }
 
 
 }
