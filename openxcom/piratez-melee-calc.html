@@ -166,7 +166,7 @@ let
 	obj_clone = o => Object.assign({}, o),
 	// Usage: value = obj_pop(o, key); obj_pop(o, key, value => ...)
 	obj_pop = (o, key) => { let v = o[key]; delete o[key]; return v },
-	obj_pop_run = (o, key, func) => { let v = o[key]; delete o[key]; if (v) func(v) },
+	obj_pop_run = (o, key, func) => { if (!(key in o)) return; let v = o[key]; delete o[key]; func(v) },
 	// Usage: obj_repr(obj) => str
 	obj_repr = o => JSON.stringify(o).replace(/"/g, '').replace(/([,:])/g, '$1 ')
 
@@ -457,12 +457,16 @@ let item_stats = d => {
 		})
 		let k, kx
 		for ([k, kx] of [
-				['ToHealth', 'toH'], ['ToStun', 'toStn'],
-				['ToEnergy', 'toE'], ['ToMorale', 'toM'],
-				['ToTime', 'toTU'], ['ToArmorPre', 'toAP'] ]) {
+				['ToHealth', 'toH'], ['ToWound', 'toWound'],  ['ToStun', 'toStn'],
+				['ToEnergy', 'toE'], ['ToMorale', 'toM'], ['ToTime', 'toTU'],
+				['ToTile', 'toMap'], ['ToArmor', 'toAr'], ['ToArmorPre', 'toArPre'] ]) {
 			obj_pop_run(da, k, d => {
 				ext.push(`${kx}=${d}`)
-				ext_title.push(`- "${kx}" is a "damageAlter.${k}" value, if it helps.`) })
+				if (kx === 'toArPre') ext_title.push(
+					`- ${kx}: damage multiplier to armor before applying armor resistances.` )
+				else if (kx === 'toAr') ext_title.push(`- "${kx}": armor damage multiplier.`)
+				else if (kx === 'toWound') ext_title.push(`- "${kx}": fatal wound count multiplier.`)
+				else ext_title.push(`- "${kx}" is a "damageAlter.${k}" damage multiplier value, if it helps.`) })
 		}
 		obj_pop_run(da, 'RandomType', d => {
 			k = info_random_types[d]
@@ -474,15 +478,31 @@ let item_stats = d => {
 				ext_title.push( `- "${k}" is how weapon Power value translates to rnd-ish damage.\n`+
 					'  "XdY" is X uniform dice rolls of Y, e.g. 2d(x0-x1) is a more mid-range 0-200%.' ) }
 		})
+		obj_pop_run(da, 'RandomWound', d => {
+			ext.push(`rnd-wound=${d}`)
+			ext_title.push(
+				`- "rnd-wound": "true" use original radom system giving 1-3 wounds on hit,\n`+
+					'  "false" will give linear value based on "ToWound" value.' )
+		})
+		obj_pop_run(da, 'RandomStun', d => {
+			ext.push(`rnd-stun=${d}`)
+			ext_title.push('- "rnd-stun": whether calculation of final stun level change use random value, idk.')
+		})
 		obj_pop_run(da, 'IgnoreOverKill', d => {
 			ext.push(`no-ok`)
 			ext_title.push(`- no-ok = IgnoreOverKill, probably for stun damage.`)
 		})
+		obj_pop_run(da, 'IgnorePainImmunity', d => {
+			if (!d) return
+			ext.push(`ignores-pain-immunity`)
+			ext_title.push( '- "ignores-pain-immunity":'+
+				' some units don\'t get stun level from damage - ignores that.' )
+		})
 		obj_pop_run(da, 'IgnoreDirection', d => {
 			ext.push(`unidir`)
-			ext_title.push(`- unidir = IgnoreDirection, .`)
+			ext_title.push(`- unidir = IgnoreDirection - "damage ignores direction of hit, used by smoke and fire".`)
 		})
-		obj_pop(da, 'FixRadius')
+		obj_pop(da, 'FixRadius') // whatever
 		if (Object.keys(da).length > 0) {
 			ext.push('+')
 			ext_title.push(`- More modifiers:\n  ${obj_repr(da)}`)
@@ -622,26 +642,27 @@ let form = d3.select('body').append('form')
 
 refresh()
 
-let ticker_release = 'Fat Volcano'
-if (localStorage.ticker !== ticker_release) {
-	let ticker = d3.select('body')
-		.append('div').attr('class', 'ticker-wrap')
-		.on('click', (d, n, ns) => ticker.remove())
-		.call(s => s
-			.append('div').attr('class', 'ticker')
-			.selectAll('div.item').data([
-				`Last Updates - "${ticker_release}" release:`,
-				'Fix info-table sorting using just text instead of numeric/composite values.',
-				'Alpha-sort list of weapons under search box.',
-				'Add "remove weapon" button to info table rows.',
-				'Translate RandomType values to 1d(x.5-x1.5), 1d(x0-x2), 2d(x0-x1) and such, better tooltip.',
-				'Fix calculation for formulas with ^2 in them, e.g. Sunblades.',
-				'Fix decimals going crazy in some fields and tooltip formulas, some other formatting.',
-				'Add refresh delay/debounce when typing in stats fields.',
-				'Add mod version display for source rul files on top of Weapons box.',
-				'End of the announcement. Click on the thing to dismiss it.' ])
-			.enter().append('div').attr('class', 'item').text(d => d))
-	localStorage.ticker = ticker_release }
+
+// let ticker_release = 'Fat Volcano'
+// if (localStorage.ticker !== ticker_release) {
+// 	let ticker = d3.select('body')
+// 		.append('div').attr('class', 'ticker-wrap')
+// 		.on('click', (d, n, ns) => ticker.remove())
+// 		.call(s => s
+// 			.append('div').attr('class', 'ticker')
+// 			.selectAll('div.item').data([
+// 				`Last Updates - "${ticker_release}" release:`,
+// 				'Fix info-table sorting using just text instead of numeric/composite values.',
+// 				'Alpha-sort list of weapons under search box.',
+// 				'Add "remove weapon" button to info table rows.',
+// 				'Translate RandomType values to 1d(x.5-x1.5), 1d(x0-x2), 2d(x0-x1) and such, better tooltip.',
+// 				'Fix calculation for formulas with ^2 in them, e.g. Sunblades.',
+// 				'Fix decimals going crazy in some fields and tooltip formulas, some other formatting.',
+// 				'Add refresh delay/debounce when typing in stats fields.',
+// 				'Add mod version display for source rul files on top of Weapons box.',
+// 				'End of the announcement. Click on the thing to dismiss it.' ])
+// 			.enter().append('div').attr('class', 'item').text(d => d))
+// 	localStorage.ticker = ticker_release }
 
 
 }
