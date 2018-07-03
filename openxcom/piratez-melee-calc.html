@@ -413,9 +413,9 @@ let item_stats = d => {
 	// Damage
 	let dmg = -1 // used in dpu calculation
 	CalcDamage: {
-		let dmg_str = '', dmg_str_warn = '', dmg_title = []
+		let dmg_str_warn = '', dmg_title = [], dmg_base
 		if (!('power' in d)) break CalcDamage
-		dmg = d.power
+		dmg = dmg_base = d.power
 		dmg_title.push(`- Base: ${dmg}`)
 		let factors = obj_clone(d.damageBonus || {}), factor_sum = 0
 		for (let [attr, attr_value] of Object.entries(attrs)) {
@@ -429,10 +429,19 @@ let item_stats = d => {
 				if (k > 0) factor_str += `^${k+1}`
 				dmg_title.push(`- Factor [${attr}]: ${factor_str} = ${fmt.f1(factor)}`)
 				factor_sum += factor  } }
-		k = dmg; dmg += factor_sum
-		dmg_title.push(`- Formula: ${k} + ${factor_sum} = ${dmg}`)
+		dmg += factor_sum
+		k = `${dmg_base} + ${factor_sum}`
+		if (k_type === 'auto') {
+			dmg *= d.autoShots || 1
+			k = `(${k}) * ${d.autoShots}`
+			if ((d.autoShots || 0) <= 0) {
+				dmg_str_warn = '[!!!] '
+				dmg_title.push('- Uses auto-shot mode, but failed to find shot count.') }
+			else dmg_title.push( `- Auto-shot x${d.autoShots} mode.\n`+
+				'  Note: actual damage over X attacks w/ accuracy/spread/armor is non-linear.' ) }
+		dmg_title.push(`- Formula: ${k} = ${dmg}`)
 		dmg_title = !dmg_title.length ? null : dmg_title.join('\n')
-		info.damage = {text: fmt.d(dmg), title: dmg_title, value: dmg}
+		info.damage = {text: dmg_str_warn + fmt.d(dmg), title: dmg_title, value: dmg}
 	}
 
 	// DPU (normalized damage values)
@@ -495,7 +504,7 @@ let item_stats = d => {
 		})
 		obj_pop_run(da, 'IgnoreOverKill', d => {
 			ext.push(`no-ok`)
-			ext_title.push(`- no-ok = IgnoreOverKill, probably for stun damage.`)
+			ext_title.push(`- "no-ok" (IgnoreOverKill): disables overkill damage, default=true.`)
 		})
 		obj_pop_run(da, 'IgnorePainImmunity', d => {
 			if (!d) return
@@ -505,9 +514,17 @@ let item_stats = d => {
 		})
 		obj_pop_run(da, 'IgnoreDirection', d => {
 			ext.push(`unidir`)
-			ext_title.push(`- unidir = IgnoreDirection - "damage ignores direction of hit, used by smoke and fire".`)
+			ext_title.push(`- "unidir" (IgnoreDirection): damage ignores direction of hit, used by smoke and fire.`)
 		})
-		obj_pop(da, 'FixRadius') // whatever
+		obj_pop_run(da, 'FixRadius', d => {
+			ext.push(`blast-r=${d}`)
+			ext_title.push(`- "blast-r": blast radius.`)
+		})
+		obj_pop_run(da, 'SmokeThreshold', d => {
+			ext.push(`smoke=${d}`)
+			ext_title.push(`- "smoke" (SmokeThreshold): how much damage is required to spawn smoke on tile.\n`+
+				'  1000 is default (never spawn), 0 for smoke grenades (always spawn).')
+		})
 		if (Object.keys(da).length > 0) {
 			ext.push('+')
 			ext_title.push(`- More modifiers:\n  ${obj_repr(da)}`)
@@ -658,7 +675,7 @@ if (ticker_release && localStorage.ticker !== ticker_release) {
 			.selectAll('div.item').data([
 				`Last Update - "${ticker_release}" release:`,
 				'Add bunch of abbrevs and title descriptions for quirks that were missing these.',
-				'Fix formula for default factor-less xcom accuracy calculation.',
+				'Fix formula for default factor-less xcom accuracy calculation and auto-fire (dmg*shots).',
 				'End of the announcement. Click to dismiss.' ])
 			.enter().append('div').attr('class', 'item').text(d => d))
 	localStorage.ticker = ticker_release }
