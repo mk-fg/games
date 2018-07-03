@@ -79,7 +79,7 @@ form .tips { grid-area: tips; }
 	animation-iteration-count: infinite;
 	animation-timing-function: linear;
 	animation-name: ticker;
-	animation-duration: 60s;
+	animation-duration: 30s;
 }
 .ticker-wrap .ticker .item {
 	display: inline-block;
@@ -378,6 +378,11 @@ let item_stats = d => {
 				continue }
 			factors = k }
 		factors = obj_clone(factors)
+		if (!Object.keys(factors).length) { // default xcom skill-factor
+			if (k_type === 'melee') k = 'melee'
+			else if (k_type === 'throw') k = 'throwing'
+			else k = 'firing'
+			factors[k] = 1 }
 		for (let [attr, attr_value] of Object.entries(attrs)) {
 			let attr_factor = obj_pop(factors, attr) || 0
 			if (!attr_factor) continue
@@ -643,26 +648,20 @@ let form = d3.select('body').append('form')
 refresh()
 
 
-// let ticker_release = 'Fat Volcano'
-// if (localStorage.ticker !== ticker_release) {
-// 	let ticker = d3.select('body')
-// 		.append('div').attr('class', 'ticker-wrap')
-// 		.on('click', (d, n, ns) => ticker.remove())
-// 		.call(s => s
-// 			.append('div').attr('class', 'ticker')
-// 			.selectAll('div.item').data([
-// 				`Last Updates - "${ticker_release}" release:`,
-// 				'Fix info-table sorting using just text instead of numeric/composite values.',
-// 				'Alpha-sort list of weapons under search box.',
-// 				'Add "remove weapon" button to info table rows.',
-// 				'Translate RandomType values to 1d(x.5-x1.5), 1d(x0-x2), 2d(x0-x1) and such, better tooltip.',
-// 				'Fix calculation for formulas with ^2 in them, e.g. Sunblades.',
-// 				'Fix decimals going crazy in some fields and tooltip formulas, some other formatting.',
-// 				'Add refresh delay/debounce when typing in stats fields.',
-// 				'Add mod version display for source rul files on top of Weapons box.',
-// 				'End of the announcement. Click on the thing to dismiss it.' ])
-// 			.enter().append('div').attr('class', 'item').text(d => d))
-// 	localStorage.ticker = ticker_release }
+let ticker_release = 'Vile Skull'
+if (ticker_release && localStorage.ticker !== ticker_release) {
+	let ticker = d3.select('body')
+		.append('div').attr('class', 'ticker-wrap')
+		.on('click', (d, n, ns) => ticker.remove())
+		.call(s => s
+			.append('div').attr('class', 'ticker')
+			.selectAll('div.item').data([
+				`Last Update - "${ticker_release}" release:`,
+				'Add bunch of abbrevs and title descriptions for quirks that were missing these.',
+				'Fix formula for default factor-less xcom accuracy calculation.',
+				'End of the announcement. Click to dismiss.' ])
+			.enter().append('div').attr('class', 'item').text(d => d))
+	localStorage.ticker = ticker_release }
 
 
 }
