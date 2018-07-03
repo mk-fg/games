@@ -454,21 +454,23 @@ let item_stats = d => {
 	}
 
 	// Special stuff like damage to stats and armor effectiveness, there's a lot of these
-	CalcQuirks: {
+	DescribeQuirks: {
 		let ext = [], ext_title = []
 		let da = obj_clone(d.meleeAlter || d.damageAlter || {})
-		obj_pop_run(da, 'ArmorEffectiveness', d => {
-			if (d == 1) return
-			ext.push(`kArmor=${d}`)
-			ext_title.push( '- kArmor is "Enemy Armor Effectiveness" (lower = better),\n'+
-				'  so e.g. kArmor=2 means 2x damage thresholds/resistance vs weapon.' )
-		})
+		let da_key_desc = (key, desc_func) => obj_pop_run(da, key, d => {
+			let [desc, title] = desc_func(d)
+			if (desc) ext.push(desc); else return
+			if (title) ext_title.push(title) })
+
+		da_key_desc('ArmorEffectiveness', d => [ d !== 1 && `kArmor=${d}`,
+			`- "kArmor": enemy armor effectiveness value (lower = better),\n'+
+				'  so e.g. kArmor=2 means 2x damage thresholds/resistance vs weapon.` ])
 		obj_pop_run(da, 'ResistType', d => {
 			let dt = info_dmg_types[d]
 			if (!dt) { dt = 'DT#${d}'; ext_title.push(`- Unrecognized damage type id = ${d}.`) }
 			ext.push(`resist=${dt}`)
-			ext_title.push(`- Armor resistance "${dt}" (reduction %) is used for calculating damage value.`)
-		})
+			ext_title.push(`- Armor resistance "${dt}" (reduction %) is used for calculating damage value.`) })
+
 		let k, kx
 		for ([k, kx] of [
 				['ToHealth', 'toH'], ['ToWound', 'toWound'],  ['ToStun', 'toStn'],
@@ -477,11 +479,11 @@ let item_stats = d => {
 			obj_pop_run(da, k, d => {
 				ext.push(`${kx}=${d}`)
 				if (kx === 'toArPre') ext_title.push(
-					`- ${kx}: damage multiplier to armor before applying armor resistances.` )
+					`- "${kx}": damage multiplier to armor before applying armor resistances.` )
 				else if (kx === 'toAr') ext_title.push(`- "${kx}": armor damage multiplier.`)
 				else if (kx === 'toWound') ext_title.push(`- "${kx}": fatal wound count multiplier.`)
-				else ext_title.push(`- "${kx}" is a "damageAlter.${k}" damage multiplier value, if it helps.`) })
-		}
+				else ext_title.push(`- "${kx}": "damageAlter.${k}" damage multiplier value.`) }) }
+
 		obj_pop_run(da, 'RandomType', d => {
 			k = info_random_types[d]
 			if (!k) {
@@ -490,50 +492,32 @@ let item_stats = d => {
 			else {
 				k = `rnd=${k}`; ext.push(k)
 				ext_title.push( `- "${k}" is how weapon Power value translates to rnd-ish damage.\n`+
-					'  "XdY" is X uniform dice rolls of Y, e.g. 2d(x0-x1) is a more mid-range 0-200%.' ) }
-		})
-		obj_pop_run(da, 'RandomWound', d => {
-			ext.push(`rnd-wound=${d}`)
-			ext_title.push(
-				`- "rnd-wound": "true" use original radom system giving 1-3 wounds on hit,\n`+
-					'  "false" will give linear value based on "ToWound" value.' )
-		})
-		obj_pop_run(da, 'RandomStun', d => {
-			ext.push(`rnd-stun=${d}`)
-			ext_title.push('- "rnd-stun": whether calculation of final stun level change use random value, idk.')
-		})
-		obj_pop_run(da, 'IgnoreOverKill', d => {
-			ext.push(`no-ok`)
-			ext_title.push(`- "no-ok" (IgnoreOverKill): disables overkill damage, default=true.`)
-		})
-		obj_pop_run(da, 'IgnorePainImmunity', d => {
-			if (!d) return
-			ext.push(`ignores-pain-immunity`)
-			ext_title.push( '- "ignores-pain-immunity":'+
-				' some units don\'t get stun level from damage - ignores that.' )
-		})
-		obj_pop_run(da, 'IgnoreDirection', d => {
-			ext.push(`unidir`)
-			ext_title.push(`- "unidir" (IgnoreDirection): damage ignores direction of hit, used by smoke and fire.`)
-		})
-		obj_pop_run(da, 'FixRadius', d => {
-			ext.push(`blast-r=${d}`)
-			ext_title.push(`- "blast-r": blast radius.`)
-		})
-		obj_pop_run(da, 'SmokeThreshold', d => {
-			ext.push(`smoke=${d}`)
-			ext_title.push(`- "smoke" (SmokeThreshold): how much damage is required to spawn smoke on tile.\n`+
-				'  1000 is default (never spawn), 0 for smoke grenades (always spawn).')
-		})
+					'  "XdY" is X uniform dice rolls of Y, e.g. 2d(x0-x1) is a more mid-range 0-200%.' ) } })
+
+		da_key_desc('FixRadius', d => [`blast-r=${d}`, `- "blast-r": blast radius.`])
+		da_key_desc('RandomWound', d => [ !d && `rnd-wound=${d}`,
+			`- "rnd-wound": "true" use original radom system giving 1-3 wounds on hit,\n`+
+				'  "false" will give linear value based on "ToWound" value.' ])
+		da_key_desc('RandomStun', d => [ d && `rnd-stun=${d}`,
+			`- "rnd-stun": whether calculation of final stun level change use random value, idk.` ])
+		da_key_desc('IgnoreOverKill', d => [ !d && `no-ok`,
+			`- "no-ok" (IgnoreOverKill): disables overkill damage, default=true.` ])
+		da_key_desc('IgnorePainImmunity', d => [ d && `ignores-pain-immunity`,
+			`- "ignores-pain-immunity": some units don\'t get stun level from damage - ignores that.` ])
+		da_key_desc('IgnoreDirection', d => [ d && `unidir`,
+			`- "unidir" (IgnoreDirection): damage ignores direction of the hit, used by smoke and fire.` ])
+		da_key_desc('SmokeThreshold', d => [ `smoke=${d}`,
+			`- "smoke" (SmokeThreshold): how much damage is required to spawn smoke on tile.\n`+
+				'  1000 is default (never spawn), 0 for smoke grenades (always spawn).' ])
+
 		if (Object.keys(da).length > 0) {
 			ext.push('+')
-			ext_title.push(`- More modifiers:\n  ${obj_repr(da)}`)
-		}
+			ext_title.push(`- More modifiers:\n  ${obj_repr(da)}`) }
 		if (d.meleeAlter && d.damageAlter) {
 			ext.push('++')
 			ext_title.push( '- Showing meleeAlter only, separate'+
-				` damageAlter (for other attack modes):\n  ${obj_repr(d.damageAlter)}` )
-		}
+				` damageAlter (for other attack modes):\n  ${obj_repr(d.damageAlter)}` ) }
+
 		ext = !ext.length ? null : ext.join(' ')
 		ext_title = !ext_title.length ? null : ext_title.join('\n')
 		info.quirks = {text: ext, title: ext_title}
