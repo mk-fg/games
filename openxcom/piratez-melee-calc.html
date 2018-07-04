@@ -45,6 +45,12 @@ form .info th { cursor: pointer; }
 form .info th:hover { background: linear-gradient(to bottom, rgba(0,0,0,0) 0%,rgba(0,0,0,0.30) 100%); }
 form .info tbody tr:hover { background: linear-gradient(to bottom, rgba(0,0,0,0) 0%,rgba(0,0,0,0.10) 100%); }
 form .info tbody tr:nth-child(odd) { background-color: #eee; }
+form .info tbody td.toggle {
+	color: #5d0914;
+	background: linear-gradient(
+		135deg, rgba(125,185,232,0) 0%,
+		rgba(100,41,47,0) 87%, rgba(96,19,19,0.38) 100% );
+}
 
 form .info .btn-remove { color: #5d0914; cursor: pointer; float: right; }
 
@@ -95,6 +101,8 @@ form { margin-bottom: 4em; }
 <script src='d3.v5.min.js'></script>
 <script>
 
+// Bootstrap sequence to fallback to remote d3 url, fetch data with it
+
 let main, d3, data
 
 let d3js_url = 'https://d3js.org/d3.v5.min.js',
@@ -106,35 +114,34 @@ let d3js_loaded = new Promise((resolve, reject) => {
 			let req = new XMLHttpRequest()
 			req.open('GET', url)
 			req.onreadystatechange = d => {
-				if (req.status != 200 || req.readyState != 4) return
-				eval(req.responseText)
-				resolve(window.d3) }
+				if (req.readyState != 4) return
+				if (req.status == 200) {
+					eval(req.responseText)
+					resolve(window.d3) }
+				else reject(`${req.status} - ${req.statusText}`) }
 			req.send() }
 		console.log(`WARNING: loading d3 from ${d3js_url}`)
 		include(d3js_url) })
 
 window.onload = () => d3js_loaded
-	.then(d3_local => { d3 = d3_local; return d3.json(data_url) })
-	.then(json => { data = json; main() })
+	.then(d3_local => {
+		d3 = d3_local
+		return d3.json(data_url)
+			.then(json => { data = json; main() })
+			.catch(d => {
+				document.body.innerHTML = `
+				<h2>ERROR: failed to load item data json</h2>
+				<p>Check uMatrix/NoScript/adblocker setttings
+					or put json file into same dir as this html.</p>` }) })
+	.catch(d => {
+		document.body.innerHTML = `
+			<h2>ERROR: failed to load d3.js library [${d}]</h2>
+			<p>Check uMatrix/NoScript/adblocker setttings or download
+				<a href='${d3js_url}'>d3.v4.min.js</a> into same dir as this html.</p>` })
+
 
 main = () => {
 'use strict'
-
-if (!d3) {
-	document.body.innerHTML = `
-		<h2>ERROR: failed to load d3.js library</h2>
-		<p>Check uMatrix/NoScript/adblocker setttings or download
-			<a href='${d3js_url}'>d3.v4.min.js</a> into same dir as this html.</p>`
-	return
-}
-
-if (!data) {
-	document.body.innerHTML = `
-		<h2>ERROR: failed to load item data json</h2>
-		<p>Check uMatrix/NoScript/adblocker setttings or put json file into same dir as this html.</p>`
-	return
-}
-
 
 // Helpers
 
@@ -169,6 +176,16 @@ let
 	obj_pop_run = (o, key, func) => { if (!(key in o)) return; let v = o[key]; delete o[key]; func(v) },
 	// Usage: obj_repr(obj) => str
 	obj_repr = o => JSON.stringify(o).replace(/"/g, '').replace(/([,:])/g, '$1 ')
+
+let html_enc = str => String(str)
+	.replace(/&/g, '&amp;')
+	.replace( /[\uD800-\uDBFF][\uDC00-\uDFFF]/g,
+		c => '&#' +
+			(((c.charCodeAt(0) - 0xd800) * 0x400) +
+			(c.charCodeAt(1) - 0xdc00) + 0x10000) + ';' )
+	.replace(/([^!-~])/g, c => `&#${c.charCodeAt(0)};`)
+	.replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\//g, '&#x2F;')
+	.replace(/'/g, '&quot;').replace(/'/g, '&apos;')
 
 let debounce_enabled = true
 let debounce = (delay_ms, mode, func) => {
@@ -217,7 +234,7 @@ let state_tracker = (state={}) => {
 let url_enc = v => {
 	if (typeof v === 'boolean') v = v ? '!t' : '!f'
 	else if (typeof v === 'number')
-		v = Number.isInteger(v) ? `!n{v}` : `!f{v.toFixed(2)}`
+		v = Number.isInteger(v) ? `!n${v}` : `!f${v.toFixed(2)}`
 	else if (v.length && v[0] === '!')
 		throw `ERROR: url_enc value cannot start with excl-mark - "${v}"`
 	return v }
@@ -236,18 +253,20 @@ let url_dec = v => {
 let
 	stats = new Map([
 		['strength', 35], ['melee', 70], ['throwing', 40],
-		['TUs', 65], ['bravery', 30], ['reactions', 40] ]),
+		['TUs', 65], ['bravery', 30], ['reactions', 40],
+		['firing', 50], ['psiStrength', 40], ['psiSkill', 30] ]),
 	fmt = {d: d3.format('d'), f1: d3.format('.1f'), f2: d3.format('.2f')}
 
 let
 	state_defaults = Object.assign( {q: '', i: ''},
 		obj_tuples(map_entries(stats), d => [`a.${d.key}`, `${d.value}`]) ),
+	state_url_clear = {},
 	state = state_tracker(
 		[...(new window.URL(window.location.href)).searchParams.entries()]
 			.reduce((o, [k,v]) => { o[k] = url_dec(v); return o }, {}) )
 		.on('url', (k, v) => {
 			let url = new window.URL(window.location.href)
-			if (v === state_defaults[k]) url.searchParams.delete(k)
+			if (v === state_defaults[k] || v === state_url_clear) url.searchParams.delete(k)
 			else url.searchParams.set(k, url_enc(v))
 			window.history.replaceState(history.state, document.title, url.href) })
 
@@ -261,7 +280,7 @@ let
 
 let
 	info_fields = [ 'weight', 'weapon', 'type',
-		'damage', 'accuracy',  'dpu', 'costs', 'quirks' ],
+		'mode', 'damage', 'accuracy',  'dpu', 'costs', 'quirks' ],
 	info_fields_desc = {
 		dpu: 'Weapon Power * Accuracy / TU cost - rough "pure damage" estimate.',
 		quirks: 'Special attributes and modifiers that weapon has.' },
@@ -274,28 +293,84 @@ let
 	info_random_types = {
 		0: 'vanilla', 1: '1d(x0-x2)', 2: '1d(x.5-x1.5)', 3: 'flat(x1)', 4: 'fire(5-10)', 5: 'no-dmg(x0)', 6: '2d(x0-x1)' }
 
-let items_info_state_update =
-	() => state('i', items_info.values().map(d => d.replace(/^STR_/, '')).join('.').toLowerCase())
+let
+	items_info_type_str = d => d.replace(/^STR_/, '').toLowerCase(),
+	items_info_state_update = () => state('i', items_info.values().map(items_info_type_str).join('.'))
 
+
+let item_stats_index = {ammo: {}, mode: {}} // {item.type: num}
+let item_stats_index_update // to avoid updating state on all of them
+
+let item_stats_toggle = (key, item_id) => {
+	item_stats_index[key][item_id]++
+	item_stats_index_update = item_id }
 
 let item_stats = d => {
 	let attrs = obj_tuples( map_entries(stats),
 		d => [d.key, state_attrs(d.key) || stats.get(d.key)] )
+	let info = {weapon: {text: d.name, title: `id: ${d.type.toLowerCase()}`}}
 
-	let info = {
-		weapon: {text: d.name, title: `id: ${d.type.toLowerCase()}`}
+	ApplyAmmoStats: {
+		if (!('compatibleAmmo' in d)) break ApplyAmmoStats
+		d = obj_clone(d)
+		let da, da_idx, da_list = d.compatibleAmmo
+		if (da_list.length === 1) da_idx = 0
+		else {
+			da_idx = d.type in item_stats_index.ammo ?
+				item_stats_index.ammo[d.type] : state(`x-${items_info_type_str(d.type)}`, null, 0)
+			da_idx = item_stats_index.ammo[d.type] = da_idx % da_list.length }
+		if (item_stats_index_update == d.type)
+			state(`x-${items_info_type_str(d.type)}`, da_idx || state_url_clear)
+		da = items[da_list[da_idx]]
+		if (!da) break ApplyAmmoStats
+		Object.entries(da).forEach(([k, v]) => {
+			if ([ 'name', 'type', 'battleType', 'listOrder', 'categories',
+				'armor', 'size', 'requires', 'requiresBuy', 'weight',
+				'costBuy', 'costSell', 'costThrow', 'flatThrow',
+				'invWidth', 'invHeight', 'bigSprite', 'floorSprite' ].includes(k)) return
+			if (k in d) return console.log(`Skipping item/ammo key conflict`, k, d, d[k], da, v)
+			d[k] = v })
+		info.weapon.subtext = `[${da.name}]`
+		info.weapon.title += `\n[ id: ${da.type.toLowerCase()} ]`
+		if (da_list.length > 1) {
+			info.weapon.pointer = true
+			info.weapon.title += `\nClick to change ammo type [${da_idx+1} / ${da_list.length}]` }
 	}
 
-	// Get keys used for accuracy/tu/costs of the item in most interesting mode
-	// Most items have throw and such, but that's least interesting unless it's a javelin
-	let k, k_type, k_acc, k_tu, k_cost
-	for (k of ['Melee', 'Auto', 'Snap', 'Aimed', 'Throw']) {
-		[k_acc, k_tu, k_cost] = [`accuracy${k}`, `tu${k}`, `cost${k}`]
-		if (k_acc in d) break
+	let k, k_idx, k_type, k_types, k_acc, k_tu, k_cost
+	SetMode: {
+		k_types = ['Melee', 'Auto', 'Snap', 'Aimed', 'Throw'].filter(k => `accuracy${k}` in d)
+		if (!k_types.length) break SetMode
+		k_idx = d.type in item_stats_index.mode ?
+			item_stats_index.mode[d.type] : state(`m-${items_info_type_str(d.type)}`, null, 0)
+		k_idx = item_stats_index.mode[d.type] = k_idx % k_types.length
+		k = k_types[k_idx]
+		;[k_acc, k_tu, k_cost] = [`accuracy${k}`, `tu${k}`, `cost${k}`]
+		k_type = k.toLowerCase()
+		info.mode = {text: k_type}
+		if (k_types.length > 1)
+			Object.assign(info.mode, { pointer: true,
+				title: `Click to change attack mode [${k_idx+1} / ${k_types.length}]` })
+		if (item_stats_index_update == d.type)
+			state(`m-${items_info_type_str(d.type)}`, k_idx || state_url_clear)
 	}
-	k_type = k.toLowerCase()
+	let k_type_factors_func = (value, mod) => {
+		// Gets clone of bonus/multiplier factors for accuracy/power in specific weapon mode
+		// Usage: k_type_factors_func('accuracy', 'Multiplier') => obj_clone(d.accuracyMultiplier)
+		let factors, k_base = `${value}${mod}`, k_melee = `melee${mod}`, k_throw = `throw${mod}`
+		if (k_types.length > 1) {
+			if (k_type === 'melee') factors = d[k_melee]
+			else if (k_type === 'throw') factors = d[k_throw] }
+		if (!factors) {
+			if (k_type === 'melee') factors = d[k_melee]
+			else if (k_type === 'throw') factors = d[k_throw]
+			else factors = d[k_base]
+			factors = factors || d[k_base] // for melee/throw-only weapons
+		}
+		return obj_clone(factors || {})
+	}
 
-	// Weight - can be sometimes weird too
+
 	GetWeight: {
 		let weight, weight_raw, weight_title
 		if ('weight' in d) {
@@ -303,9 +378,23 @@ let item_stats = d => {
 			if (weight < 0) weight_title = '- Negative value, might have factors not checked here.'
 		} else {
 			[weight, weight_raw] = ['---', 0]
-			weight_title = '- Missing value, might be calculated in some way that is not implemented here.'
-		}
+			weight_title = '- Missing value, might be calculated in some way that is not implemented here.' }
 		info.weight = {text: weight, title: weight_title, value: weight_raw}
+	}
+
+	// 1H/2H, damage types
+	GetDamageType: {
+		let type_str = '', type_title = []
+		let [t2h, t1h_allow] = [bool_int(d.twoHanded), -bool_int(d.oneHandedPenalty)]
+		type_str += t2h ? (t1h_allow ? `2H [-${d.oneHandedPenalty}%]` : '2H-only') : '1H'
+		let tdt = d.damageType
+		if (k_type === 'melee' && 'meleeType' in d) tdt = d.meleeType
+		if (!tdt) { k = '???'; type_title.push('- No damage type info.') }
+		else if (tdt in info_dmg_types) k = info_dmg_types[tdt]
+		else { type_title.push(`- Unrecognized damage type id = ${tdt}.`); k = `DT#${tdt}` }
+		type_str += `, ${k}`
+		type_title = !type_title.length ? null : type_title.join('\n')
+		info.type = {text: type_str, title: type_title, value: [t2h, t1h_allow, tdt]}
 	}
 
 	// Attack/use costs
@@ -335,26 +424,13 @@ let item_stats = d => {
 				cost_title.push(`- Other costs:\n  ${obj_repr(k)}`) }
 		}
 		k = cost_tu
+		if (!cost_tu) break CalcCosts
 		if (!cost_tu_flat) cost_tu *= attrs.TUs / 100
 		k = `${fmt.d(cost_tu)} TU` + (cost_tu_flat ? '' : ` [${k}%]`)
 		if (cost_tu_flat) cost_title.push('- Flat TU cost (non-flat shows % in brackets).')
 		cost_str = k + (cost_str ? ' + ' + cost_str : '')
 		cost_title = !cost_title.length ? null : cost_title.join('\n')
 		info.costs = {text: cost_str, title: cost_title, value: cost_tu}
-	}
-
-	// Type - 1H/2H + attack/damage types
-	CalcDamageType: {
-		let type_str = '', type_title = []
-		let [t2h, t1h_allow] = [bool_int(d.twoHanded), -bool_int(d.oneHandedPenalty)]
-		type_str += t2h ? (t1h_allow ? `2H [-${d.oneHandedPenalty}%]` : '2H-only') : '1H'
-		let tdt = d.damageType
-		if (!tdt) { k = '???'; type_title.push('- No damage type info.') }
-		else if (tdt in info_dmg_types) k = info_dmg_types[tdt]
-		else { type_title.push(`- Unrecognized damage type id = ${tdt}.`); k = `DT#${tdt}` }
-		type_str += `, ${k_type}, ${k}`
-		type_title = !type_title.length ? null : type_title.join('\n')
-		info.type = {text: type_str, title: type_title, value: [t2h, t1h_allow, tdt]}
 	}
 
 	// Accuracy
@@ -364,20 +440,7 @@ let item_stats = d => {
 		acc = acc_base = d[k_acc] || -1
 		if (acc <= 0) break CalcAccuracy
 		acc_title.push(`- Base: ${acc}`)
-
-		// Calculate bonus_sum from meleeMultiplier / accuracyMultiplier factors
-		let factors, factor_sum = 0
-		for (k of ['melee', 'accuracy']) { // assuming they're mutually exclusive
-			k = d[`${k}Multiplier`]
-			if (!k || Object.keys(k).length <= 0) continue
-			if (factors) {
-				if (k_type != 'melee') {
-					acc_str_warn = '[!!!] '
-					acc_title.push( '- Found both meleeMultiplier'+
-						' and accuracyMultiplier, assuming melee.' ) }
-				continue }
-			factors = k }
-		factors = obj_clone(factors)
+		let factor_sum = 0, factors = k_type_factors_func('accuracy', 'Multiplier')
 		if (!Object.keys(factors).length) { // default xcom skill-factor
 			if (k_type === 'melee') k = 'melee'
 			else if (k_type === 'throw') k = 'throwing'
@@ -416,8 +479,10 @@ let item_stats = d => {
 		let dmg_str_warn = '', dmg_title = [], dmg_base
 		if (!('power' in d)) break CalcDamage
 		dmg = dmg_base = d.power
+		if (k_type === 'melee' && 'meleePower' in d)
+			dmg = dmg_base = d.meleePower // separate value for guns
 		dmg_title.push(`- Base: ${dmg}`)
-		let factors = obj_clone(d.damageBonus || {}), factor_sum = 0
+		let factor_sum = 0, factors = k_type_factors_func('damage', 'Bonus')
 		for (let [attr, attr_value] of Object.entries(attrs)) {
 			let attr_factor = obj_pop(factors, attr) || 0
 			if (!attr_factor) continue
@@ -449,27 +514,38 @@ let item_stats = d => {
 		if (!(dmg >= 0 && acc >= 0 && cost_tu >= 0)) break CalcDPU
 		let dpu = dmg * (acc / 100) / cost_tu
 		info.dpu = { text: `${fmt.f1(dpu)}`, value: dpu,
-			title: `- Formula: ${dmg} * (${acc} / 100) / ${cost_tu} = ${fmt.f2(dpu)}\n`+
+			title: `- Formula: ${dmg} * (${acc} / 100) / ${fmt.d(cost_tu)} = ${fmt.f2(dpu)}\n`+
 				'- Note: with probabilities over multiple attempts, accuracy is *not* a linear factor.' }
 	}
 
 	// Special stuff like damage to stats and armor effectiveness, there's a lot of these
 	DescribeQuirks: {
 		let ext = [], ext_title = []
-		let da = obj_clone(d.meleeAlter || d.damageAlter || {})
+		let da_key = 'damageAlter'
+		if (k_type === 'melee' && 'meleeAlter' in d) da_key = 'meleeAlter' // separate value for guns
+		let da = obj_clone(d[da_key])
 		let da_key_desc = (key, desc_func) => obj_pop_run(da, key, d => {
 			let [desc, title] = desc_func(d)
 			if (desc) ext.push(desc); else return
 			if (title) ext_title.push(title) })
 
 		da_key_desc('ArmorEffectiveness', d => [ d !== 1 && `kArmor=${d}`,
-			`- "kArmor": enemy armor effectiveness value (lower = better),\n'+
-				'  so e.g. kArmor=2 means 2x damage thresholds/resistance vs weapon.` ])
+			`- "kArmor": enemy armor effectiveness value (lower = better),\n`+
+				'  so e.g. kArmor=2 means 2x damage thresholds/resistance vs weapon.' ])
 		obj_pop_run(da, 'ResistType', d => {
 			let dt = info_dmg_types[d]
 			if (!dt) { dt = 'DT#${d}'; ext_title.push(`- Unrecognized damage type id = ${d}.`) }
 			ext.push(`resist=${dt}`)
 			ext_title.push(`- Armor resistance "${dt}" (reduction %) is used for calculating damage value.`) })
+
+		// dmg_decay = item.get('powerRangeReduction', 0)
+		// if dmg_decay:
+		// 	ext.append('-dmg[{}+]={}'.format(
+		// 		item.get('powerRangeThreshold', 0), dmg_decay ))
+		// acc_decay = item.get('dropoff', 1)
+		// if acc_decay != 1: ext.append('-acc={}'.format(acc_decay))
+		// dmg_ext = item.get('damageBonus', dict()).get('firing')
+		// if dmg_ext: ext.append('+dmg[skill]={}'.format(dmg_ext))
 
 		let k, kx
 		for ([k, kx] of [
@@ -482,7 +558,7 @@ let item_stats = d => {
 					`- "${kx}": damage multiplier to armor before applying armor resistances.` )
 				else if (kx === 'toAr') ext_title.push(`- "${kx}": armor damage multiplier.`)
 				else if (kx === 'toWound') ext_title.push(`- "${kx}": fatal wound count multiplier.`)
-				else ext_title.push(`- "${kx}": "damageAlter.${k}" damage multiplier value.`) }) }
+				else ext_title.push(`- "${kx}": "${da_key}.${k}" damage multiplier value.`) }) }
 
 		obj_pop_run(da, 'RandomType', d => {
 			k = info_random_types[d]
@@ -513,24 +589,56 @@ let item_stats = d => {
 		if (Object.keys(da).length > 0) {
 			ext.push('+')
 			ext_title.push(`- More modifiers:\n  ${obj_repr(da)}`) }
-		if (d.meleeAlter && d.damageAlter) {
-			ext.push('++')
-			ext_title.push( '- Showing meleeAlter only, separate'+
-				` damageAlter (for other attack modes):\n  ${obj_repr(d.damageAlter)}` ) }
 
 		ext = !ext.length ? null : ext.join(' ')
 		ext_title = !ext_title.length ? null : ext_title.join('\n')
 		info.quirks = {text: ext, title: ext_title}
 	}
 
+	item_stats_index_update = null
 	return { id: d.type, fields: new Map(info_fields.map(d => {
 		let field_info = info[d] || {}
 		return [ d, {
-			text: field_info.text && `${field_info.text}`,
-			title: field_info.title,
+			text: (field_info.text && `${field_info.text}` || '').replace(' ', '\u00A0'),
+			subtext: (field_info.subtext || '').replace(' ', '\u00A0'),
+			pointer: field_info.pointer, title: field_info.title,
 			value: 'value' in field_info ? field_info.value : field_info.text } ] })) }
 }
 
+
+let refresh_row = (row, update) => {
+	let row_id = row.datum().id
+	if (update) row.datum(item_stats(items[row_id]))
+	row
+		.selectAll('td').data(d => map_entries(d.fields), d => d.key)
+		.call(s => s.exit().remove())
+		.call(s => s
+			.enter().append('td')
+				.attr('headers', d => `info-th-${d.key}`)
+				.attr('class', d => `info-td-${d.key}`).merge(s)
+			.html( d => html_enc(d.value.text || '')
+				+ (d.value.subtext ? '<br>' + html_enc(d.value.subtext) : '') )
+			.attr('title', d => d.value.title)
+			.classed('toggle', d => d.value.pointer)
+			.style('cursor', d => d.value.pointer ? 'pointer' : null)
+			.each((d, n, ns) => {
+				let s = d3.select(ns[n])
+				if (d.key === 'weight')
+					s.append('span').attr('class', 'btn-remove').text('☒')
+						.attr('title', 'Click to remove weapon from the table.')
+						.on('click', (d, n, ns) => {
+							row.remove()
+							items_info.remove(row_id)
+							items_info_state_update() })
+				if (d.key === 'weapon')
+					s.on('click', (d, n, ns) => {
+						item_stats_toggle('ammo', row_id)
+						refresh_row(row, true) })
+				if (d.key === 'mode')
+					s.on('click', (d, n, ns) => {
+						item_stats_toggle('mode', row_id)
+						refresh_row(row, true) }) }))
+}
 
 let refresh = debounce(300, 'now', () => {
 	d3.select('#info').selectAll('tr')
@@ -538,23 +646,7 @@ let refresh = debounce(300, 'now', () => {
 		.call(s => s.exit().remove())
 		.call(s => s
 			.enter().append('tr').merge(s)
-			.each((d, n, ns) => {
-				let row_id = d.id, row = d3.select(ns[n])
-				d3.select(ns[n])
-					.selectAll('td').data(d => map_entries(d.fields), d => d.key)
-					.call(s => s.exit().remove())
-					.call(s => s
-						.enter().append('td').attr('headers', d => `info-th-${d.key}`).merge(s)
-						.text(d => d.value.text || '').attr('title', d => d.value.title)
-						.each((d, n, ns) => {
-							if (d.key !== 'weight') return
-							d3.select(ns[n])
-								.append('span').attr('class', 'btn-remove').text('☒')
-								.attr('title', 'Click to remove weapon from the table.')
-								.on('click', (d, n, ns) => {
-									row.remove()
-									items_info.remove(row_id)
-									items_info_state_update() }) })) }))
+			.each((d, n, ns) => refresh_row(d3.select(ns[n]))))
 	document.getElementById('fields-weapons')
 		.style.min_height = `${document.getElementById('info').offsetHeight}px`
 })
@@ -641,6 +733,7 @@ let form = d3.select('body').append('form')
 			'CTRL/SHIFT + click/drag in Weapons list to pick many, as found + unselected items there are removed from table.',
 			'Use (SHIFT+)TAB to jump over stat input fields quickly.',
 			'Clicking table headers will sort on that column.',
+			'Reddish cells indicate that multiple alternatives (ammo types, modes) are available, click to cycle these.',
 			'Hovering over table values (e.g. accuracy, costs, damage) will show tooltips with more info/help on each.',
 			'"!!!" alongside value usually means some kind of data anomaly and that it can be incorrect.',
 			'Click on the newsticker at the bottom to hide/dismiss it.' ])
@@ -649,7 +742,7 @@ let form = d3.select('body').append('form')
 refresh()
 
 
-let ticker_release = 'Vile Skull'
+let ticker_release = 'Algebra Guns'
 if (ticker_release && localStorage.ticker !== ticker_release) {
 	let ticker = d3.select('body')
 		.append('div').attr('class', 'ticker-wrap')
@@ -658,6 +751,7 @@ if (ticker_release && localStorage.ticker !== ticker_release) {
 			.append('div').attr('class', 'ticker')
 			.selectAll('div.item').data([
 				`Last Update - "${ticker_release}" release:`,
+				'Add support for stuff with ammo and multiple modes, all things related to them.',
 				'Add bunch of abbrevs and title descriptions for quirks that were missing these.',
 				'Fix formula for default factor-less xcom accuracy calculation and auto-fire (dmg*shots).',
 				'End of the announcement. Click to dismiss.' ])
