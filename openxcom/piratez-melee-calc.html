@@ -54,7 +54,7 @@ form .info tbody td.toggle {
 
 form .info .btn-remove { color: #5d0914; cursor: pointer; float: right; }
 
-form .tips { grid-area: tips; }
+form .tips { grid-area: tips; max-width: 55em; }
 
 
 /* CSS ticker for news or such */
@@ -330,7 +330,7 @@ let item_stats = d => {
 				'invWidth', 'invHeight', 'bigSprite', 'floorSprite' ].includes(k)) return
 			if (k in d) return console.log(`Skipping item/ammo key conflict`, k, d, d[k], da, v)
 			d[k] = v })
-		info.weapon.subtext = `[${da.name}]`
+		info.weapon.subtext = `[${da.name}]`.replace(/ /g, '\u00A0')
 		info.weapon.title += `\n[ id: ${da.type.toLowerCase()} ]`
 		if (da_list.length > 1) {
 			info.weapon.pointer = true
@@ -369,7 +369,6 @@ let item_stats = d => {
 		}
 		return obj_clone(factors || {})
 	}
-
 
 	GetWeight: {
 		let weight, weight_raw, weight_title
@@ -460,7 +459,7 @@ let item_stats = d => {
 		let factor_flat = (obj_pop(factors, 'flatHundred') || 0) * 100
 		if (factor_flat) acc_title.push(`- Factor [flat value]: ${factor_flat}`)
 		k = fmt.f1(factor_sum)
-		k = factor_flat ? `(${factor_flat} + ${k})` : `${k}`
+		k = factor_flat ? `(${fmt.d(factor_flat)} + ${k})` : `${k}`
 		acc = acc * (factor_flat + factor_sum) / 100
 		acc_title.push(`- Formula: ${acc_base} * ${k} / 100 = ${fmt.f2(acc)}`)
 		for (k of Object.keys(factors)) {
@@ -476,7 +475,7 @@ let item_stats = d => {
 	// Damage
 	let dmg = -1 // used in dpu calculation
 	CalcDamage: {
-		let dmg_str_warn = '', dmg_title = [], dmg_base
+		let dmg_str = '', dmg_title = [], dmg_base
 		if (!('power' in d)) break CalcDamage
 		dmg = dmg_base = d.power
 		if (k_type === 'melee' && 'meleePower' in d)
@@ -495,18 +494,27 @@ let item_stats = d => {
 				dmg_title.push(`- Factor [${attr}]: ${factor_str} = ${fmt.f1(factor)}`)
 				factor_sum += factor  } }
 		dmg += factor_sum
-		k = `${dmg_base} + ${factor_sum}`
+		k = `${dmg_base} + ${fmt.f1(factor_sum)}`
+		dmg_str = fmt.d(dmg)
+		let dmg_str_mult = ''
+		if (k_type !== 'melee' && d.shotgunPellets && d.shotgunPellets !== 1) {
+			dmg_str += ` x${d.shotgunPellets}`
+			dmg_str_mult += ` * ${d.shotgunPellets}`
+			dmg_title.push(`- Shotgun-spread shot with ${d.shotgunPellets} pellets.`)
+			dmg *= d.shotgunPellets }
 		if (k_type === 'auto') {
-			dmg *= d.autoShots || 1
-			k = `(${k}) * ${d.autoShots}`
+			dmg_str += ` * ${d.autoShots || '?'}`
+			dmg_str_mult += ` * ${d.autoShots || '?'}`
 			if ((d.autoShots || 0) <= 0) {
-				dmg_str_warn = '[!!!] '
+				dmg_str_warn = `[!!!] ${dmg_str}`
 				dmg_title.push('- Uses auto-shot mode, but failed to find shot count.') }
-			else dmg_title.push( `- Auto-shot x${d.autoShots} mode.\n`+
-				'  Note: actual damage over X attacks w/ accuracy/spread/armor is non-linear.' ) }
-		dmg_title.push(`- Formula: ${k} = ${dmg}`)
+			else {
+				dmg *= d.autoShots
+				dmg_title.push(`- Auto-shot x${d.autoShots} mode.\n`) } }
+		if (dmg_str_mult) k = `(${k})${dmg_str_mult}`
+		dmg_title.push(`- Formula: ${k} = ${fmt.f1(dmg)}`)
 		dmg_title = !dmg_title.length ? null : dmg_title.join('\n')
-		info.damage = {text: dmg_str_warn + fmt.d(dmg), title: dmg_title, value: dmg}
+		info.damage = {text: dmg_str.replace(/ /g, '\u00A0'), title: dmg_title, value: dmg}
 	}
 
 	// DPU (normalized damage values)
@@ -514,8 +522,7 @@ let item_stats = d => {
 		if (!(dmg >= 0 && acc >= 0 && cost_tu >= 0)) break CalcDPU
 		let dpu = dmg * (acc / 100) / cost_tu
 		info.dpu = { text: `${fmt.f1(dpu)}`, value: dpu,
-			title: `- Formula: ${dmg} * (${acc} / 100) / ${fmt.d(cost_tu)} = ${fmt.f2(dpu)}\n`+
-				'- Note: with probabilities over multiple attempts, accuracy is *not* a linear factor.' }
+			title: `- Formula: ${fmt.f1(dmg)} * (${fmt.f1(acc)} / 100) / ${fmt.d(cost_tu)} = ${fmt.f2(dpu)}\n` }
 	}
 
 	// Special stuff like damage to stats and armor effectiveness, there's a lot of these
@@ -599,8 +606,8 @@ let item_stats = d => {
 	return { id: d.type, fields: new Map(info_fields.map(d => {
 		let field_info = info[d] || {}
 		return [ d, {
-			text: (field_info.text && `${field_info.text}` || '').replace(' ', '\u00A0'),
-			subtext: (field_info.subtext || '').replace(' ', '\u00A0'),
+			text: field_info.text && `${field_info.text}` || '',
+			subtext: field_info.subtext || '',
 			pointer: field_info.pointer, title: field_info.title,
 			value: 'value' in field_info ? field_info.value : field_info.text } ] })) }
 }
@@ -736,13 +743,15 @@ let form = d3.select('body').append('form')
 			'Reddish cells indicate that multiple alternatives (ammo types, modes) are available, click to cycle these.',
 			'Hovering over table values (e.g. accuracy, costs, damage) will show tooltips with more info/help on each.',
 			'"!!!" alongside value usually means some kind of data anomaly and that it can be incorrect.',
+			'"damage" column is technically a "power" value - actual damage is more like (power * random - armor) * resists.',
+			'"dpu" is a quite rough estimate due to how probabilities/spreads work over multiple attempts, and not taking target stats (armor, dodge, etc) into account, especially with quick-attack, auto-fire weapons and shotguns.',
 			'Click on the newsticker at the bottom to hide/dismiss it.' ])
 		.enter().append('li').text(d => d))
 
 refresh()
 
 
-let ticker_release = 'Algebra Guns'
+let ticker_release
 if (ticker_release && localStorage.ticker !== ticker_release) {
 	let ticker = d3.select('body')
 		.append('div').attr('class', 'ticker-wrap')
@@ -757,7 +766,6 @@ if (ticker_release && localStorage.ticker !== ticker_release) {
 				'End of the announcement. Click to dismiss.' ])
 			.enter().append('div').attr('class', 'item').text(d => d))
 	localStorage.ticker = ticker_release }
-
 
 }
 </script>
