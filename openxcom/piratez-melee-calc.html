@@ -101,46 +101,51 @@ form { margin-bottom: 4em; }
 <script src='d3.v5.min.js'></script>
 <script>
 
-// Bootstrap sequence to fallback to remote d3 url, fetch data with it
+// Bootstrap sequence to fallback to remote d3 url, fetch data
 
-let main, d3, data
+let main
 
 let d3js_url = 'https://d3js.org/d3.v5.min.js',
 	data_url = 'piratez-melee-calc.json'
 
-let d3js_loaded = new Promise((resolve, reject) => {
-		if (window.d3) return resolve(window.d3)
-		let include = (url) => {
-			let req = new XMLHttpRequest()
-			req.open('GET', url)
-			req.onreadystatechange = d => {
-				if (req.readyState != 4) return
-				if (req.status == 200) {
-					eval(req.responseText)
-					resolve(window.d3) }
-				else reject(`${req.status} - ${req.statusText}`) }
-			req.send() }
-		console.log(`WARNING: loading d3 from ${d3js_url}`)
-		include(d3js_url) })
+let xhr_load = (url, mime) => new Promise(
+	(resolve, reject) => {
+		let req = new XMLHttpRequest()
+		req.open('GET', url)
+		if (mime) req.overrideMimeType(mime)
+		req.onreadystatechange = () => {
+			if (req.readyState != 4) return
+			return req.status == 200 ?
+				resolve(req.responseText) :
+				reject(req.status ? `${req.status} - ${req.statusText}` : 'blocked') }
+		req.send() } )
 
-window.onload = () => d3js_loaded
-	.then(d3_local => {
-		d3 = d3_local
-		return d3.json(data_url)
-			.then(json => { data = json; main() })
-			.catch(d => {
-				document.body.innerHTML = `
-				<h2>ERROR: failed to load item data json</h2>
-				<p>Check uMatrix/NoScript/adblocker setttings
-					or put json file into same dir as this html.</p>` }) })
-	.catch(d => {
-		document.body.innerHTML = `
-			<h2>ERROR: failed to load d3.js library [${d}]</h2>
-			<p>Check uMatrix/NoScript/adblocker setttings or download
-				<a href='${d3js_url}'>d3.v4.min.js</a> into same dir as this html.</p>` })
+window.onload = () =>
+	new Promise((resolve, reject) => {
+			if (window.d3) return resolve(window.d3)
+			console.log(`WARNING: loading d3 from ${d3js_url}`)
+			xhr_load(d3js_url, 'text/javascript')
+				.then(js => {
+					eval(js)
+					return window.d3 ? resolve(window.d3) :
+						reject('XXX - loaded d3.js lib failed to init window.d3') })
+				.catch(err => reject(err)) })
+	.catch(err => document.body.innerHTML = `
+		<h2>ERROR: failed to load d3.js library [${err}]</h2>
+		<p>Check uMatrix/NoScript/adblocker setttings or download
+			<a href='${d3js_url}'>d3.v4.min.js</a> into same dir as this html.</p>`)
+	.then(d3_init => d3_init && xhr_load(data_url, 'application/json'))
+	.catch(err => document.body.innerHTML = `
+		<h2>ERROR: failed to load item data json</h2>
+		<p>Check uMatrix/NoScript/adblocker setttings
+			or put json file into same dir as this html.</p>`)
+	.then(json_str => json_str && JSON.parse(json_str))
+	.catch(err => document.body.innerHTML = `
+		<h2>ERROR: failed to parse item data json</h2>
+		<p>Error info: ${err}</p>`)
+	.then(data => data && main(data))
 
-
-main = () => {
+main = data => {
 'use strict'
 
 // Helpers
