@@ -615,6 +615,7 @@ end
 
 local function on_trigger_created(event)
 	-- Limit red wisps' replication via trigger_created_entity to specific percentage
+	if event.entity.name ~= 'wisp-red' then return end
 	if utils.pick_chance(conf.wisp_red_damage_replication_chance)
 	then wisp_init(event.entity)
 	else event.entity.destroy() end
