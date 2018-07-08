@@ -136,7 +136,7 @@ window.onload = () =>
 			<a href='${d3js_url}'>d3.v4.min.js</a> into same dir as this html.</p>`)
 	.then(d3_init => d3_init && xhr_load(data_url, 'application/json'))
 	.catch(err => document.body.innerHTML = `
-		<h2>ERROR: failed to load item data json</h2>
+		<h2>ERROR: failed to load item data JSON [${err}]</h2>
 		<p>Check uMatrix/NoScript/adblocker setttings
 			or put json file into same dir as this html.</p>`)
 	.then(json_str => json_str && JSON.parse(json_str))
