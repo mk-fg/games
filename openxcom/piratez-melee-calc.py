@@ -51,6 +51,9 @@ def parse_items(p_rul, p_lang=None, p_cqc=None):
 		item['name'] = item.get('name')
 		if item['name']: item['name'] = str_trans.get(item['name']) or item['name']
 		else: item['name'] = str_trans.get(t)
+		for k in 'confAuto', 'confSnap', 'confAimed', 'confMelee':
+			name = str_trans.get(k in item and item[k].get('name', ...))
+			if name: item[f'name{k[4:]}'] = name
 		if not item['name']:
 			p_log('Discarding item with no matching name: {}', item['type'])
 			items_discard.add(t)

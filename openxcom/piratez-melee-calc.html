@@ -343,7 +343,7 @@ let item_stats = d => {
 			info.weapon.title += `\nClick to change ammo type [${da_idx+1} / ${da_list.length}]` }
 	}
 
-	let k, k_idx, k_type, k_types, k_acc, k_tu, k_cost
+	let k, k_idx, k_type, k_types, k_acc, k_tu, k_cost, k_name
 	SetMode: {
 		k_types = ['Melee', 'Auto', 'Snap', 'Aimed', 'Throw'].filter(k => `accuracy${k}` in d)
 		if (!k_types.length) break SetMode
@@ -351,12 +351,15 @@ let item_stats = d => {
 			item_stats_index.mode[d.type] : state(`m-${items_info_type_str(d.type)}`, null, 0)
 		k_idx = item_stats_index.mode[d.type] = k_idx % k_types.length
 		k = k_types[k_idx]
-		;[k_acc, k_tu, k_cost] = [`accuracy${k}`, `tu${k}`, `cost${k}`]
+		;[k_acc, k_tu, k_cost, k_name] = [`accuracy${k}`, `tu${k}`, `cost${k}`, `name${k}`]
 		k_type = k.toLowerCase()
-		info.mode = {text: k_type}
-		if (k_types.length > 1)
-			Object.assign(info.mode, { pointer: true,
-				title: `Click to change attack mode [${k_idx+1} / ${k_types.length}]` })
+		info.mode = {text: d[k_name] || k_type}
+		let mode_title = []
+		if (k_types.length > 1) {
+			info.mode.pointer = true
+			mode_title.push(`Click to change attack mode [${k_idx+1} / ${k_types.length}]`) }
+		if (d[k_name]) mode_title.push(`- "${d[k_name]}" is a weapon-specific name for "${k_type}" attack.`)
+		if (mode_title.length) info.mode.title = mode_title.join('\n')
 		if (item_stats_index_update == d.type)
 			state(`m-${items_info_type_str(d.type)}`, k_idx || state_url_clear)
 	}
@@ -380,11 +383,8 @@ let item_stats = d => {
 		let weight, weight_raw, weight_title
 		if ('weight' in d) {
 			weight = weight_raw = d.weight
-			if (weight < 0) weight_title = '- Negative value, might have factors not checked here.'
-		} else {
-			[weight, weight_raw] = ['---', 0]
-			weight_title = '- Missing value, might be calculated in some way that is not implemented here.' }
-		info.weight = {text: weight, title: weight_title, value: weight_raw}
+			if (weight_raw <= 0) weight = '' }
+		info.weight = {text: weight, value: weight_raw}
 	}
 
 	// 1H/2H, damage types
@@ -509,14 +509,11 @@ let item_stats = d => {
 			dmg_title.push(`- Shotgun-spread shot with ${d.shotgunPellets} pellets.`)
 			dmg *= d.shotgunPellets }
 		if (k_type === 'auto') {
-			dmg_str += ` * ${d.autoShots || '?'}`
-			dmg_str_mult += ` * ${d.autoShots || '?'}`
-			if ((d.autoShots || 0) <= 0) {
-				dmg_str_warn = `[!!!] ${dmg_str}`
-				dmg_title.push('- Uses auto-shot mode, but failed to find shot count.') }
-			else {
-				dmg *= d.autoShots
-				dmg_title.push(`- Auto-shot x${d.autoShots} mode.\n`) } }
+			let auto_shots = d.autoShots || 3
+			dmg_str += ` * ${auto_shots}`
+			dmg_str_mult += ` * ${auto_shots}`
+			dmg *= auto_shots
+			dmg_title.push(`- Auto-shot x${auto_shots} mode.\n`) }
 		if (dmg_str_mult) k = `(${k})${dmg_str_mult}`
 		dmg_title.push(`- Formula: ${k} = ${fmt.f1(dmg)}`)
 		dmg_title = !dmg_title.length ? null : dmg_title.join('\n')
@@ -598,6 +595,22 @@ let item_stats = d => {
 		da_key_desc('SmokeThreshold', d => [ `smoke=${d}`,
 			`- "smoke" (SmokeThreshold): how much damage is required to spawn smoke on tile.\n`+
 				'  1000 is default (never spawn), 0 for smoke grenades (always spawn).' ])
+
+		AddCqCInfo: {
+			if (!acc || acc <= 0) break AddCqCInfo
+			let cqc_acc = d.accuracyCloseQuarters ?
+				(acc * d.accuracyCloseQuarters/100) : acc
+			let cqc_mult = d.closeQuartersMultiplier && obj_clone(d.closeQuartersMultiplier)
+			if ((cqc_acc != acc) || cqc_mult) ext.push('CqC+')
+			if (!cqc_mult) cqc_mult = {melee: 0.5, reactions: 0.5} // default CqC multipliers
+			obj_pop_run(cqc_mult, 'flatHundred', d => { cqc_acc -= d * 100 })
+			let cqc_title = fmt.d(cqc_acc), cqc_mods = []
+			Object.entries(cqc_mult).forEach(([k, v]) => {
+				if (v <= 0) return
+				cqc_mods.push(`${k}*${fmt.f2(v)}`) })
+			if (cqc_mods.length) cqc_title += ' - enemy(' + cqc_mods.join(' + ') + ')'
+			ext_title.push(`- Close-quarters accuracy: ${cqc_title}`)
+		}
 
 		if (Object.keys(da).length > 0) {
 			ext.push('+')
@@ -747,17 +760,20 @@ let form = d3.select('body').append('form')
 			'Use (SHIFT+)TAB to jump over stat input fields quickly.',
 			'Clicking table headers will sort on that column.',
 			'Reddish cells indicate that multiple alternatives (ammo types, modes) are available, click to cycle these.',
-			'Hovering over table values (e.g. accuracy, costs, damage) will show tooltips with more info/help on each.',
+			'Hovering over table values (e.g. accuracy, costs, damage, quirks) will show tooltips with more info/help on each.',
 			'"!!!" alongside value usually means some kind of data anomaly and that it can be incorrect.',
 			'"damage" column is technically a "power" value - actual damage is more like (power * random - armor) * resists.',
-			'"dpu" is a quite rough estimate due to how probabilities/spreads work over multiple attempts, and not taking target stats (armor, dodge, etc) into account, especially with quick-attack, auto-fire weapons and shotguns.',
+			'"dpu" is a quite rough estimate due to how probabilities/spreads work over multiple attempts,'+
+				' and not taking target stats (armor, dodge, etc) into account, especially with quick-attack, auto-fire weapons and shotguns.',
+			'Close-quarters accuracy (hover over "quirks" cell) is checked instead of base accuracy for each valid enemy'+
+				' (LoS, TUs, energy, size, etc) in melee range - if any - with attack succeeding only if it\'s a hit in all per-enemy checks.',
 			'Click on the newsticker at the bottom to hide/dismiss it.' ])
 		.enter().append('li').text(d => d))
 
 refresh()
 
 
-let ticker_release
+let ticker_release = 'Ham-fisted Grace'
 if (ticker_release && localStorage.ticker !== ticker_release) {
 	let ticker = d3.select('body')
 		.append('div').attr('class', 'ticker-wrap')
@@ -766,9 +782,10 @@ if (ticker_release && localStorage.ticker !== ticker_release) {
 			.append('div').attr('class', 'ticker')
 			.selectAll('div.item').data([
 				`Last Update - "${ticker_release}" release:`,
-				'Add support for stuff with ammo and multiple modes, all things related to them.',
-				'Add bunch of abbrevs and title descriptions for quirks that were missing these.',
-				'Fix formula for default factor-less xcom accuracy calculation and auto-fire (dmg*shots).',
+				'Show close-quarters-combat (CqC) modifiers/formula under quirks.',
+				'Add fists/kung-fu and similar weapons from CqC ruleset file.',
+				'Parse/show special attack names, if any.',
+				'Fix default auto-shot count to be 3.',
 				'End of the announcement. Click to dismiss.' ])
 			.enter().append('div').attr('class', 'item').text(d => d))
 	localStorage.ticker = ticker_release }
