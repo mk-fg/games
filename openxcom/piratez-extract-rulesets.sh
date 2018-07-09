@@ -17,10 +17,10 @@ done < <(
 
 [[ -z "$rul" ]] || {
 	echo "Creating calc-cache: ${rul}.cache.json"
-	./piratez-melee-calc.py --debug \
-			-c "$rul".cache.json -s Bardiche \
+	./piratez-melee-calc.py "$rul".cache.json \
 			-r "$rul_dir"/user/mods/Piratez/Ruleset/Piratez.rul \
+			-m "$rul_dir"/user/mods/Piratez/Ruleset/'Gun CqC'.rul \
 			-l "$rul_dir"/standard/xcom1/Language/en-US.yml \
 			-l "$rul_dir"/user/mods/Piratez/Language/en-US.yml \
-		>/dev/null || echo >&2 "ERROR: failed to create calc-cache json!!!"
+		|| echo >&2 "ERROR: failed to create calc-cache json!!!"
 }

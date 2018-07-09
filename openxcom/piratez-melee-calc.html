@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <meta charset='utf-8'>
+<title>OXC X-PirateZ Calculator</title>
 <style>
 
 body {
@@ -280,7 +281,7 @@ let
 	items_info = d3.set( (state('i') || '').split('.').filter(d => d.length > 0)
 		.map(d => ((d.startsWith('str_') || d.toUpperCase() in items) ? d : `str_${d}`).toUpperCase()) ),
 	items_battle = Object.values(data).filter(e => e.battleType),
-	// Added manually as e.g.: "STR_VERSION": {"type": "STR_VERSION", "value": "0.99J2"},
+	// Added by json-cacher as e.g.: "STR_VERSION": {"type": "STR_VERSION", "value": "0.99J2"},
 	items_version = (items.STR_VERSION || {}).value || 'unknown'
 
 let
