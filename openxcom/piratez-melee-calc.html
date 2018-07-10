@@ -597,7 +597,7 @@ let item_stats = d => {
 				'  1000 is default (never spawn), 0 for smoke grenades (always spawn).' ])
 
 		AddCqCInfo: {
-			if (!acc || acc <= 0) break AddCqCInfo
+			if (k_type == 'melee' || !acc || acc <= 0) break AddCqCInfo
 			let cqc_acc = d.accuracyCloseQuarters ?
 				(acc * d.accuracyCloseQuarters/100) : acc
 			let cqc_mult = d.closeQuartersMultiplier && obj_clone(d.closeQuartersMultiplier)
@@ -765,8 +765,10 @@ let form = d3.select('body').append('form')
 			'"damage" column is technically a "power" value - actual damage is more like (power * random - armor) * resists.',
 			'"dpu" is a quite rough estimate due to how probabilities/spreads work over multiple attempts,'+
 				' and not taking target stats (armor, dodge, etc) into account, especially with quick-attack, auto-fire weapons and shotguns.',
-			'Close-quarters accuracy (hover over "quirks" cell) is checked instead of base accuracy for each valid enemy'+
-				' (LoS, TUs, energy, size, etc) in melee range - if any - with attack succeeding only if it\'s a hit in all per-enemy checks.',
+			'Close-quarters accuracy for non-melee attacks (ones with targeting mode)'+
+				' is checked instead of base accuracy for each valid enemy (LoS, TUs, energy, size, etc)'+
+				' in melee range - if any - with attack succeeding only if it rolls a hit in all per-enemy checks.'+
+				' Hover over "quirks" cell for formula, "CqC+" there means that it is not default one.',
 			'Click on the newsticker at the bottom to hide/dismiss it.' ])
 		.enter().append('li').text(d => d))
 
