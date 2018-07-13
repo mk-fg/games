@@ -775,7 +775,7 @@ let form = d3.select('body').append('form')
 refresh()
 
 
-let ticker_release = 'Ham-fisted Grace'
+let ticker_release
 if (ticker_release && localStorage.ticker !== ticker_release) {
 	let ticker = d3.select('body')
 		.append('div').attr('class', 'ticker-wrap')
