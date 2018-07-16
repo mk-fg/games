@@ -759,42 +759,48 @@ let form = d3.select('body').append('form')
 		.call(s => s.append('tbody').attr('id', 'info'))
 		.call(s => s.append('tfoot').append('tr')))
 
-	.call(s => s.append('ul').attr('class', 'tips')
-		.selectAll('li').data([
-			'Use search field at the top of the Weapons box to look for weapons and mark them for comparison.',
-			'CTRL/SHIFT + click/drag in Weapons list to pick many, as found + unselected items there are removed from table.',
-			'Use (SHIFT+)TAB to jump over stat input fields quickly.',
-			'Clicking table headers will sort on that column.',
-			'Reddish cells indicate that multiple alternatives (ammo types, modes) are available, click to cycle these.',
-			'Hovering over table values (e.g. accuracy, costs, damage, quirks) will show tooltips with more info/help on each.',
-			'"!!!" alongside value usually means some kind of data anomaly and that it can be incorrect.',
-			'"damage" column is technically a "power" value - actual damage is more like (power * random - armor) * resists.',
-			'"dpu" is a quite rough estimate due to how probabilities/spreads work over multiple attempts,'+
-				' and not taking target stats (armor, dodge, etc) into account, especially with quick-attack, auto-fire weapons and shotguns.',
-			'Close-quarters accuracy for non-melee attacks (ones with targeting mode)'+
-				' is checked instead of base accuracy for each valid enemy (LoS, TUs, energy, size, etc)'+
-				' in melee range - if any - with attack succeeding only if it rolls a hit in all per-enemy checks.'+
-				' Hover over "quirks" cell for formula, "CqC+" there means that it is not default one.',
-			'Click on the newsticker at the bottom to hide/dismiss it.' ])
-		.enter().append('li').text(d => d))
-
 refresh()
 
 
-let ticker_release
-if (ticker_release && localStorage.ticker !== ticker_release) {
+let ticker_release,
+	ticker_show = ticker_release && localStorage.ticker !== ticker_release
+
+let tips = [
+	'Use search field at the top of the Weapons box to look for weapons and mark them for comparison.',
+	'CTRL/SHIFT + click/drag in Weapons list to pick many, as found + unselected items there are removed from table.',
+	'Use (SHIFT+)TAB to jump over stat input fields quickly.',
+	'Clicking table headers will sort on that column.',
+	'Reddish cells indicate that multiple alternatives (ammo types, modes) are available, click to cycle these.',
+	'Hovering over table values (e.g. accuracy, costs, damage, quirks) will show tooltips with more info/help on each.',
+	'"!!!" alongside value usually means some kind of data anomaly and that it can be incorrect.',
+	'"damage" column is technically a "power" value - actual damage is more like (power * random - armor) * resists.',
+	'"dpu" is a quite rough estimate due to how probabilities/spreads work over multiple attempts,'+
+		' and not taking target stats (armor, dodge, etc) into account, especially with quick-attack, auto-fire weapons and shotguns.',
+	'Close-quarters accuracy for non-melee attacks (ones with targeting mode)'+
+		' is checked instead of base accuracy for each valid enemy (LoS, TUs, energy, size, etc)'+
+		' in melee range - if any - with attack succeeding only if it rolls a hit in all per-enemy checks.'+
+		' Hover over "quirks" cell for formula, "CqC+" there means that it is not default one.' ]
+if (ticker_show) tips.push('Click on the newsticker at the bottom to hide/dismiss it.')
+
+let ticker_items = [
+	`Last Update - "${ticker_release}" release:`,
+	'Show close-quarters-combat (CqC) modifiers/formula under quirks.',
+	'Add fists/kung-fu and similar weapons from CqC ruleset file.',
+	'Parse/show special attack names, if any.',
+	'Fix default auto-shot count to be 3.',
+	'End of the announcement. Click to dismiss.' ]
+
+form.call(s => s.append('ul').attr('class', 'tips')
+	.selectAll('li').data(tips)
+	.enter().append('li').text(d => d))
+
+if (ticker_show) {
 	let ticker = d3.select('body')
 		.append('div').attr('class', 'ticker-wrap')
 		.on('click', (d, n, ns) => ticker.remove())
 		.call(s => s
 			.append('div').attr('class', 'ticker')
-			.selectAll('div.item').data([
-				`Last Update - "${ticker_release}" release:`,
-				'Show close-quarters-combat (CqC) modifiers/formula under quirks.',
-				'Add fists/kung-fu and similar weapons from CqC ruleset file.',
-				'Parse/show special attack names, if any.',
-				'Fix default auto-shot count to be 3.',
-				'End of the announcement. Click to dismiss.' ])
+			.selectAll('div.item').data(ticker_items)
 			.enter().append('div').attr('class', 'item').text(d => d))
 	localStorage.ticker = ticker_release }
 
