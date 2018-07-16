@@ -260,7 +260,7 @@ let
 	stats = new Map([
 		['strength', 35], ['melee', 70], ['throwing', 40],
 		['TUs', 65], ['bravery', 30], ['reactions', 40],
-		['firing', 50], ['psiStrength', 40], ['psiSkill', 30] ]),
+		['firing', 50], ['stamina', 100], ['psiStrength', 40], ['psiSkill', 30] ]),
 	fmt = {d: d3.format('d'), f1: d3.format('.1f'), f2: d3.format('.2f')}
 
 let
@@ -516,6 +516,9 @@ let item_stats = d => {
 			dmg_title.push(`- Auto-shot x${auto_shots} mode.\n`) }
 		if (dmg_str_mult) k = `(${k})${dmg_str_mult}`
 		dmg_title.push(`- Formula: ${k} = ${fmt.f1(dmg)}`)
+		if (Object.keys(factors).length > 0) {
+			dmg_str = `[!!!] ${dmg_str}`
+			dmg_title.push(`- Factors not applied:\n  ${obj_repr(factors)}`) }
 		dmg_title = !dmg_title.length ? null : dmg_title.join('\n')
 		info.damage = {text: dmg_str.replace(/ /g, '\u00A0'), title: dmg_title, value: dmg}
 	}
@@ -584,6 +587,9 @@ let item_stats = d => {
 		da_key_desc('RandomWound', d => [ !d && `rnd-wound=${d}`,
 			`- "rnd-wound": "true" use original radom system giving 1-3 wounds on hit,\n`+
 				'  "false" will give linear value based on "ToWound" value.' ])
+		da_key_desc('RandomHealth', d => [ d && `rnd-toH`,
+			'- "rnd-toH": weapon power appled to health is a random[0, power*(toH or 1)] value,\n'+
+				'  picked before armor/damage calculations.' ])
 		da_key_desc('RandomStun', d => [ d && `rnd-stun=${d}`,
 			`- "rnd-stun": whether calculation of final stun level change use random value, idk.` ])
 		da_key_desc('IgnoreOverKill', d => [ !d && `no-ok`,
