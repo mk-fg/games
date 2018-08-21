@@ -23,6 +23,13 @@ data:extend{
 		name = 'purple-wisp-damage',
 		type = 'bool-setting',
 		default_value = not conf.peaceful_spores },
+	{ order = '0040',
+		setting_type = 'runtime-global',
+		name = 'wisp-aggression-factor',
+		type = 'double-setting',
+		minimum_value = 0,
+		maximum_value = 1.0,
+		default_value = conf.wisp_aggression_factor },
 
 	{ order = '0110',
 		setting_type = 'runtime-global',

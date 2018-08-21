@@ -57,6 +57,26 @@ local function wisp_force_init(name, attack_players)
 	return wisps
 end
 
+local function wisp_incident_log(t, area, count)
+	-- Tracks last incidents in a round-robin queue
+	if not MapStats.incidents then MapStats.incidents = {a=1, b=1} end
+	local q, q_max, ts = MapStats.incidents, conf.incident_track_max, game.tick
+	if q[q.b] then
+		q.b = q.b % q_max + 1
+		if q[q.b] then
+			for _, tag in pairs(q[q.b].tags) do if tag.valid then tag.destroy() end end
+			if q.b == q.a then q.a = q.a % q_max + 1 end
+		end
+	end
+	q[q.b] = { t=t, ts=ts, n=count, tags={},
+		x=(area[1][1] + area[2][1])/2, y=(area[1][2] + area[2][2])/2 }
+	ts = ts - conf.incident_track_timeout
+	while q.a ~= q.b and q[q.a] and q[q.a].ts < ts do
+		q.a, tags, q[q.a] = q.a % q_max + 1, q[q.a].tags
+		for _, tag in pairs(tags) do if tag.valid then tag.destroy() end end
+	end
+end
+
 local function wisp_aggression_set(surface, attack, force, area)
 	if force and wisp_forces[force.name] then return end
 	local peace = true
@@ -89,6 +109,7 @@ local function wisp_aggression_set(surface, attack, force, area)
 		-- Change force for wisps in specified area
 		local force = peace and 'wisp_attack' or 'wisp'
 		local entities = surface.find_entities_filtered{force=force, type='unit', area=area}
+		if #entities > 0 then wisp_incident_log(peace and 'peace' or 'attack', area, #entities) end
 		if peace then for _, e in ipairs(entities) do e.force = 'wisp' end
 		else for _, e in ipairs(entities) do
 			if not conf.wisp_group_radius[e.name] then goto skip end
@@ -110,6 +131,28 @@ local function wisp_aggression_stop(surface)
 		e.set_command{type=defines.command.wander, distraction=defines.distraction.none}
 	::skip:: end
 	wisp_aggression_set(surface, false)
+end
+
+local function wisp_incident_labels(q, remove)
+	if not q or not q[q.a] then return end
+	local n, q_max, inc, tag = q.a, conf.incident_track_max
+	while q[n] do
+		inc = q[n]
+		if not remove then
+			tag = {
+				position={inc.x, inc.y}, icon={type='item', name='wisp-red'},
+				text=('[%s] %s (n=%s)'):format(utils.fmt_ticks(inc.ts), inc.t, inc.n) }
+			for _, player in ipairs(game.connected_players) do
+				if inc.tags[player.force.name] and inc.tags[player.force.name].valid then goto skip end
+				inc.tags[player.force.name] = player.force.add_chart_tag(player.surface, tag)
+			::skip:: end
+		else
+			for k, tag in pairs(inc.tags)
+				do if tag.valid then inc.tags[k] = tag.destroy() end end
+		end
+		if n == q.b then break end
+		n = n % q_max + 1
+	end
 end
 
 local function wisp_print_stats(print_func)
@@ -261,7 +304,7 @@ end
 local tasks_monolithic = {
 	-- All task functions here should return non-nil (number > 0)
 	--  if they did something heavy, which will re-schedule other tasks on this tick.
-	-- Args: surface.
+	-- Args: surface, n (step number, 0 <= n < steps), steps.
 
 	zones_spread = function(surface, n, steps)
 		return 0.2 * zones.update_wisp_spread(n, steps)
@@ -297,7 +340,7 @@ local tasks_monolithic = {
 			wisp_name = utils.pick_chance(wisp_chances)
 			if wisp_name then wisp_create_at_random(wisp_name, tree) end
 		end
-		return #trees
+		return #trees * 20
 	end,
 
 	pacify = function(surface)
@@ -378,6 +421,16 @@ local tasks_monolithic = {
 		local set = WispCongregations
 		set[set.n+1], set.n = cg, set.n+1
 		return 100
+	end,
+
+	radicalize = function(surface, n)
+		if n and not (math.random() < conf.wisp_aggression_factor) then return end
+		local trees = zones.get_wisp_trees_anywhere(conf.wisp_forest_spawn_count)
+		for _, tree in ipairs(trees) do
+			wisp_aggression_set( tree.surface, true, nil,
+				utils.get_area(conf.wisp_death_retaliation_radius, tree.position) )
+		end
+		return #trees * 30
 	end,
 
 }
@@ -568,6 +621,7 @@ local function on_tick(event)
 		run('spawn_on_map', surface)
 		run('tactics', surface)
 		run('congregate', surface)
+		run('radicalize', surface)
 		if surface.darkness > conf.min_darkness_to_emit_light then
 			if drones then run('light_drones', WispDrones) end
 			if wisps then run('light_wisps', Wisps) end
@@ -677,7 +731,10 @@ zone labels [n] - Add map labels to all found forest spawning zones.
 zone labels remove - Remove map labels from scanned zones.
 zone spawn [n] - Spawn wisps in the forested map zones.
 ... Parameter (integer, default=1) sets how many spawn-cycles to simulate.
+incidents - Add map labels for last wisp aggression-change incidents.
+incidents remove - Remove map labels for wisp aggression incidents.
 attack - Have all will-o-wisps on the map turn hostile towards player(s).
+radicalize - Make wisps in randomly-picked spawn zones aggressive.
 peace - Pacify all will-o-the-wisps on the map, command them to stop attacking.
 stats - Print some stats about wisps on the map.
 ]]
@@ -718,8 +775,11 @@ local function run_wisp_command(cmd)
 				:format(cycles, utils.fmt_ticks(ticks), utils.fmt_n_comma(ticks)) )
 			for n = 1, cycles do tasks_monolithic.spawn_on_map(WispSurface) end
 		else return usage() end
+	elseif cmd == 'incidents' then
+		wisp_incident_labels(MapStats.incidents, args[2] == 'remove')
 	elseif cmd == 'congregate' then tasks_monolithic.congregate(WispSurface)
 	elseif cmd == 'attack' then wisp_aggression_set(WispSurface, true)
+	elseif cmd == 'radicalize' then tasks_monolithic.radicalize(WispSurface)
 	elseif cmd == 'peace' then wisp_aggression_stop(WispSurface)
 	elseif cmd == 'stats' then wisp_print_stats(player.print)
 	else return usage() end
@@ -779,6 +839,8 @@ local function apply_runtime_settings(event)
 		end
 	end
 
+	knob = key_update('wisp-aggression-factor')
+	if knob then conf.wisp_aggression_factor = knob.value end
 	knob = key_update('wisp-map-spawn-count')
 	if knob then conf.wisp_max_count = knob.value end
 	knob = key_update('wisp-map-spawn-pollution-factor')

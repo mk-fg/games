@@ -21,6 +21,10 @@ conf.wisp_max_count = 1250
 conf.wisp_purple_dmg = 1
 conf.wisp_purple_area = 2
 
+-- Aggression chance in most likely spawn zones via radicalize routine
+-- Disabled by default (=0) for wisps to be less annoying
+conf.wisp_aggression_factor = 0
+
 -- UV lamps
 conf.uv_lamp_energy_min = 0.2
 conf.uv_lamp_range = 12
@@ -162,16 +166,10 @@ c.dst_next_building_radius = 128 -- radius to pick target building in from dst p
 
 -- Intervals don't really have to be primes, but it might help to
 --  space them out on ticks more evenly, to minimize clashes/backlog.
--- Spreading workload as thinly as possible is probably the best option.
----  3 5 7 11 13 17 19 23 29 31 37 41 43 47 53 59 61 67 71 73 79 83
----  89 97 101 103 107 109 113 127 131 137 139 149 151 157 163 167
----  173 179 181 191 193 197 199 211 223 227 229 233 239 241 251 257
----  263 269 271 277 281 283 293 307 311 313 317 331 337 347 349 353
----  547 557 563 569 571 577 587 593 599 601 607 613 617 619 631 641
----  643 647 653 659 811 821 823 827 829 839 853 857 859 863 877 881
 
 conf.intervals = {
-	spawn_near_players=107, spawn_on_map=113, pacify=311, tactics=97,
+	spawn_near_players=107, spawn_on_map=113,
+	pacify=311, tactics=97, radicalize=3613,
 	light_wisps=3, light_detectors=17, light_drones=5,
 	congregate=3607, recongregate=353,
 	detectors=47, uv=31, expire_ttl=73, expire_uv=61 }
@@ -245,6 +243,10 @@ conf.wisp_light_counts['wisp-detector'] = 1
 
 
 -- ---------- Testing hacks
+
+-- Locations for "/wisp incidents" console command
+conf.incident_track_max = 300
+conf.incident_track_timeout = 8 * 60 * ticks_sec
 
 -- use print() instead of log() for shorter prefix
 conf.debug_log_direct = true
