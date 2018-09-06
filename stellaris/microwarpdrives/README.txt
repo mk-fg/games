@@ -37,6 +37,6 @@ Does not overwrite any files, only adding new technology and component, so shoul
 Technology will become available when mod is enabled for both existing saves and new games.
 Disabling the mod should strip MWD modules from existing ships/designs and hide the technology.
 
-Idea (and icon) is from EVE Online, where Afterburners (AB) are complemented by Microwarpdrives (MWD), with former working pretty much like they do in Stellaris, passively increasing ship speed, while latter boost it through the roof (e.g. 5x), but also increase ship signature likewise, making it easier to lock and hit even by larger weapons, unless negated by sheer velocity (usually is for smaller ships).
+Name (and icon) is from EVE Online, where Afterburners (AB) are complemented by Microwarpdrives (MWD), with former working pretty much like they do in Stellaris, passively increasing ship speed, while latter boost it through the roof (e.g. 5x), but also increase ship signature likewise, making it easier to lock and hit even by larger weapons, unless negated by sheer velocity (usually is for smaller ships).
 
 License: [url=https://en.wikipedia.org/wiki/WTFPL]WTFPL[/url]
