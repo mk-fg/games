@@ -53,12 +53,13 @@ class AttrDict(dict):
 def parse_mod_files(paths):
 	mods = dict()
 	for p in paths:
-		with p.open(encoding='utf-8-sig') as src:
-			model = mm_mod.model_from_str(src.read())
+		descriptor = p.read_text(encoding='utf-8-sig')
+		model = mm_mod.model_from_str(descriptor)
 		mod = dict( (val.k, val.v)
 			for val in tx.model.children_of_type('Val', model) )
 		assert 'name' in mod, repr(p.read_text())
 		assert mod['name'] not in mods, mod['name']
+		mod['_descriptor'] = descriptor
 		mods[mod['name']] = AttrDict(mod)
 	return mods
 
@@ -138,6 +139,7 @@ def main(args=None):
 					stderr=subprocess.DEVNULL, check=False )
 			else:
 				p_mod = p_mod_dir / pl.Path(mod.path).name
+			(p_mod / 'descriptor.mod').write_text(mod._descriptor)
 			subprocess.run(['rsync', '-rc', '--delete', f'{p_mod}/.', p_dst], check=True)
 
 	os.chdir(p_repo)
