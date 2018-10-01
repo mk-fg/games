@@ -12,6 +12,12 @@ Replaces technology icons for Laser Weapons by exactly same ones, only with tech
 Why they are missing on lasers only is a mystery, which might be revealed in future DLC.
 
 
+[h1]Moar. MOAR! MOOOAAAARRRR!!!![/h1]
+
+There is also a [url=https://steamcommunity.com/sharedfiles/filedetails/?id=1527522376]Tech Tier Numbers on Tech Icons[/url] mod that also adds such numbers to shields, thrusters, farm/mine/lab tiers, and many other things.
+No need to use this mod with that one, as they both include same icons for lasers.
+
+
 [h1]Technical Info[/h1]
 
 Only replaces five icon files for these laser techs.

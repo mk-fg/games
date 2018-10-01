@@ -74,6 +74,12 @@ Mods are for post-2.0 era.
 
   Also a tiny graphics fix for tech icons on one branch missing proper tech tier identifiers.
 
+- `Tech Tier Numbers on Tech Icons
+  <https://steamcommunity.com/sharedfiles/filedetails/?id=1527522376>`_
+
+  Icon tweak similar to previous one, adding tech tier number to icons for most
+  techs that have a linear upgrade path.
+
 - `Shadowrun Name List
   <https://steamcommunity.com/sharedfiles/filedetails/?id=1363348791>`_
 
