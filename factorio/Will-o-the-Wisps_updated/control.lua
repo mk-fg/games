@@ -286,14 +286,6 @@ end
 -- Tech
 ------------------------------------------------------------
 
-local function get_circuit_input(entity, signal)
-	local c, signals = 0, entity.get_merged_signals()
-	if signals then for _, input in ipairs(signals) do
-		if input.signal.name == signal then c = c + input.count; break end
-	end end
-	return c
-end
-
 local function uv_light_init(entity)
 	local n = UVLights.n + 1
 	UVLights.n, UVLights[n] = n, {entity=entity}
