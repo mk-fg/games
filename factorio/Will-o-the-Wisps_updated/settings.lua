@@ -30,6 +30,11 @@ data:extend{
 		minimum_value = 0,
 		maximum_value = 1.0,
 		default_value = conf.wisp_aggression_factor },
+	{ order = '0050',
+		setting_type = 'runtime-global',
+		name = 'wisp-biter-aggression',
+		type = 'bool-setting',
+		default_value = conf.wisp_biter_aggression },
 
 	{ order = '0110',
 		setting_type = 'runtime-global',

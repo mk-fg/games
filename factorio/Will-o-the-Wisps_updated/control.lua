@@ -133,6 +133,16 @@ local function wisp_aggression_stop(surface)
 	wisp_aggression_set(surface, false)
 end
 
+local function wisp_biter_aggression_set()
+	local wisp_biter_peace = not conf.wisp_biter_aggression
+	for _, force in ipairs{'wisp', 'wisp_attack'} do
+		force = game.forces[force]
+		if not force then goto skip end
+		force.set_cease_fire(game.forces.enemy, wisp_biter_peace)
+		game.forces.enemy.set_cease_fire(force, wisp_biter_peace)
+	::skip:: end
+end
+
 local function wisp_incident_labels(q, remove)
 	if not q or not q[q.a] then return end
 	local n, q_max, inc, tag = q.a, conf.incident_track_max
@@ -739,6 +749,7 @@ end
 local function on_tick_init(event)
 	WispSurface = game.surfaces[conf.surface_name]
 	zones.init(global.zones)
+	wisp_biter_aggression_set()
 
 	-- script.on_nth_tick can be used here,
 	--  but central on_tick can de-duplicate bunch of common checks,
@@ -866,6 +877,12 @@ local function apply_runtime_settings(event)
 				wisp = wisp_create(wisp_spore_proto, surface, pos, wisp.ttl, n)
 			::skip:: end
 		end
+	end
+
+	knob = key_update('wisp-biter-aggression')
+	if knob then
+		conf.wisp_biter_aggression = knob.value
+		if game then wisp_biter_aggression_set() end
 	end
 
 	knob = key_update('wisp-aggression-factor')

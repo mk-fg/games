@@ -25,6 +25,10 @@ conf.wisp_purple_area = 2
 -- Disabled by default (=0) for wisps to be less annoying
 conf.wisp_aggression_factor = 0
 
+-- Whether wisps attack biters and vice-versa.
+-- Can cause red wisp numbers to go out of control.
+conf.wisp_biter_aggression = false
+
 -- UV lamps
 conf.uv_lamp_energy_min = 0.2
 conf.uv_lamp_range = 12
