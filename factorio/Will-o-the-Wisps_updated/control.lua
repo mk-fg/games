@@ -205,13 +205,10 @@ local wisp_spore_proto = 'wisp-purple'
 local function wisp_spore_proto_check(name) return name:match('^wisp%-purple') end
 
 local function wisp_find_units(surface, pos, radius)
-	-- Abstraction layer for find_entities_filtered to work with both experimental and stable factorio
-	-- XXX: replace with force={'wisp', 'wisp_attack'} once stable updates on GoG
 	local area
 	if not radius then area = pos else area = utils.get_area(radius, pos) end
-	local units = surface.find_entities_filtered{force='wisp', type='unit', area=area} or {}
-	for _, unit in ipairs(surface.find_entities_filtered{force='wisp_attack', type='unit', area=area})
-		do table.insert(units, unit) end
+	local units = surface.find_entities_filtered{
+		force={'wisp', 'wisp_attack'}, type='unit', area=area } or {}
 	return units
 end
 
