@@ -198,8 +198,9 @@ end
 
 local function entity_is_tree(e) return e.type == 'tree' end
 local function entity_is_rock(e) return utils.match_word(e.name, 'rock') end
-local function entity_is_wisp_unit(e)
-	return e.name == 'wisp-red' or e.name == 'wisp-yellow' or e.name == 'wisp-green' end
+
+local wisp_unit_proto_map = {['wisp-red']=true, ['wisp-yellow']=true, ['wisp-green']=true}
+local function wisp_unit_proto_check(name) return wisp_unit_proto_map[name] end
 
 local wisp_spore_proto = 'wisp-purple'
 local function wisp_spore_proto_check(name) return name:match('^wisp%-purple') end
@@ -493,10 +494,33 @@ local tasks_entities = {
 	end},
 
 	detectors = {work=1, func=function(wd, e, s)
-		local range = get_circuit_input(e, conf.detection_range_signal)
+		local control = e.get_control_behavior()
+		if not control.enabled then return end
+		local signals = e.get_merged_signals()
+
+		-- Get range from both local parameters and merged inputs
+		-- Also used to scan local parameters for free/wisp slots to use/update
+		local params, params_wisp, params_free, range, name = {}, {}, {}, 0
+		for n, param in ipairs(control.parameters.parameters) do
+			name = param.signal.name
+			if not name then table.insert(params_free, {n, param.index})
+			elseif wisp_unit_proto_check(name)
+					or wisp_spore_proto_check(name)
+				then params_wisp[name] = {n, param.index}
+			else
+				if name == conf.detection_range_signal
+					then range = range + param.count end
+				params[n] = param
+			end
+		end
+		if signals then for _, param in ipairs(signals) do
+			if param.signal.name == conf.detection_range_signal
+				then range = range + param.count end
+		end end
 		if range > 0 then range = math.min(range, conf.detection_range_max)
 		else range = conf.detection_range_default end
 
+		-- Wisp counts
 		local counts, wisps = {}
 		if next(Wisps) then
 			wisps = wisp_find_units(s, e.position, range)
@@ -507,13 +531,21 @@ local tasks_entities = {
 			if wisps > 0 then counts['wisp-purple'] = wisps end
 		end
 
-		local params = {}
+		-- Update parameters without moving them around
+		local n, idx
+		table.sort(params_free, function(a,b) return a[2] < b[2] end)
 		for name, count in pairs(counts) do
-			params[#params+1] = { index=#params+1,
-				count=count, signal={type='item', name=name} }
+			if params_wisp[name] then n, idx = table.unpack(params_wisp[name])
+			else for m, slot in pairs(params_free) do
+				n, idx, params_free[m] = table.unpack(slot)
+				break
+			end end
+			if n then
+				params[n], n = { index=idx,
+					count=count, signal={type='item', name=name} }
+			else break end
 		end
-
-		e.get_control_behavior().parameters = {parameters=params}
+		control.parameters = {parameters=params}
 	end},
 
 	recongregate = {work=20, func=function(cg, group, s)
@@ -649,7 +681,7 @@ local function on_death(event)
 	local e = event.entity
 	if entity_is_tree(e) then wisp_create_at_random('wisp-yellow', e) end
 	if entity_is_rock(e) then wisp_create_at_random('wisp-red', e) end
-	if entity_is_wisp_unit(e) then
+	if wisp_unit_proto_check(e.name) then
 		local area
 		if conf.wisp_death_retaliation_radius > 0
 			then area = utils.get_area(conf.wisp_death_retaliation_radius, e.position) end

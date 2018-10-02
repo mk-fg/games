@@ -1,4 +1,12 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.0.51
+Date: 02. 10. 2018
+  Changes:
+    - Allow setting R range signal on the wisp detector itself.
+    - Do not override or shuffle non-wisp signals that are set on detectors, only add/update.
+    - Allow same 18 slots on wisp detector as on constant combinator.
+    - Don't update detector signals when they are switched off.
+---------------------------------------------------------------------------------------------------
 Version: 0.0.50
 Date: 21. 08. 2018
   Changes:

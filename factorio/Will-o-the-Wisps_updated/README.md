@@ -40,7 +40,7 @@ Technologies:
 - Disable turrets targeting wisps in Mod Options menu to avoid accidental aggression.
 - UV will chase wisps away without any retaliation. Overlapping lamps will amplify effects.
 - Circuit control wires can switch UV lamps on/off for power saving reasons - they eat quite a lot.
-- Wisp detectors range can be set by R signal, see ingame description for more info.
+- Wisp detectors range can be set by R signal (on itself or via wires), see ingame description for more info.
 - Lantern will-o-wisps last a long time, but can always be put down (C key) if they're a bother.
 - Wisps appear in forests after dark (in a day or few), drawn out by nearby pollution and player activity.
 - Mod only tracks surface darkness changes, not time, so mods that change day/night cycle should be compatible.
