@@ -23,6 +23,6 @@ function Colonist:GetSpecializationIcons()
 end
 
 function OnMsg.LoadGame()
-	for _,c in ipairs(GetObjects{class='Colonist', area='realm'}) do
-		c.ip_specialization_icon, c.pin_specialization_icon = c:GetSpecializationIcons()
-end end
+	for _,c in ipairs(GetObjects{class='Colonist', area='realm'})
+		do c.ip_specialization_icon, c.pin_specialization_icon = c:GetSpecializationIcons() end
+end

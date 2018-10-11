@@ -185,11 +185,6 @@ Minor quality-of-life lua tweaks for early versions:
   70% cheaper Art and Electronics shop consumables for crowded domes, as they
   really slow production down needlessly otherwise.
 
-- `no-border-scrolling <https://www.nexusmods.com/survivingmars/mods/5>`_
-
-  For some reason it's extremely sensitive and annoying here, though maybe
-  because I tend to move cursor from the window to tweak more lua too often.
-
 - `university-entrance-exams <https://www.nexusmods.com/survivingmars/mods/6>`_
 
   Bars mentally challenged colonists from studying in Martian University,
@@ -207,10 +202,9 @@ Minor quality-of-life lua tweaks for early versions:
   Optional version of geologist-uniform-recolor mod above,
   with few other color tweaks to make icons even more distinctive.
 
-- polymers-production-buff
+- polymers-production-buff, unlock-oval-dome
 
-  Alternative to "cheaper-consumer-items" hack to just boost a-bit-too-slow
-  resource production on that sanity-breaking outdoors factory instead.
+  More small local balancing hacks.
 
 - `console.lua <surviving-mars/console.lua>`_
 

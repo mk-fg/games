@@ -24,8 +24,12 @@ local function init_modifiers()
 end
 
 local function remove_modifiers()
-	RemoveLabelModifier('fg-cheaper-consumer-items-art-workshop', 'ShopsJewelry', 'consumption_amount')
-	RemoveLabelModifier('fg-cheaper-consumer-items-electronics-shop', 'ShopsElectronics', 'consumption_amount')
+	RemoveLabelModifier(
+		'fg-cheaper-consumer-items-art-workshop',
+		'ShopsJewelry', 'consumption_amount' )
+	RemoveLabelModifier(
+		'fg-cheaper-consumer-items-electronics-shop',
+		'ShopsElectronics', 'consumption_amount' )
 end
 
 function OnMsg.LoadGame() init_modifiers() end

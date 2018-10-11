@@ -43,6 +43,6 @@ function OnMsg.LoadGame()
 	else mod_path = mod_path_fallback end -- fallback option
 	icon_replace_map = make_icon_replace_map(mod_path)
 
-	for _,c in ipairs(GetObjects{class='Colonist', area='realm'}) do
-		c.ip_specialization_icon, c.pin_specialization_icon = c:GetSpecializationIcons()
-end end
+	for _,c in ipairs(GetObjects{class='Colonist', area='realm'})
+		do c.ip_specialization_icon, c.pin_specialization_icon = c:GetSpecializationIcons() end
+end
