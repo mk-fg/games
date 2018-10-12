@@ -192,6 +192,11 @@ history, obsoleted by official game updates:
   Bars mentally challenged colonists from studying in Martian University,
   leaving them in service jobs forever, where they can do relatively little harm.
 
+- `no-border-scrolling <https://www.nexusmods.com/survivingmars/mods/5>`_
+
+  For some reason it's extremely sensitive and annoying here, though maybe
+  because I tend to move cursor from the window to tweak lua way too often.
+
 - polymers-production-buff, unlock-oval-dome
 
   More small local balancing hacks.
