@@ -213,6 +213,9 @@ Minor quality-of-life lua tweaks for early versions:
   Has built-in docs, and created mostly to dump info on any selected /
   around-cursor objects (in json/text formats) or test arbitrary lua calls.
 
+- zstd-dec.py - script to decompress zstd-compressed files in
+  `.hpk archives <https://github.com/nickelc/hpk/#fragmented-file-zliblz4-compressed>`_.
+
 .. _Surviving Mars: https://www.survivingmars.com/
 
 
