@@ -196,6 +196,14 @@ history, obsoleted by official game updates:
 
   More small local balancing hacks.
 
+- console
+
+  Debug lua console extension with a bunch of useful tools, like recursive
+  pretty-printers, dumping stuff to files, running lua scripts from files and such.
+
+  Requres bootstrap via initial console via ``c.init(load)`` command, to give access
+  to full _G for all subroutines there, ``c.h()`` for more info on all the tools there.
+
 - zstd-dec.py - script to decompress zstd-compressed files in
   `.hpk archives <https://github.com/nickelc/hpk/#fragmented-file-zliblz4-compressed>`_.
 
