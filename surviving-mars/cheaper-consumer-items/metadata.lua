@@ -8,5 +8,5 @@ return PlaceObj('ModDef', {
 	'code', {'Code/cheaper-consumer-items.lua'},
 	'saved', 1521874258,
 	-- 'image', 'thumb.png',
-  'description', [[70% cheaper Art and Electronics shop consumables for crowded domes.]],
+	'description', [[70% cheaper Art and Electronics shop consumables for crowded domes.]],
 })

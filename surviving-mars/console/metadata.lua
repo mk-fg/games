@@ -8,6 +8,6 @@ return PlaceObj('ModDef', {
 	'code', {'Code/console.lua'},
 	'saved', 1539337856,
 	-- 'image', 'thumb.png',
-  'description', [[Extra stuff for debug lua console for current SM game version.
+	'description', [[Extra stuff for debug lua console for current SM game version.
 Run c.h() in console to get bootstrap and usage information.]],
 })

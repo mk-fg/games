@@ -8,6 +8,6 @@ return PlaceObj('ModDef', {
 	'code', {'Code/unlock-oval-dome.lua'},
 	'saved', 1539294646,
 	-- 'image', 'thumb.png',
-  'description', [[Unlocks Oval Dome when any spire and medium dome have been built.
+	'description', [[Unlocks Oval Dome when any spire and medium dome have been built.
 Can be added/removed at any time.]],
 })
