@@ -20,5 +20,6 @@ local function remove_modifiers()
 	RemoveLabelModifier('fg-polymer-production-buff', 'PolymerPlant', 'production_per_day1')
 end
 
+function OnMsg.GameTimeStart() init_modifiers() end
 function OnMsg.LoadGame() init_modifiers() end
 -- function OnMsg.LoadGame() remove_modifiers() end

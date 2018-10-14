@@ -8,5 +8,6 @@ return PlaceObj('ModDef', {
 	'code', {'Code/polymers-prod-buff.lua'},
 	'saved', 1521872694,
 	-- 'image', 'thumb.png',
-	'description', [[Changes uniforms on all colonist icons to have visually distinct set of colors.]],
+	'description', [[Boosts production of polymer factory by 50%.
+Number can be easily tweaked in polymers-prod-buff.lua file inside.]],
 })
