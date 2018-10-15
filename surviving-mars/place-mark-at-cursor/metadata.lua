@@ -7,7 +7,7 @@ return PlaceObj('ModDef', {
 	'steam_id', "1540082683",
 	'author', "mk-fg",
 	'version', 2,
-	'lua_revision', 235636,
+	'lua_revision', LuaRevision,
 	'code', {"Code/place-mark-at-cursor.lua"},
 	'saved', 1539633161,
 	'TagTools', true,
