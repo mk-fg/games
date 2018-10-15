@@ -298,5 +298,5 @@ end
 CreateRealTimeThread(function()
 	Sleep(1000)
 	c.log('*** Console mod loaded')
-	c.log('*** [hit enter, type h(), enter]')
+	c.log('*** [hit enter, type c.h(), enter]')
 end)
