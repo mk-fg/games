@@ -13,7 +13,7 @@ local function fmt(msg, ...)
 		for n = 1,args.n do
 			local v = args[n]
 			if type(v) == 'table' -- lua is especially unhelpful with these
-				then v = serpent.line(v, {nocode=true, sparse=true}) end
+				then v = tostring(v) end -- XXX: oneline-fomat
 			fmt_args[n] = v
 		end
 		local done, res = pcall(string.format, msg, table.unpack(fmt_args))
@@ -30,7 +30,7 @@ local function fmt(msg, ...)
 		msg = res
 	end
 	if type(msg) ~= 'string'
-		then msg = serpent.block(msg, {comment=false, nocode=true, sparse=true}) end
+		then msg = tostring(msg) end --- XXX: block-format
 	return msg
 end
 
@@ -171,6 +171,8 @@ function c.pp(s, max_depth, limit, table_skip)
 	return out
 end
 
+function c.pl(obj, ...) c.log(c.pp(obj, ...)) end
+
 c.j = LuaToJSON
 c.pf = print_format
 
@@ -283,6 +285,7 @@ function c.h()
 	c.log('   - 123 / {k=123} / SelectedObj / any_table - evaluation results get pretty-printed')
 	c.log(' - String formatting:')
 	c.log('   - pp(obj[, max_depth[, limit=8000[, skip]]]) -- obj to string w/ length/depth limits')
+	c.log('   - pl(obj[, pp_opts]) -- pretty-print to console, same as log(pp(obj))')
 	c.log('   - po(obj) -- dump obj table to a file')
 	c.log('   - j(obj) / pf(obj) -- obj to string in JSON/Lua format')
 	c.log(' - Queries:')

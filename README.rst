@@ -197,6 +197,10 @@ history, obsoleted by official game updates:
   For some reason it's extremely sensitive and annoying here, though maybe
   because I tend to move cursor from the window to tweak lua way too often.
 
+- place-mark-at-cursor
+
+  Adds hotkeys to place colored hexes to mark locations anywhere on the map.
+
 - polymers-production-buff, unlock-oval-dome
 
   More small local balancing hacks.
