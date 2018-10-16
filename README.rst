@@ -197,9 +197,10 @@ history, obsoleted by official game updates:
   For some reason it's extremely sensitive and annoying here, though maybe
   because I tend to move cursor from the window to tweak lua way too often.
 
-- place-mark-at-cursor
+- `place-mark-at-cursor <https://www.nexusmods.com/survivingmars/mods/93>`_
 
-  Adds hotkeys to place colored hexes to mark locations anywhere on the map.
+  | Adds hotkeys to place colored hexes to mark locations anywhere on the map.
+  | Useful to remember or temporarily mark various building reach areas to plan stuff.
 
 - polymers-production-buff, unlock-oval-dome
 
@@ -207,13 +208,13 @@ history, obsoleted by official game updates:
 
 - console
 
-  Debug lua console extension with a bunch of useful tools, like recursive
+  Mod Editor console extension with a bunch of useful tools, like recursive
   pretty-printers, dumping stuff to files, running lua scripts from files and such.
 
   Requres bootstrap via initial console via ``c.init(load)`` command, to give access
-  to full _G for all subroutines there, ``c.h()`` for more info on all the tools there.
+  to full _G env for all subroutines there, ``c.h()`` for more info on all the tools there.
 
-- zstd-dec.py - script to decompress zstd-compressed files in
+- zstd-dec.py - script to decompress zstd-compressed files from
   `.hpk archives <https://github.com/nickelc/hpk/#fragmented-file-zliblz4-compressed>`_.
 
 .. _Surviving Mars: https://www.survivingmars.com/
