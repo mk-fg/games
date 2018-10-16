@@ -58,7 +58,7 @@ local function init_actions()
 		local color = key_colors[n]
 		if not color then goto skip end
 		action_replace{
-			ActionName = ('Place Mark [%o]'):format(color),
+			ActionName = ('Place Mark #%06X'):format(color),
 			ActionId = action_id_tpl:format(n),
 			ActionShortcut = ('Ctrl-%s'):format(n),
 			OnAction = function() toggle_cursor_tile_color(color) end }
@@ -77,6 +77,7 @@ local function remove_actions()
 		for m = 0, 9 do if act == action_id_tpl:format(n)
 			then table.remove(gs, n) end end
 	end
+	remove_tiles()
 end
 
 

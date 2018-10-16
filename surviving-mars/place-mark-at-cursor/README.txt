@@ -26,7 +26,8 @@ Why paint? - placing stuff on plain ground within unmarked reach of multple thin
 Why Marx? - wanted to spell "❤ marks" but thought to shorten it a bit.
 
 [[url=https://steamcommunity.com/sharedfiles/filedetails/?id=1540082683]Steam Workshop[/url]] [[url=https://www.nexusmods.com/survivingmars/mods/93]Nexus Mods[/url]] [[url=https://github.com/mk-fg/games/]Github[/url]]
-(protip: if mod gets out of date, Nexus version does not have lua_revision compatbility check)
+(protip: if mod gets out of date, Nexus version does not have lua_revision compatbility check,
+but Mod Editor won't upload to Steam without it)
 
 [u][size=4]Installation[/size][/u]
 
@@ -35,4 +36,4 @@ Put unpacked "place-mark-at-cursor" directory under:
 (Re-)start the game, and it should appear in "Mod Manager" menu.
 
 Can be installed, enabled/disabled and removed at any time.
-Only adds new hex-doodle class and hotkeys to place it, should be compatible with any other mods.
+Only adds hex-tile class and hotkeys to place it, should be compatible with any other mods.
