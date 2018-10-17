@@ -202,9 +202,13 @@ history, obsoleted by official game updates:
   | Adds hotkeys to place colored hexes to mark locations anywhere on the map.
   | Useful to remember or temporarily mark various building reach areas to plan stuff.
 
+- disable-maintenance-button
+
+  Adds button to toggle whether drones will patch building up when maintenance is required.
+
 - polymers-production-buff, unlock-oval-dome
 
-  More small local balancing hacks.
+  More small local balancing hacks and local tweaks to other mods.
 
 - console
 
