@@ -1,0 +1,19 @@
+Adds button to toggle whether drones will patch building up when maintenance is required.
+Unmaintained building will keep working until it finally breaks down.
+Disabling/enabling maintenance mode should have immediate effect on drones, stopping ones that are en-route if necessary.
+
+Such functionality is useful in early stages of colony development, when resources are scarce and letting stuff rust in disabled state is expensive, so shutting it down only as it breaks is preferrable.
+
+[h1]Similar mods[/h1]
+
+- [url=https://steamcommunity.com/sharedfiles/filedetails/?id=1403028308]Work Till Maintenance[/url]
+
+  Disables building immediately once maintenance threshold is reached.
+  A bit outdated, has some code issues.
+
+- [url=https://steamcommunity.com/sharedfiles/filedetails/?id=1411107464]Disable Drone Maintenance v0.6[/url]
+
+  Different UI-wise, allows toggling for all buildings of specific type.
+  Does not dispatch drones after maintenance re-enabled until building breaks down,
+  nor stops ones already underway when disabling it.
+  Requires an extra dependency library mod.
