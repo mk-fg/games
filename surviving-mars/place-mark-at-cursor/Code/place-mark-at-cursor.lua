@@ -42,7 +42,8 @@ local function action_replace(action)
 	local gs, act = XTemplates.GameShortcuts
 	for n, act in pairs(gs) do
 		act = type(act) == 'table' and act.ActionId
-		if act == action.ActionId then table.remove(gs, n) end
+		if act == action.ActionId
+			then DoneObject(act); table.remove(gs, n) end
 	end
 	act = {
 		'ActionMode', 'Game',
