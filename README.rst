@@ -202,7 +202,7 @@ history, obsoleted by official game updates:
   | Adds hotkeys to place colored hexes to mark locations anywhere on the map.
   | Useful to remember or temporarily mark various building reach areas to plan stuff.
 
-- disable-maintenance-button
+- `disable-maintenance-button <https://www.nexusmods.com/survivingmars/mods/94>`_
 
   Adds button to toggle whether drones will patch building up when maintenance is required.
 

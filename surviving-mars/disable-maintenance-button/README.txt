@@ -12,21 +12,6 @@ so shutting it down only as it breaks is preferrable.
 but Mod Editor won't upload to Steam without it)
 
 
-[u][size=4]Similar mods[/size][/u]
-
-- [url=https://steamcommunity.com/sharedfiles/filedetails/?id=1403028308]Work Till Maintenance[/url]
-
-  Disables building immediately once maintenance threshold is reached.
-  A bit outdated, has some code issues.
-
-- [url=https://steamcommunity.com/sharedfiles/filedetails/?id=1411107464]Disable Drone Maintenance v0.6[/url]
-
-  Different UI-wise, allows toggling for all buildings of specific type.
-  Does not dispatch drones after maintenance re-enabled until building breaks down,
-  nor stops ones already underway when disabling it.
-  Requires an extra dependency library mod.
-
-
 [u][size=4]Installation[/size][/u]
 
 Put unpacked "disable-maintenance-button" directory under:
@@ -36,3 +21,16 @@ Put unpacked "disable-maintenance-button" directory under:
 Can be installed, enabled/disabled and removed at any time.
 Should be compatible with any other mods, though might push
 their buttons around (or vice-versa) if they add these to the same row.
+
+
+[u][size=4]Similar mods[/size][/u]
+
+- [url=https://steamcommunity.com/sharedfiles/filedetails/?id=1403028308]Work Till Maintenance[/url]
+
+  Disables building immediately once maintenance threshold is reached.
+  A bit outdated, has some code issues.
+
+- [url=https://steamcommunity.com/sharedfiles/filedetails/?id=1411107464]ChoGGi's Disable Drone Maintenance[/url]
+
+  Only different UI-wise (horizontal button, allows toggling for all buildings of specific type),
+  and in that it requires an extra dependency library mod.
