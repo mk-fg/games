@@ -40,10 +40,27 @@ def main(args=None):
 				src.seek(0)
 				dst.write(src.read())
 				continue
+
 			dst_len, bs, offset = struct.unpack('III', src.read(12))
-			assert offset == 0x10, [dst_len, bs, offset]
-			dec = sp.run(['zstd', '-d'], input=src.read(), stdout=sp.PIPE, check=True)
-			assert len(dec.stdout) == dst_len, [dst_len, dec.stdout]
-			dst.write(dec.stdout)
+			offset_list = [offset]
+			while src.tell() < offset:
+				offset_list.append(struct.unpack('I', src.read(4))[0])
+			assert src.tell() == offset, [src.tell(), offset, offset_list]
+
+			buff = list()
+			for n, offset in enumerate(offset_list):
+				src.seek(offset)
+				if n + 1 < len(offset_list):
+					chunk_len = offset_list[n+1] - offset
+					assert chunk_len == bs, [chunk_len, bs]
+				else: chunk_len = None
+				buff.append(src.read(chunk_len))
+			buff = b''.join(buff)
+
+			if len(buff) != dst_len:
+				dec = sp.run(['zstd', '-d'], input=buff, stdout=sp.PIPE, check=True)
+				buff = dec.stdout
+				assert len(buff) == dst_len, [dst_len, buff[:30]]
+			dst.write(buff)
 
 if __name__ == '__main__': sys.exit(main())
