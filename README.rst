@@ -206,6 +206,10 @@ history, obsoleted by official game updates:
 
   Adds button to toggle whether drones will patch building up when maintenance is required.
 
+- `green-mars-terraforming-lightmodel <https://www.nexusmods.com/survivingmars/mods/95>`_
+
+  Covers mars terrain and atmosphere with greenish bioluminescent microbiotic life.
+
 - polymers-production-buff, unlock-oval-dome
 
   More small local balancing hacks and local tweaks to other mods.

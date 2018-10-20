@@ -7,7 +7,7 @@ return PlaceObj('ModDef', {
 	'steam_id', "1543384888",
 	'author', "mk-fg",
 	'version', 2,
-	'lua_revision', 235636,
+	'lua_revision', LuaRevision,
 	'code', {"Code/green-mars-terraforming-lightmodel.lua"},
 	'saved', 1540031231,
 	'screenshot1', "Images/gmtl-shot-1.png",

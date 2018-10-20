@@ -1,6 +1,10 @@
 Covers mars terrain and atmosphere with greenish bioluminescent microbiotic life.
 This is purely cosmetic (lightmodel) change.
 
+[[url=https://steamcommunity.com/sharedfiles/filedetails/?id=1543384888]Steam Workshop[/url]] [[url=https://www.nexusmods.com/survivingmars/mods/95]Nexus Mods[/url]] [[url=https://github.com/mk-fg/games/]Github[/url]]
+(protip: if mod gets out of date, Nexus version does not have lua_revision compatbility check,
+but Mod Editor won't upload to Steam without it)
+
 [h1]Oh no! How could this happen!?[/h1]
 
 Turns out some of the early martian probes weren't sterilized thoroughly enough back in 1960s.
@@ -9,6 +13,17 @@ So now Mars is a slimeball, same as Earth was for 80% of its existance (~3.7/4.5
 
 Due to changes in martian atmospheric composition caused by this runaway disaster,
 light passing through it now has a nice purplish hue.
+
+
+[u][size=4]Installation[/size][/u]
+
+Put unpacked "green-mars-terraforming-lightmodel" directory under:
+%AppData%/Roaming/Surviving Mars/Mods/ (or something to that effect on Mac/Linux)
+(Re-)start the game, and it should appear in "Mod Manager" menu.
+
+Mod can be added and removed at any time, though green will stick around in saves.
+To sterilize Mars back to its proper red-browns, you can edit green-mars-terraforming-lightmodel.lua file and uncomment "local lightmodel_list = 'TheMartian'" line there, load/save game and then disable/remove the mod.
+
 
 [h1]Technical details[/h1]
 

@@ -23,7 +23,7 @@ Should be compatible with any other mods, though might push
 their buttons around (or vice-versa) if they add these to the same row.
 
 
-[u][size=4]Similar mods[/size][/u]
+[h1]Similar mods[/h1]
 
 - [url=https://steamcommunity.com/sharedfiles/filedetails/?id=1403028308]Work Till Maintenance[/url]
 
