@@ -1,9 +1,11 @@
 Covers mars terrain and atmosphere with greenish bioluminescent microbiotic life.
-This is purely cosmetic (lightmodel) change.
+This is purely cosmetic (lightmodel) change, wait for at least 1 game-hour to apply.
+Can be enabled/disabled via Ctrl+Alt+Shift+K ("Green Mars Toggle" in Key Bindings).
 
 [[url=https://steamcommunity.com/sharedfiles/filedetails/?id=1543384888]Steam Workshop[/url]] [[url=https://www.nexusmods.com/survivingmars/mods/95]Nexus Mods[/url]] [[url=https://github.com/mk-fg/games/]Github[/url]]
 (protip: if mod gets out of date, Nexus version does not have lua_revision compatbility check,
 but Mod Editor won't upload to Steam without it)
+
 
 [h1]Oh no! How could this happen!?[/h1]
 
@@ -30,8 +32,8 @@ To sterilize Mars back to its proper red-browns, you can edit green-mars-terrafo
 Only changes normal ligthmodel, does not affect gameplay at all.
 Disaster lightmodels stay the same, so green should probably still be covered in red dust during storms and freeze over to shiny crust during cold waves, but didn't test it myself yet.
 
-Mod can be added and removed at any time, though green will stick around in saves.
-To sterilize Mars back to its proper red-browns, you can edit green-mars-terraforming-lightmodel.lua file and uncomment "local lightmodel_list = 'TheMartian'" line there, load/save game and then disable/remove the mod.
+Mod can be added and removed at any time, though green will stick around in saves,
+so be sure to disable it via hotkey before removing the mod, if you must.
 
 [url=https://steamcommunity.com/sharedfiles/filedetails/?id=1433249476]ChoGGi's Permanant Dreamers Lightmodel[/url] (typo not mine) does a similar thing but overrides all hours' and disaster lightmodels to a single stage of green one, while this mod only swaps normal lightmodel and uses full LightmodelList with a day/night cycle.
 
