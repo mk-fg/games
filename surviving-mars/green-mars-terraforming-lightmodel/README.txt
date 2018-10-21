@@ -1,5 +1,5 @@
 Covers mars terrain and atmosphere with greenish bioluminescent microbiotic life.
-This is purely cosmetic (lightmodel) change, wait for at least 1 game-hour to apply.
+This is purely cosmetic (lightmodel) change, wait for at least 1 mars-hour to apply.
 Can be enabled/disabled via Ctrl+Alt+Shift+K ("Green Mars Toggle" in Key Bindings).
 
 [[url=https://steamcommunity.com/sharedfiles/filedetails/?id=1543384888]Steam Workshop[/url]] [[url=https://www.nexusmods.com/survivingmars/mods/95]Nexus Mods[/url]] [[url=https://github.com/mk-fg/games/]Github[/url]]
