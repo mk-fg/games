@@ -222,9 +222,6 @@ history, obsoleted by official game updates:
   Requres bootstrap via initial console via ``c.init(load)`` command, to give access
   to full _G env for all subroutines there, ``c.h()`` for more info on all the tools there.
 
-- zstd-dec.py - script to decompress zstd-compressed files from
-  `.hpk archives <https://github.com/nickelc/hpk/#fragmented-file-zliblz4-compressed>`_.
-
 .. _Surviving Mars: https://www.survivingmars.com/
 
 
