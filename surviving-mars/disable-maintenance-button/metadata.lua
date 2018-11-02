@@ -6,10 +6,10 @@ return PlaceObj('ModDef', {
 	'id', "mk-fg/disable-maintenance-button",
 	'steam_id', "1541524054",
 	'author', "mk-fg",
-	'version', 3,
+	'version', 4,
 	'lua_revision', LuaRevision,
 	'code', {"Code/disable-maintenance-button.lua"},
-	'saved', 1540048179,
+	'saved', 1541142996,
 	'TagInterface', true,
 	'TagTools', true,
 })

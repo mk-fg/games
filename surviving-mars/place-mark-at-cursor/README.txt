@@ -6,15 +6,15 @@ or just doodle on the map at your leisure while drones and colonists are hard at
 
 List of drawing crayons:
 
-- Ctrl+1 - [color=#e6194b]█[/color] Crimson [e6194b]
-- Ctrl+2 - [color=#800000]█[/color] Maroon [800000]
-- Ctrl+3 - [color=#4363d8]█[/color] Royal Blue [4363d8]
-- Ctrl+4 - [color=#000075]█[/color] Navy Blue [000075]
-- Ctrl+5 - [color=#3cb44b]█[/color] Chateau Green [3cb44b]
-- Ctrl+6 - [color=#008080]█[/color] Teal [008080]
-- Ctrl+7 - [color=#00ff00]█[/color] Green [00ff00]
-- Ctrl+8 - [color=#000000]█[/color] Black [000000]
-- Ctrl+9 - [color=#aaffc3]█[/color] Mint Green [aaffc3]
+- Ctrl+1 - Crimson #e6194b
+- Ctrl+2 - Maroon #800000
+- Ctrl+3 - Royal Blue #4363d8
+- Ctrl+4 - Navy Blue #000075
+- Ctrl+5 - Chateau Green #3cb44b
+- Ctrl+6 - Teal #008080
+- Ctrl+7 - Green #00ff00
+- Ctrl+8 - Black #000000
+- Ctrl+9 - Mint Green #aaffc3
 - Ctrl+0 - mass-eraser (careful, removes all paint marks on the map!)
 
 They all look kinda neon too.
