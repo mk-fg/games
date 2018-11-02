@@ -13,13 +13,20 @@ end
 -- LoadGame/CityStart seem to be too early
 function OnMsg.MarsResume() set_lightmodel_list() end
 
+local function destroy(obj)
+	if obj
+			and type(obj) == 'table'
+			and obj.delete
+			and (not obj.IsValid or obj:IsValid())
+		then DoneObject(obj) end
+end
+
 function OnMsg.ClassesPostprocess()
 	local function action_replace(action)
 		local gs, act = XTemplates.GameShortcuts
 		for n, act in pairs(gs) do
 			act = type(act) == 'table' and act.ActionId
-			if act == action.ActionId
-				then DoneObject(act); table.remove(gs, n) end
+			if act == action.ActionId then destroy(act); table.remove(gs, n) end
 		end
 		act = {
 			'ActionMode', 'Game',

@@ -2,7 +2,7 @@ return PlaceObj('ModDef', {
 	'title', "Green Mars Terraforming Lightmodel",
 	'description', 'Covers mars terrain and atmosphere with greenish bioluminescent microbiotic life.\nEffect can be toggled using "Green Mars Toggle" hotkey (Ctrl-Alt-Shift-K by default).',
 	'image', "thumb.png",
-	'last_changes', "Add lightmodel toggle hotkey.",
+	'last_changes', "Wrap all DoneObject stuff in error handling.",
 	'id', "mk-fg/green-mars-terraforming-lightmodel",
 	'steam_id', "1543384888",
 	'author', "mk-fg",

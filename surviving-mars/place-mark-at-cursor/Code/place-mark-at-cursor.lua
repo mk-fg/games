@@ -12,6 +12,15 @@ DefineClass.mkfg_tile = {__parents={'CObject'}, entity='GridTile'}
 GlobalVar('g_mkfg_color_marks')
 
 
+local function destroy(obj)
+	if obj
+			and type(obj) == 'table'
+			and obj.delete
+			and (not obj.IsValid or obj:IsValid())
+		then DoneObject(obj) end
+end
+
+
 local function toggle_cursor_tile_color(hex_color)
 	if not g_mkfg_color_marks
 		then g_mkfg_color_marks = {} end
@@ -20,7 +29,7 @@ local function toggle_cursor_tile_color(hex_color)
 	local q, r = WorldToHex(pos)
 	local key = ('%s:%s'):format(q, r)
 	if g_mkfg_color_marks[key] then
-		DoneObject(g_mkfg_color_marks[key])
+		destroy(g_mkfg_color_marks[key])
 		g_mkfg_color_marks[key] = nil
 	else
 		local x, y = HexToWorld(q, r)
@@ -31,9 +40,10 @@ local function toggle_cursor_tile_color(hex_color)
 	end
 end
 
-local function remove_tiles()
-	for key, tile in pairs(g_mkfg_color_marks or {})
-		do DoneObject(tile) end
+local function remove_all_tiles()
+	SuspendPassEdits('mkfg_remove_all_tiles_pass')
+	MapDelete('map', 'mkfg_tile')
+	ResumePassEdits('mkfg_remove_all_tiles_pass')
 	g_mkfg_color_marks = {}
 end
 
@@ -42,8 +52,7 @@ local function action_replace(action)
 	local gs, act = XTemplates.GameShortcuts
 	for n, act in pairs(gs) do
 		act = type(act) == 'table' and act.ActionId
-		if act == action.ActionId
-			then DoneObject(act); table.remove(gs, n) end
+		if act == action.ActionId then destroy(act); table.remove(gs, n) end
 	end
 	act = {
 		'ActionMode', 'Game',
@@ -68,7 +77,7 @@ local function init_actions()
 		ActionName = 'Remove All Marks',
 		ActionId = action_id_tpl:format(0),
 		ActionShortcut = 'Ctrl-0',
-		OnAction = function() remove_tiles() end }
+		OnAction = function() remove_all_tiles() end }
 end
 
 local function remove_actions()
@@ -76,9 +85,9 @@ local function remove_actions()
 	for n, act in pairs(gs) do
 		act = type(act) == 'table' and act.ActionId
 		for m = 0, 9 do if act == action_id_tpl:format(n)
-			then table.remove(gs, n) end end
+			then destroy(act); table.remove(gs, n) end end
 	end
-	remove_tiles()
+	remove_all_tiles()
 end
 
 
