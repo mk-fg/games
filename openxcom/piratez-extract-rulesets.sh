@@ -1,6 +1,10 @@
 #!/bin/bash
 shopt -s nullglob
 
+game_dirs=( "$@" )
+[[ ${#game_dirs[@]} -gt 0 ]] \
+	|| readarray -t game_dirs < <(ls -1d {OpenXcom,Dioxine}_XPiratez*)
+
 rul= rul_dir=
 while read v d; do
 	v="$d"/user/mods/Piratez/Language/en-US.yml
@@ -12,8 +16,9 @@ while read v d; do
 	cp "$d"/user/mods/Piratez/Ruleset/Piratez.rul "$rul"
 	sed -i -e '/^ \+\(categor\(y\|ies\)\|weight\|listOrder\): /d' -e 's/\r//g' "$rul"
 done < <(
-	ls -1d {OpenXcom,Dioxine}_XPiratez* |
-	awk -F_ '{print $NF, $0}' | sort -V )
+	awk -F_ '{print $NF, $0}' \
+		< <(for d in "${game_dirs[@]}"; do echo "$d"; done) |
+	sort -V )
 
 [[ -z "$rul" ]] || {
 	echo "Creating calc-cache: ${rul}.cache.json"
