@@ -17,6 +17,14 @@ local function toggle_maintenance(obj)
 end
 
 
+local function destroy(obj)
+	if obj
+			and type(obj) == 'table'
+			and obj.delete
+			and (not obj.IsValid or obj:IsValid())
+		then DoneObject(obj) end
+end
+
 function OnMsg.ClassesBuilt()
 	local loc_id_base = 0x6d6b66675f0100 -- mkfg_<mod_n><n>
 	local function TT(s)
@@ -33,7 +41,7 @@ function OnMsg.ClassesBuilt()
 
 	local dst = XTemplates.sectionCustom
 	local n = table.find(dst, 'mkfg_maintenance_toggle', true)
-	if n then DoneObject(dst[n]); table.remove(dst, n) end
+	if n then destroy(dst[n]); table.remove(dst, n) end
 	dst[#dst+1] = PlaceObj('XTemplateTemplate', {
 		'mkfg_maintenance_toggle', true,
 		'__template', 'InfopanelButton',
