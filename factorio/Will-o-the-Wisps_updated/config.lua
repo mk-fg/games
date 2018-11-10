@@ -94,7 +94,7 @@ conf.wisp_uv_expire_chance_func = function(darkness, uv, wisp)
 	--  or on every interval*step when <min_darkness.
 	local chance
 	if uv < 6 then chance = wisp_uv_expire_exp(uv)
-	else chance = wisp_uv_expire_exp_bp + uv * 0.03 end
+	else chance = wisp_uv_expire_exp_bp + uv * 0.01 end
 	return math.random() < chance
 end
 
@@ -139,9 +139,9 @@ conf.wisp_near_player_radius = 16
 conf.wisp_near_player_percent = 0.01
 
 -- How often to update chunk players/pollution spread
-conf.chunk_rescan_spread_interval = 1 * ticks_gameday
+conf.chunk_rescan_spread_interval = 3 * ticks_gameday
 -- Alien flora do not grow back in base game, but in case of mods...
-conf.chunk_rescan_tree_growth_interval = 4 * ticks_gameday
+conf.chunk_rescan_tree_growth_interval = 8 * ticks_gameday
 -- Jitter to spread stuff out naturally by randomness
 conf.chunk_rescan_jitter = 5 * 60 * ticks_sec
 
@@ -184,13 +184,13 @@ conf.work_steps = {
 -- Chunks are checked for pollution/player spread during daytime only, can ~10k chunks
 -- Interval formula: (ticks_gameday * 0.6) / work_steps
 conf.work_steps.zones_spread = 666
-conf.intervals.zones_spread = 23 -- ~1 day-time for 10k chunks scan at 666 steps
+conf.intervals.zones_spread = 79
 
 -- Scan "spread" areas for trees.
 -- Much more difficult as it does find_entities_filtered instead of just pollution level probe.
 -- Takes 1.89s to scan 682 chunks finding 243 forests here - almost 3ms per scan!
 conf.work_steps.zones_forest = 600
-conf.intervals.zones_forest = 29 -- ~1 day-time for 3k chunks scan at 600 steps
+conf.intervals.zones_forest = 89
 
 conf.work_limit_per_tick = 20
 

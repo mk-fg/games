@@ -3,13 +3,18 @@ local zones = {}
 local conf = require('config')
 local utils = require('libs/utils')
 
-local InitDone
+local InitDone -- not global, to skip duplicate zones.init calls in one game
 local ChunkList, ChunkMap -- always up-to-date, existing chunks never removed
-local ChunkSpreadQueue, ForestSet -- see control.lua for info on how sets are managed
-local ChartLabels
+local ForestArea -- {chunk_key=area}
+local ChunkSpreadQueue -- see control.lua for info on how sets are managed
+local ChartLabels -- only set via debug commands
 
-local SpawnChanceCache
+local SpawnChanceCache -- cached list of chunk-chances, discarded on ForestArea changes
 
+
+-- Chunk table: { (cx, cy, surface) - where the chunk is
+--   (scan_trees, scan_spread) - ticks when to scan for stuff
+--   spread - used in update_* periodic routines, see comments below }
 
 local cs = 32 -- chunk size, to name all "32" where it's that
 local forest_radius = cs * 3 / 2 -- radius in which to look for forests, centered on chunk
@@ -26,8 +31,9 @@ end
 local function chunk_key(cx, cy)
 	-- Returns 52-bit int key with chunk y in higher 26 bits, x in lower
 	-- Not sure why math seem to break down when going for full 64-bit ints
-	return bit32.band(cx, 67108863) -- cx & (2**26-1)
-		+ bit32.band(cy, 67108863) * 67108864 end
+	return bit32.band(cx, 0x3ffffff) -- cx & (2**26-1)
+		+ bit32.band(cy, 0x3ffffff) * 0x4000000 -- * 2**26
+end
 
 local function replace_chunk(surface, cx, cy)
 	local k = chunk_key(cx, cy)
@@ -52,82 +58,82 @@ end
 --     scanned areas are extended to cover some area around chunks as well.
 --    Periodic update_forests_in_spread task.
 --
---  - Weighted random from ForestSet by pollution-level in get_wisp_trees_anywhere.
+--  - Weighted random from ForestArea by pollution-level in get_wisp_trees_anywhere.
+--
+-- Chunk flags checked in periodics:
+--  - "spread" - chunk is in ChunkSpreadQueue, no point re-adding it there.
 
-function zones.update_wisp_spread(step, steps)
-	local tick, out, k, chunk = game.tick, ChunkSpreadQueue
-	local tick_max_spread = tick - conf.chunk_rescan_spread_interval
-	local tick_max_trees = tick - conf.chunk_rescan_tree_growth_interval
-	local count = 0
+function zones.update_wisp_spread(step, steps, rescan)
+	local tick, out, count, k, chunk = game.tick, ChunkSpreadQueue, 0
+	rescan = rescan and -1 or 1
+	local tick_max_spread = tick - conf.chunk_rescan_spread_interval * rescan
+	local tick_max_trees = tick - conf.chunk_rescan_tree_growth_interval * rescan
 	for n = step, #ChunkList, steps do
-		k, count = ChunkList[n], count + 1; chunk = ChunkMap[k]
-		if chunk.spread
-				or (chunk.scan_spread or 0) > tick_max_spread
+		k = ChunkList[n]; chunk = ChunkMap[k]
+
+		if chunk.spread or ForestArea[k] -- already in queue or spawn zone
+				or (chunk.scan_spread or 0) > tick_max_spread -- too soon
 			then goto skip end
 
+		count = count + 1
 		local pollution = chunk.surface.get_pollution{chunk.cx * cs, chunk.cy * cs}
-		if pollution <= 0 then goto skip end
 		chunk.pollution = pollution
 		chunk.scan_spread = tick + utils.pick_jitter(conf.chunk_rescan_jitter)
+		if pollution <= 0 then goto skip end
 
-		if not (
-				chunk.spread or chunk.forest
-				or (chunk.scan_trees or 0) > tick_max_trees ) then
-			local m = out.n + 1
-			chunk.spread, out.n, out[m] = true, m, k
-		end
+		local m = out.n + 1
+		chunk.spread, out.n, out[m] = true, m, k
 	::skip:: end
 	return count -- get_pollution count, probably lite
 end
 
-function zones.update_forests_in_spread(step, steps)
-	local tick, set, out = game.tick, ChunkSpreadQueue, ForestSet
-	local tick_min_spread = tick - conf.chunk_rescan_spread_interval
-	local tick_max_trees = tick - conf.chunk_rescan_tree_growth_interval
+function zones.update_forests_in_spread(step, steps, rescan)
+	local tick, set = game.tick, ChunkSpreadQueue
+	local tick_min_spread = tick - conf.chunk_rescan_spread_interval * 3
+	rescan = rescan and -1 or 1
+	local tick_max_trees = tick - conf.chunk_rescan_tree_growth_interval * rescan
 	local n, count, k, chunk, area, trees = step, 0
 	if step > set.n and set.n > 0 then step = set.n end -- process at least one
 	while n <= set.n do
-		k, count = set[n], count + 1; chunk = ChunkMap[k]
+		k = set[n]; chunk = ChunkMap[k]
 
-		if not chunk then goto drop -- should not happen normally
-		elseif (chunk.scan_spread or 0) < tick_min_spread
-			then chunk.spread = nil; goto drop -- old spread data
-		elseif (chunk.scan_trees or 0) > tick_max_trees then goto drop end
+		if not chunk -- should not happen normally, only on mod updates and such
+				or (chunk.scan_spread or 0) < tick_min_spread -- too old spread info
+				or (chunk.scan_trees or 0) > tick_max_trees -- too soon
+			then goto drop end
 
+		count = count + 1
 		area = utils.get_area(forest_radius, chunk.cx*cs + cs/2, chunk.cy*cs + cs/2)
 		trees = chunk.surface.find_entities_filtered{type='tree', area=area}
 		chunk.scan_trees = tick + utils.pick_jitter(conf.chunk_rescan_jitter)
 
-		if #trees >= conf.wisp_forest_min_density then
-			local m = out.n + 1
-			chunk.forest, out.n, out[m] = true, m, {area=area, chunk_key=k}
-			SpawnChanceCache = nil
-		end
+		if #trees >= conf.wisp_forest_min_density
+			then ForestArea[k], SpawnChanceCache = area end
 
-		::drop:: set[n], set.n, set[set.n] = set[set.n], set.n - 1
+		::drop::
+		if chunk then chunk.spread = nil end
+		set[n], set.n, set[set.n] = set[set.n], set.n - 1
 		n = n + steps - 1 -- 1 was dropped
 	end
-	return count -- find_entities_filtered count
+	return count -- count of find_entities_filtered() calls
 end
 
 
 local function get_forest_spawn_chances(pollution_factor)
 	if SpawnChanceCache then return table.unpack(SpawnChanceCache) end
-	local set, chances, chance_sum, p_max, chunk, p, n = ForestSet, {}, 0, 0
+	local chances, chance_sum, p_max, chunk, p = {}, 0, 0
 	if not pollution_factor
 		then pollution_factor = conf.wisp_forest_spawn_pollution_factor end
-	for n = 1, set.n do
-		chunk = ChunkMap[set[n].chunk_key]
+	for k, area in pairs(ForestArea) do
+		chunk = ChunkMap[k]
 		p = chunk and chunk.pollution or 0
-		chances[n] = p
+		chances[k] = p
 		if p > p_max then p_max = p end
 	end
-	if p_max > 0 then
-		for n = 1, #chances do
-			p = 1 + pollution_factor * chances[n] / p_max
-			chances[n], chance_sum = p, chance_sum + p
-		end
-	end
+	if p_max > 0 then for k, chance in pairs(chances) do
+		p = 1 + pollution_factor * chance / p_max
+		chances[k], chance_sum = p, chance_sum + p
+	end end
 	SpawnChanceCache = {chances, chance_sum}
 	return chances, chance_sum
 end
@@ -135,15 +141,14 @@ end
 function zones.get_wisp_trees_anywhere(count, pollution_factor)
 	-- Return up to N random trees from same
 	--  pollution-weighted-random forest_radius area for spawning wisps around.
-	local set, wisp_trees, n, chunk, trees = ForestSet, {}
-	if set.n == 0 then return wisp_trees end
-	while set.n > 0 do
-		n = utils.pick_weight(get_forest_spawn_chances(pollution_factor))
-		chunk = ChunkMap[set[n].chunk_key]
-		trees = chunk.surface.find_entities_filtered{type='tree', area=set[n].area}
-		if #trees >= conf.wisp_forest_min_density then break end
-		trees, chunk.forest, set[n], set.n, set[set.n] = nil, false, set[set.n], set.n - 1
-		SpawnChanceCache = nil
+	local wisp_trees, n, chunk, area, trees = {}
+	while next(ForestArea) do
+		k = utils.pick_weight(get_forest_spawn_chances(pollution_factor))
+		chunk, area = ChunkMap[k], ForestArea[k]
+		trees = chunk and area
+			and chunk.surface.find_entities_filtered{type='tree', area=area}
+		if trees and #trees >= conf.wisp_forest_min_density then break end
+		trees, ForestArea[k], SpawnChanceCache = nil
 	end
 	if trees then for n = 1, count do
 		table.insert(wisp_trees, trees[math.random(#trees)])
@@ -212,7 +217,9 @@ function zones.refresh_chunks(surface)
 	for chunk in surface.get_chunks() do
 		k = chunk_key(chunk.x, chunk.y)
 		c = ChunkMap[k]
-		if c then c.scan_spread, c.scan_trees = nil else
+		if c then
+			c.spread, c.scan_spread, c.scan_trees = nil -- rescan
+		else
 			chunks_diff = chunks_diff + 1
 			replace_chunk(surface, chunk.x, chunk.y)
 		end
@@ -222,27 +229,42 @@ function zones.refresh_chunks(surface)
 		then utils.log(' - Detected ChunkMap additions: %d', chunks_diff) end
 
 	chunks_diff = 0
-	for k,_ in pairs(ChunkMap) do if not chunks_found[k]
-		then chunks_diff, ChunkMap[k] = chunks_diff + 1, nil end end
-	if chunks_diff > 0 then
-		utils.log(' - Detected ChunkMap removals (mod bug?): %d', chunks_diff)
-		for n = 1, #ChunkList do ChunkList[n] = nil end
-		for k,_ in pairs(ChunkMap) do ChunkList[#ChunkList+1] = k end
-	end
+	for k,_ in pairs(ChunkMap) do if not chunks_found[k] then
+		chunks_diff, ChunkMap[k], ForestArea[k] = chunks_diff + 1
+	end end
+	if chunks_diff > 0
+		then utils.log(' - Detected ChunkMap removals: %d', chunks_diff) end
+
+	for n, _ in pairs(ChunkList) do ChunkList[n] = nil end
+	for k,_ in pairs(ChunkMap) do ChunkList[#ChunkList+1] = k end
+	SpawnChanceCache = nil
 end
 
-function zones.init(zs)
+function zones.scan_new_chunks(surface)
+	-- Check for any new chunks, ran "just in case",
+	--  as not sure if events emitted for all new ones with various mods.
+	local n = 0
+	for chunk in surface.get_chunks() do
+		if ChunkMap[chunk_key(chunk.x, chunk.y)] then goto skip end
+		n = n + 1
+		replace_chunk(surface, chunk.x, chunk.y)
+	::skip:: end
+	return n
+end
+
+function zones.init(zs, surface)
 	if InitDone then return end
-	for _, k in ipairs{'chunk_list', 'chunk_map'}
+	for _, k in ipairs{'chunk_list', 'chunk_map', 'forest_area'}
 		do if not zs[k] then zs[k] = {} end end
-	for _, k in ipairs{'chunk_spread_queue', 'forest_set', 'chart_labels'}
+	for _, k in ipairs{'chunk_spread_queue', 'chart_labels'}
 		do if not zs[k] then zs[k] = {n=0} end end
-	ChunkList, ChunkMap = zs.chunk_list, zs.chunk_map
-	ChunkSpreadQueue, ForestSet = zs.chunk_spread_queue, zs.forest_set
-	ChartLabels = zs.chart_labels
+	ChunkList, ChunkMap, ForestArea = zs.chunk_list, zs.chunk_map, zs.forest_area
+	ChunkSpreadQueue, ChartLabels = zs.chunk_spread_queue, zs.chart_labels
+	local chunks_new = 0
+	if surface then chunks_new = zones.scan_new_chunks(surface) end
 	utils.log(
-		' - Zone stats: chunks=%d spread-queue=%d forests=%d labels=%d',
-		#ChunkList, ChunkSpreadQueue.n, ForestSet.n, ChartLabels.n )
+		' - Zone stats: chunks=%d (new=%d) forests=%d spread-queue=%d labels=%d',
+		#ChunkList, chunks_new, #ForestArea, ChunkSpreadQueue.n, ChartLabels.n )
 	InitDone = true
 end
 
@@ -251,18 +273,19 @@ end
 -- Various debug info routines
 ------------------------------------------------------------
 
-function zones.full_update()
+function zones.full_update(rescan)
 	-- Only for manual use from console, can take
 	--  a second or few of real time if nothing was pre-scanned
 	local n
-	utils.log('zones: running full update')
-	n = zones.update_wisp_spread(1, 1)
+	utils.log('zones: running full update (rescan=%s)', rescan and 1 or 0)
+	n = zones.update_wisp_spread(1, 1, rescan)
 	utils.log('zones:  - updated spread chunks: %d', n)
-	n = zones.update_forests_in_spread(1, 1)
+	n = zones.update_forests_in_spread(1, 1, rescan)
 	utils.log('zones:  - scanned chunks for forests: %d', n)
-	utils.log(
-		'zones:  - done, spread-queue=%d forests=%d',
-		ChunkSpreadQueue.n, ForestSet.n )
+	n = 0
+	for k, _ in pairs(ForestArea) do n = n + 1 end
+	utils.log( 'zones:  - done,'..
+		' spread-queue=%d forests=%d', ChunkSpreadQueue.n, n )
 end
 
 function zones.print_stats(print_func)
@@ -298,19 +321,17 @@ function zones.print_stats(print_func)
 	print_func('zones: stats')
 	pollution_table_stats('spread', ChunkList)
 	local forest_chunks = {}
-	for n = 1, ForestSet.n
-		do table.insert(forest_chunks, ForestSet[n].chunk_key) end
+	for k, _ in pairs(ForestArea) do table.insert(forest_chunks, k) end
 	pollution_table_stats('forest', forest_chunks)
 end
 
 function zones.forest_labels_add(surface, force, threshold)
 	-- Adds map ("chart") labels for each forest on the map
 	zones.forest_labels_remove(force)
-	local set, chances, chance_sum = ChartLabels, get_forest_spawn_chances()
-	for n = 1, ForestSet.n do
-		label = ForestSet[n].area
-		label = {(label[1][1] + label[2][1])/2, (label[1][2] + label[2][2])/2}
-		n = chances[n] / chance_sum
+	local set, chances, chance_sum, n = ChartLabels, get_forest_spawn_chances()
+	for k, area in pairs(ForestArea) do
+		label = {(area[1][1] + area[2][1])/2, (area[1][2] + area[2][2])/2}
+		n = chances[k] / chance_sum
 		if n < threshold then n = nil end
 		label = {force_name=force.name, label=force.add_chart_tag(
 			surface, { position=label,

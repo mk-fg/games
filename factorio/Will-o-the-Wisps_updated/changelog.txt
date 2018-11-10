@@ -1,4 +1,13 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.0.53
+Date: 10. 11. 2018
+  Bugfixes:
+    - Fix some issues with spawn zones tracking in presence of map-changing mods.
+  Changes:
+    - Add testing "/wisp zone rescan" command to force-rescan all forest chunks in one go.
+    - Change wisp_uv_expire_chance_func for wisps to vanish at a slightly slower rate.
+    - Make wisp spawn zone maintenance routines less frequent.
+---------------------------------------------------------------------------------------------------
 Version: 0.0.52
 Date: 02. 10. 2018
   Features:

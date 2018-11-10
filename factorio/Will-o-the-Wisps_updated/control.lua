@@ -740,7 +740,7 @@ end
 
 local function on_tick_init(event)
 	WispSurface = game.surfaces[conf.surface_name]
-	zones.init(global.zones)
+	zones.init(global.zones, WispSurface)
 	wisp_biter_aggression_set()
 
 	-- script.on_nth_tick can be used here,
@@ -757,6 +757,7 @@ end
 
 local cmd_help = [[
 zone update - Scan all chunks on the map for will-o-wisp spawning zones.
+zone rescan - Same as "zone update", but force-rescan all chunks, not just fill-in missing ones.
 zone stats - Print pollution and misc other stats for scanned zones to console.
 zone labels [n] - Add map labels to all found forest spawning zones.
 ... Parameter (double, default=0.005) is a min threshold to display a spawn chance number in the label.
@@ -793,6 +794,7 @@ local function run_wisp_command(cmd)
 	if cmd == 'zone' then
 		cmd = args[2]
 		if cmd == 'update' then zones.full_update()
+		elseif cmd == 'rescan' then zones.full_update(true)
 		elseif cmd == 'stats' then zones.print_stats(player.print)
 		elseif cmd == 'labels' then
 			if args[3] ~= 'remove' then
@@ -967,6 +969,14 @@ local function apply_version_updates(old_v, new_v)
 		wisp_force_init('wisp_attack', true)
 		game.merge_forces('wisps', 'wisp')
 	end
+
+	if utils.version_less_than(old_v, '0.0.53') then
+		chunk_map, global.zones.forest_set = global.zones.chunk_map
+		-- Just re-scan it all from scratch so that wisps will keep spawning
+		for k, _ in pairs(chunk_map) do chunk_map[k] = nil end
+		zones.refresh_chunks(WispSurface)
+		zones.full_update(true)
+	end
 end
 
 local function init_commands()
@@ -1014,10 +1024,11 @@ script.on_configuration_changed(function(data)
 	-- Add any new globals and pick them up in init_refs() again
 	init_globals()
 	init_refs()
+	WispSurface = game.surfaces[conf.surface_name]
 
-	utils.log('Refreshing chunks...')
+	utils.log('Updating zone scan info...')
 	zones.init(global.zones)
-	zones.refresh_chunks(game.surfaces[conf.surface_name])
+	zones.refresh_chunks(WispSurface)
 
 	utils.log('Processing mod updates...')
 	local update = data.mod_changes and data.mod_changes[script.mod_name]
