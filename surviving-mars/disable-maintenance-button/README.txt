@@ -7,9 +7,9 @@ Such functionality is useful in early stages of colony development,
 when resources are scarce and letting stuff rust in disabled state is expensive,
 so shutting it down only as it breaks is preferrable.
 
+Checked to be compatible with Gagarin / Space Race update 237,920, and probably later versions.
+
 [[url=https://steamcommunity.com/sharedfiles/filedetails/?id=1541524054]Steam Workshop[/url]] [[url=https://www.nexusmods.com/survivingmars/mods/94]Nexus Mods[/url]] [[url=https://github.com/mk-fg/games/]Github[/url]]
-(protip: if mod gets out of date, Nexus version does not have lua_revision compatbility check,
-but Mod Editor won't upload to Steam without it)
 
 
 [u][size=4]Installation[/size][/u]
