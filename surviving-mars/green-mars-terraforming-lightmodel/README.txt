@@ -30,7 +30,7 @@ To sterilize Mars back to its proper red-browns, you can edit green-mars-terrafo
 [h1]Technical details[/h1]
 
 Only changes normal ligthmodel, does not affect gameplay at all.
-Disaster lightmodels stay the same, so green should probably still be covered in red dust during storms and freeze over to shiny crust during cold waves, but didn't test it myself yet.
+Disaster lightmodels stay the same, so green will be covered in red dust during storms and freeze over to shiny crust during cold waves.
 
 Mod can be added and removed at any time, though green will stick around in saves,
 so be sure to disable it via hotkey before removing the mod, if you must.
