@@ -11,9 +11,15 @@ end
 
 local function toggle_maintenance(obj)
 	obj.mkfg_maintenance_disabled = not obj.mkfg_maintenance_disabled
-	if not obj.mkfg_maintenance_disabled
-		then obj:AccumulateMaintenancePoints(0)
-		else obj:ResetMaintenanceRequests() end
+	if not obj.mkfg_maintenance_disabled then
+		if obj.maintenance_phase then
+			-- If drones were interrupted during maintenance_phase,
+			--  it needs to be reset for RequestMaintenance() to work again.
+			obj:ResetMaintenanceRequests()
+			obj.maintenance_phase = false
+		end
+		obj:AccumulateMaintenancePoints()
+	else obj:ResetMaintenanceRequests() end
 end
 
 
