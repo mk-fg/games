@@ -25,9 +25,9 @@ Why hexes? - easier to mark game-related things with these.
 Why paint? - placing stuff on plain ground within unmarked reach of multple things is hard.
 Why Marx? - wanted to spell "❤ marks" but thought to shorten it a bit.
 
+Checked to be compatible with Gagarin / Space Race update 237,920, and probably later versions.
+
 [[url=https://steamcommunity.com/sharedfiles/filedetails/?id=1540082683]Steam Workshop[/url]] [[url=https://www.nexusmods.com/survivingmars/mods/93]Nexus Mods[/url]] [[url=https://github.com/mk-fg/games/]Github[/url]]
-(protip: if mod gets out of date, Nexus version does not have lua_revision compatbility check,
-but Mod Editor won't upload to Steam without it)
 
 [u][size=4]Installation[/size][/u]
 

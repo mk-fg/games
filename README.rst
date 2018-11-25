@@ -210,7 +210,7 @@ history, obsoleted by official game updates:
 
   Covers mars terrain and atmosphere with greenish bioluminescent microbiotic life.
 
-- polymers-production-buff, unlock-oval-dome
+- polymers-production-buff, unlock-oval-dome, quick-cash-refund
 
   More small local balancing hacks and local tweaks to other mods.
 
