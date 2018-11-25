@@ -191,7 +191,7 @@ let html_enc = str => String(str)
 			(c.charCodeAt(1) - 0xdc00) + 0x10000) + ';' )
 	.replace(/([^!-~])/g, c => `&#${c.charCodeAt(0)};`)
 	.replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\//g, '&#x2F;')
-	.replace(/'/g, '&quot;').replace(/'/g, '&apos;')
+	.replace(/"/g, '&quot;').replace(/'/g, '&apos;')
 
 let debounce_enabled = true
 let debounce = (delay_ms, mode, func) => {
@@ -297,7 +297,8 @@ let
 		10: 'anti-e511', 11: 'bio', 12: 'electric', 13: 'emp', 14: 'warp', 15: 'mind', 16: 'heat', 17: 'cold' },
 	// From enum in RuleDamageType.h, described under DRT_ stuff
 	info_random_types = {
-		0: 'vanilla', 1: '1d(x0-x2)', 2: '1d(x.5-x1.5)', 3: 'flat(x1)', 4: 'fire(5-10)', 5: 'no-dmg(x0)', 6: '2d(x0-x1)' }
+		0: 'vanilla', 1: '1d(x0-x2)', 2: '1d(x.5-x1.5)', 3: 'flat(x1)',
+		4: 'fire(5-10)', 5: 'no-dmg(x0)', 6: '2d(x0-x1)', 7: '1d(x.5-x2)' }
 
 let
 	items_info_type_str = d => d.replace(/^STR_/, '').toLowerCase(),
