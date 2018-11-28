@@ -121,9 +121,9 @@ def main(args=None):
 
 	with p_settings.open(encoding='utf-8-sig') as src:
 		model = mm_mod.model_from_str(src.read())
-	mod_list, = ( val for val in
+	mod_list = list( val for val in
 		tx.model.children_of_type('StringList', model) if val.k == 'last_mods' )
-	mod_list = sorted(mod_list.strings)
+	if mod_list: mod_list = sorted(mod_list[0].strings)
 	(p_repo / 'mod_list.txt').write_text('\n'.join(mod_list + ['']))
 
 	for mod_name, mod in mods.items():
