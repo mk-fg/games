@@ -132,7 +132,7 @@ def main(args=None):
 		with contextlib.ExitStack() as ctx:
 			if p_zip:
 				p_zip = pl.Path(p_zip)
-				if p_zip.lstat().st_mtime < get_dir_mtime(p_dst): continue
+				if not p_zip.exists() or p_zip.lstat().st_mtime < get_dir_mtime(p_dst): continue
 				p_mod = pl.Path(ctx.enter_context(tempfile.TemporaryDirectory(prefix=f'{p_dst}.')))
 				subprocess.run(
 					['bsdtar', '-xf', p_zip, '--cd', p_mod],
