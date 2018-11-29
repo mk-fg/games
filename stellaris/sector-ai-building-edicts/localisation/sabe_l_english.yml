@@ -1,0 +1,13 @@
+﻿l_english:
+
+	edict_sabe_empire_farms_enabled:0 "SAI :: New Farms :: §Gallowed§!"
+	edict_sabe_empire_farms_enabled_desc:0 "Sectors across empire are §Gallowed§! (default) to build new farms. Toggle the edict to change."
+
+	edict_sabe_empire_farms_disabled:0 "SAI :: New Farms :: §Rprohibited§!"
+	edict_sabe_empire_farms_disabled_desc:0 "Sectors across empire are §Gprohibited§! from building new farms. Can also be prohibited per-planet. Toggle the edict to change."
+
+	edict_sabe_planet_farms_enabled:0 "SAI :: New Farms :: §Gallowed§!"
+	edict_sabe_planet_farms_enabled_desc:0 "Sector government is §Gallowed§! (default) to build new farms on this planet. Prohibiting overrides similar empire-wide policy. Toggle the edict to change."
+
+	edict_sabe_planet_farms_disabled:0 "SAI :: New Farms :: §Rprohibited§!"
+	edict_sabe_planet_farms_disabled_desc:0 "Sector government is §Rprohibited§! from building new farms on this planet. Prohibiting overrides similar empire-wide policy. Toggle the edict to change."

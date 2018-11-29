@@ -1,0 +1,48 @@
+# Sector AI Building Edicts
+# Only set-reset country/planetary flags checked by overridden buildings
+
+
+country_edict = {
+	name = sabe_empire_farms_enabled
+	length = 0
+	cost = { }
+	potential = { is_ai = no }
+	ai_weight = { weight = 0 }
+
+	potential = { not = { has_country_flag = sabe_disable_farm_empire } }
+	effect = { set_country_flag = sabe_disable_farm_empire }
+}
+
+country_edict = {
+	name = sabe_empire_farms_disabled
+	length = 0
+	cost = { }
+	potential = { is_ai = no }
+	ai_weight = { weight = 0 }
+
+	potential = { has_country_flag = sabe_disable_farm_empire }
+	effect = { remove_country_flag = sabe_disable_farm_empire }
+}
+
+
+planet_edict = {
+	name = sabe_planet_farms_enabled
+	length = 0
+	cost = { }
+	potential = { owner = { is_ai = no } }
+	ai_weight = { weight = 0 }
+
+	potential = { not = { has_planet_flag = sabe_disable_farm } }
+	effect = { set_planet_flag = sabe_disable_farm }
+}
+
+planet_edict = {
+	name = sabe_planet_farms_disabled
+	length = 0
+	cost = { }
+	potential = { owner = { is_ai = no } }
+	ai_weight = { weight = 0 }
+
+	potential = { has_planet_flag = sabe_disable_farm }
+	effect = { remove_planet_flag = sabe_disable_farm }
+}
