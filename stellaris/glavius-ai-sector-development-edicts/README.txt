@@ -3,12 +3,20 @@ Companion mod for [url=steamcommunity.com/sharedfiles/filedetails/?id=1140543652
 Can be installed and removed at any time, though be sure to disable its edicts (if you've enabled them) before uninstalling/disabling the mod, as otherwise their effects will persist in a saved game (though it can be re-enabled again to disable them at any point).
 Mod does not overwrite any of the main game or Glavius mod files, and only sets empire/planet flags based on these edicts for Glavius AI to check and use, so compatible with everything else.
 
+[b]NOTE:[/b]
+Glavius AI mod already includes similar [b]planetary[/b] edicts now
+("DIsable GAI" / "Enable GAI" on planets), but not empire-wide ones,
+so this mod can be used for latter, otherwise just use edicts from stock GAI.
+Planetary edicts are kept here for compatibility too, but can be hidden via country-wide edict.
 
-[b]Empire-wide edict: "GAI: Disable Scripted Sector Redevelopment"[/b]
+
+[b]Empire-wide edict: "GAI :: Scripted Sector Redev :: allowed/disabled"[/b]
 Disable scripted redevelopment with important buildings (like clinic, nexus, mineral/slave processing, etc) in sectors using empire resources for all sectors and planets.
 
-[b]Planetary edict: "GAI: Disable Redevelopment"[/b]
+[b]Planetary edict: "GAI :: Redev :: allowed/disabled"[/b]
 Disable all scripted redevelopment with important buildings (like clinic, nexus, mineral/slave processing, etc) using empire resources on this planet.
+(empire-wide edict "GAI :: Planet Redev Edicts :: displayed/hidden" can be used to display/hide these, as they're now redundant with the ones in stock glavius mod, as mentioned above)
+
 
 Both edicts can be toggled on and off at any time, with color (red / green) and name/description changing depending on current state.
 (this can't be done with a checkbox like in stellaris pre-2.0, as edicts can't be disabled at will now)

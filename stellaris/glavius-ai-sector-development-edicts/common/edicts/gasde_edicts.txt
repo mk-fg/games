@@ -1,8 +1,9 @@
 # Glavius AI Sector Development Edicts
 # Only set-reset country/planetary flags for Glavius AI mod to use in its logic
 
-@edict_country = gai_player_disable_critical_buildings
-@edict_planet = gai_player_disable_critical_buildings
+@gasde_country = gai_player_disable_critical_buildings
+@gasde_planet = gai_player_disable_critical_buildings
+@gasde_planet_hide = gasde_hide_planet_edicts
 
 
 country_edict = {
@@ -12,8 +13,8 @@ country_edict = {
 	potential = { is_ai = no }
 	ai_weight = { weight = 0 }
 
-	potential = { not = { has_country_flag = @edict_country } }
-	effect = { set_country_flag = @edict_country }
+	potential = { not = { has_country_flag = @gasde_country } }
+	effect = { set_country_flag = @gasde_country }
 }
 
 country_edict = {
@@ -23,8 +24,31 @@ country_edict = {
 	potential = { is_ai = no }
 	ai_weight = { weight = 0 }
 
-	potential = { has_country_flag = @edict_country }
-	effect = { remove_country_flag = @edict_country }
+	potential = { has_country_flag = @gasde_country }
+	effect = { remove_country_flag = @gasde_country }
+}
+
+
+country_edict = {
+	name = gasde_planet_edicts_shown
+	length = 0
+	cost = { }
+	potential = { is_ai = no }
+	ai_weight = { weight = 0 }
+
+	potential = { not = { has_country_flag = @gasde_planet_hide } }
+	effect = { set_country_flag = @gasde_planet_hide }
+}
+
+country_edict = {
+	name = gasde_planet_edicts_hidden
+	length = 0
+	cost = { }
+	potential = { is_ai = no }
+	ai_weight = { weight = 0 }
+
+	potential = { has_country_flag = @gasde_planet_hide }
+	effect = { remove_country_flag = @gasde_planet_hide }
 }
 
 
@@ -35,8 +59,11 @@ planet_edict = {
 	potential = { owner = { is_ai = no } }
 	ai_weight = { weight = 0 }
 
-	potential = { not = { has_planet_flag = @edict_planet } }
-	effect = { set_planet_flag = @edict_planet }
+	potential = {
+		owner = { not = { has_country_flag = @gasde_planet_hide } }
+		not = { has_planet_flag = @gasde_planet }
+	}
+	effect = { set_planet_flag = @gasde_planet }
 }
 
 planet_edict = {
@@ -46,6 +73,9 @@ planet_edict = {
 	potential = { owner = { is_ai = no } }
 	ai_weight = { weight = 0 }
 
-	potential = { has_planet_flag = @edict_planet }
-	effect = { remove_planet_flag = @edict_planet }
+	potential = {
+		owner = { not = { has_country_flag = @gasde_planet_hide } }
+		has_planet_flag = @gasde_planet
+	}
+	effect = { remove_planet_flag = @gasde_planet }
 }
