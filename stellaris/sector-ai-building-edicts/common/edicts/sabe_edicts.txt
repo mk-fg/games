@@ -3,13 +3,118 @@
 
 
 country_edict = {
+	name = sabe_empire_edicts_shown
+	length = 0
+	cost = { }
+	potential = { is_ai = no }
+	ai_weight = { weight = 0 }
+
+	potential = { not = { has_country_flag = sabe_empire_edicts_hide } }
+	effect = { set_country_flag = sabe_empire_edicts_hide }
+}
+
+country_edict = {
+	name = sabe_empire_edicts_hidden
+	length = 0
+	cost = { }
+	potential = { is_ai = no }
+	ai_weight = { weight = 0 }
+
+	potential = { has_country_flag = sabe_empire_edicts_hide }
+	effect = { remove_country_flag = sabe_empire_edicts_hide }
+}
+
+country_edict = {
+	name = sabe_planet_edicts_shown
+	length = 0
+	cost = { }
+	potential = { is_ai = no }
+	ai_weight = { weight = 0 }
+
+	potential = { not = { has_country_flag = sabe_planet_edicts_hide } }
+	effect = { set_country_flag = sabe_planet_edicts_hide }
+}
+
+country_edict = {
+	name = sabe_planet_edicts_hidden
+	length = 0
+	cost = { }
+	potential = { is_ai = no }
+	ai_weight = { weight = 0 }
+
+	potential = { has_country_flag = sabe_planet_edicts_hide }
+	effect = { remove_country_flag = sabe_planet_edicts_hide }
+}
+
+
+country_edict = {
+	name = sabe_empire_shelter_enabled
+	length = 0
+	cost = { }
+	potential = { is_ai = no }
+	ai_weight = { weight = 0 }
+
+	potential = {
+		owner = { not = { has_country_flag = sabe_empire_edicts_hide } }
+		not = { has_country_flag = sabe_disable_shelter_empire }
+	}
+	effect = { set_country_flag = sabe_disable_shelter_empire }
+}
+
+country_edict = {
+	name = sabe_empire_shelter_disabled
+	length = 0
+	cost = { }
+	potential = { is_ai = no }
+	ai_weight = { weight = 0 }
+
+	potential = {
+		owner = { not = { has_country_flag = sabe_empire_edicts_hide } }
+		has_country_flag = sabe_disable_shelter_empire
+	}
+	effect = { remove_country_flag = sabe_disable_shelter_empire }
+}
+
+planet_edict = {
+	name = sabe_planet_shelter_enabled
+	length = 0
+	cost = { }
+	potential = { owner = { is_ai = no } }
+	ai_weight = { weight = 0 }
+
+	potential = {
+		not = { has_planet_flag = sabe_planet_edicts_hide }
+		not = { has_planet_flag = sabe_disable_shelter }
+	}
+	effect = { set_planet_flag = sabe_disable_shelter }
+}
+
+planet_edict = {
+	name = sabe_planet_shelter_disabled
+	length = 0
+	cost = { }
+	potential = { owner = { is_ai = no } }
+	ai_weight = { weight = 0 }
+
+	potential = {
+		not = { has_planet_flag = sabe_planet_edicts_hide }
+		has_planet_flag = sabe_disable_shelter
+	}
+	effect = { remove_planet_flag = sabe_disable_shelter }
+}
+
+
+country_edict = {
 	name = sabe_empire_farms_enabled
 	length = 0
 	cost = { }
 	potential = { is_ai = no }
 	ai_weight = { weight = 0 }
 
-	potential = { not = { has_country_flag = sabe_disable_farm_empire } }
+	potential = {
+		owner = { not = { has_country_flag = sabe_empire_edicts_hide } }
+		not = { has_country_flag = sabe_disable_farm_empire }
+	}
 	effect = { set_country_flag = sabe_disable_farm_empire }
 }
 
@@ -20,10 +125,12 @@ country_edict = {
 	potential = { is_ai = no }
 	ai_weight = { weight = 0 }
 
-	potential = { has_country_flag = sabe_disable_farm_empire }
+	potential = {
+		owner = { not = { has_country_flag = sabe_empire_edicts_hide } }
+		has_country_flag = sabe_disable_farm_empire
+	}
 	effect = { remove_country_flag = sabe_disable_farm_empire }
 }
-
 
 planet_edict = {
 	name = sabe_planet_farms_enabled
@@ -32,7 +139,10 @@ planet_edict = {
 	potential = { owner = { is_ai = no } }
 	ai_weight = { weight = 0 }
 
-	potential = { not = { has_planet_flag = sabe_disable_farm } }
+	potential = {
+		not = { has_planet_flag = sabe_planet_edicts_hide }
+		not = { has_planet_flag = sabe_disable_farm }
+	}
 	effect = { set_planet_flag = sabe_disable_farm }
 }
 
@@ -43,6 +153,9 @@ planet_edict = {
 	potential = { owner = { is_ai = no } }
 	ai_weight = { weight = 0 }
 
-	potential = { has_planet_flag = sabe_disable_farm }
+	potential = {
+		not = { has_planet_flag = sabe_planet_edicts_hide }
+		has_planet_flag = sabe_disable_farm
+	}
 	effect = { remove_planet_flag = sabe_disable_farm }
 }

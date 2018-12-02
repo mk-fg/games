@@ -1,3 +1,5 @@
+
+
 building_hydroponics_farm_1 = {
 	tags = { hydroponics_farm }
 
@@ -82,4 +84,75 @@ building_hydroponics_farm_1 = {
 	ai_weight = {
 		factor = 1
 	}
+}
+
+
+
+building_colony_shelter = {
+	base_buildtime = 180
+	planet_unique = yes
+	capital = yes
+	level = 0
+	defense_armies = 1
+
+	cost = {
+	}
+
+	produced_resources = {
+		energy = 1
+	}
+
+	produced_resource_trigger = {
+		modifier = {
+			OR = {
+				has_non_swapped_tradition = tr_expansion_colonization_fever
+				has_swapped_tradition = tr_expansion_colonization_fever_machine
+				has_swapped_tradition = tr_expansion_colonization_fever_hive
+			}
+			resources = {
+				unity = 1
+			}
+		}
+	}
+
+	planet_modifier = {
+		pop_government_ethic_attraction = 0.05
+	}
+
+	show_tech_unlock_if = { NOT = { has_authority = auth_machine_intelligence } }
+
+	potential = {
+		NOT = {
+			owner = { has_authority = auth_machine_intelligence }
+		}
+		planet = {
+			NOT = { is_planet_class = pc_habitat }
+		}
+		planet = {
+			NOT = {
+				has_building = building_colony_shelter
+				has_building = building_capital_1
+				has_building = building_capital_2
+				has_building = building_capital_3
+			}
+		}
+	}
+
+	destroy_if = {
+		exists = owner
+		owner = { has_authority = auth_machine_intelligence }
+	}
+
+	upgrades = {
+		building_capital_1
+	}
+
+	ai_allow = {
+		not = {
+			planet = { has_planet_flag = sabe_disable_shelter }
+			owner = { has_country_flag = sabe_disable_shelter_empire }
+		}
+	}
+
+	ai_replace = no
 }
