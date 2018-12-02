@@ -41,4 +41,4 @@ This only applies to overriding edict-affected buildings, everything else is per
 This mod will not affect these decisions, but you can disable them per-planet either by using "Disable GAI" planetary edicts from Glavius mod, or their empire-wide counterpart added by my [url=https://steamcommunity.com/sharedfiles/filedetails/?id=1380893289]Glavius AI Sector Development Edicts[/url] mod.
 These are usually good decisions though (hence called "critical" in Glavius mod), and probably don't need to be disabled.
 
-Stellaris 2.2 release will replace planet tile system, and this mod will either become obsolete or be updated to allow vetoing building choices there via planetary decisions or policies (as edicts will also be removed afaik).
+Stellaris 2.2 release will replace planet tile system, and this mod will either become obsolete or be updated to allow vetoing building choices there via planetary decisions or empire policies/edicts, eventually.
