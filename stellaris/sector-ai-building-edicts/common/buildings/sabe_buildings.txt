@@ -1,3 +1,7 @@
+# Sector AI Building Edicts
+# Overrides for first-tier (new on tile) buildings with only diff
+#  of adding ai_allow= dependency on edict flags from this mod
+
 
 
 building_hydroponics_farm_1 = {
@@ -67,7 +71,7 @@ building_hydroponics_farm_1 = {
 	}
 
 	ai_allow = {
-		NOR = {
+		nor = {
 			has_resource = {
 				type = sr_betharian
 				amount > 0
@@ -76,8 +80,13 @@ building_hydroponics_farm_1 = {
 				type = sr_alien_pets
 				amount > 0
 			}
-			planet = { has_planet_flag = sabe_disable_farm }
-			owner = { has_country_flag = sabe_disable_farm_empire }
+		}
+		nand = {
+			owner = { is_ai = no }
+			or = {
+				planet = { has_planet_flag = sabe_disable_farm }
+				owner = { has_country_flag = sabe_disable_farm_empire }
+			}
 		}
 	}
 
@@ -148,9 +157,12 @@ building_colony_shelter = {
 	}
 
 	ai_allow = {
-		not = {
-			planet = { has_planet_flag = sabe_disable_shelter }
-			owner = { has_country_flag = sabe_disable_shelter_empire }
+		nand = {
+			owner = { is_ai = no }
+			or = {
+				planet = { has_planet_flag = sabe_disable_shelter }
+				owner = { has_country_flag = sabe_disable_shelter_empire }
+			}
 		}
 	}
 
