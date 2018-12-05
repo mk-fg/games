@@ -1,0 +1,55 @@
+Shortened version of JS snippet from:
+https://www.reddit.com/r/CitiesSkylines/comments/8hrdsd/add_all_subscribed_items_to_steam_collections_at/
+
+How to use:
+
+- Go to $game workshop - collections - create collection
+- Fill in title/description, moving to second step (mod selection)
+- Open Subscribed Items tab
+- Ctrl + Shift + K (F12 console), paste/run script, click big green plus button
+- Check Network tab or console for errors
+
+Script:
+
+setTimeout(() => {
+	let e_col = document.querySelector('div.collectionAddItemsSection')
+	let style_base = (
+			'position absolute top 110px border-radius 10px color white'
+			+ ' font-size 40px width 60px height 60px text-decoration none' )
+		.split(/\s+/).reduce((o, v) => {
+			if (o._k) { o[o._k] = v, delete o._k } else { o._k = v }; return o }, {})
+	jQuery('button#ASCM_addall, button#ASCM_removeall').remove()
+
+	let btn_add = document.createElement('button')
+	e_col.insertBefore(btn_add, e_col.firstChild)
+	btn_add.setAttribute('id', 'ASCM_addall')
+	btn_add.innerHTML = '+'
+	Object.assign(btn_add.style, style_base, {right: '50px', background: '#00c417'})
+	let col_add = (data, e) => jQuery.ajax({
+		type: 'POST', url: 'https://steamcommunity.com/sharedfiles/addchild', data: data,
+		complete: jx => console.log(`- - mod ${data.childid}: ${jx.mod_added?'done':'FAIL!'}`),
+		success: (res, st, jx) => { e.addClass('inCollection'); jx.mod_added = true } })
+	jQuery(btn_add).click(() => {
+		console.log('- Add:')
+		let items = []
+		let col_name = jQuery('div.manageCollectionHeader div.breadcrumbs a').eq(2).text().trim()
+		let col_id = (new URL(document.location.href)).searchParams.get('id')
+		jQuery('div#MySubscribedItems div.itemChoice:not(.inCollection)')
+			.each((n, e) => col_add({
+				id: col_id, sessionid: window.g_sessionID,
+				childid: jQuery(e).attr('id').replace('choice_MySubscribedItems_',''),
+				activeSection: col_name }, jQuery(e))) })
+
+	let btn_rem = document.createElement('button')
+	e_col.insertBefore(btn_rem, e_col.firstChild)
+	btn_rem.setAttribute('id', 'ASCM_removeall')
+	btn_rem.innerHTML = '-'
+	Object.assign(btn_rem.style, style_base, {right: '120px', background: '#c20000'})
+	jQuery(btn_rem).click(() => {
+		console.log('- Remove')
+		jQuery('div#MySubscribedItems div.itemChoice.inCollection')
+			.each((n, e) =>
+				window.RemoveChildFromCollection(
+					jQuery(e).attr('id').replace('choice_MySubscribedItems_','') )) })
+
+}, 0)
