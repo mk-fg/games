@@ -66,6 +66,7 @@ def parse_mod_files(paths):
 def get_dir_mtime(p_dir):
 	ts_dir = 0
 	if p_dir.exists():
+		ts_dir = p_dir.lstat().st_mtime
 		for root, dirs, files in os.walk(p_dir):
 			for p in it.chain(dirs, files):
 				ts = (pl.Path(root) / p).lstat().st_mtime
@@ -129,18 +130,22 @@ def main(args=None):
 	for mod_name, mod in mods.items():
 		p_zip = mod.get('archive')
 		p_dst = p_repo / name_for_fs(mod.name)
+		p_dst_mtime = get_dir_mtime(p_dst)
 		with contextlib.ExitStack() as ctx:
 			if p_zip:
 				p_zip = pl.Path(p_zip)
-				if not p_zip.exists() or p_zip.lstat().st_mtime < get_dir_mtime(p_dst): continue
+				if not p_zip.exists() or p_zip.lstat().st_mtime < p_dst_mtime: continue
 				p_mod = pl.Path(ctx.enter_context(tempfile.TemporaryDirectory(prefix=f'{p_dst}.')))
 				subprocess.run(
 					['bsdtar', '-xf', p_zip, '--cd', p_mod],
 					stderr=subprocess.DEVNULL, check=False )
 			else:
 				p_mod = p_mod_dir / pl.Path(mod.path).name
+				if get_dir_mtime(p_mod) < p_dst_mtime: continue
+			print(f'Syncing mod: {mod_name}')
 			(p_mod / 'descriptor.mod').write_text(mod._descriptor)
 			subprocess.run(['rsync', '-rc', '--delete', f'{p_mod}/.', p_dst], check=True)
+			p_dst.touch()
 
 	os.chdir(p_repo)
 	subprocess.run(['git', 'add', '.'], check=True)
