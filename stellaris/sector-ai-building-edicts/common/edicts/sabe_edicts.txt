@@ -159,3 +159,60 @@ planet_edict = {
 	}
 	effect = { remove_planet_flag = sabe_disable_farm }
 }
+
+
+country_edict = {
+	name = sabe_empire_shield_enabled
+	length = 0
+	cost = { }
+	potential = { is_ai = no }
+	ai_weight = { weight = 0 }
+
+	potential = {
+		owner = { not = { has_country_flag = sabe_empire_edicts_hide } }
+		not = { has_country_flag = sabe_disable_shield_empire }
+	}
+	effect = { set_country_flag = sabe_disable_shield_empire }
+}
+
+country_edict = {
+	name = sabe_empire_shield_disabled
+	length = 0
+	cost = { }
+	potential = { is_ai = no }
+	ai_weight = { weight = 0 }
+
+	potential = {
+		owner = { not = { has_country_flag = sabe_empire_edicts_hide } }
+		has_country_flag = sabe_disable_shield_empire
+	}
+	effect = { remove_country_flag = sabe_disable_shield_empire }
+}
+
+planet_edict = {
+	name = sabe_planet_shield_enabled
+	length = 0
+	cost = { }
+	potential = { owner = { is_ai = no } }
+	ai_weight = { weight = 0 }
+
+	potential = {
+		not = { has_planet_flag = sabe_planet_edicts_hide }
+		not = { has_planet_flag = sabe_disable_shield }
+	}
+	effect = { set_planet_flag = sabe_disable_shield }
+}
+
+planet_edict = {
+	name = sabe_planet_shield_disabled
+	length = 0
+	cost = { }
+	potential = { owner = { is_ai = no } }
+	ai_weight = { weight = 0 }
+
+	potential = {
+		not = { has_planet_flag = sabe_planet_edicts_hide }
+		has_planet_flag = sabe_disable_shield
+	}
+	effect = { remove_planet_flag = sabe_disable_shield }
+}

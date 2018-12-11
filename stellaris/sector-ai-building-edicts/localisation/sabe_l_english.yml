@@ -38,3 +38,16 @@
 
   edict_sabe_planet_farms_disabled:0 "SAI :: New Farms :: §Rprohibited§!"
   edict_sabe_planet_farms_disabled_desc:0 "Sector government is §Rprohibited§! from building new farms on this planet. Prohibiting overrides similar empire-wide policy. Toggle the edict to change."
+
+
+  edict_sabe_empire_shield_enabled:0 "SAI :: Planetary Shields :: §Gallowed§!"
+  edict_sabe_empire_shield_enabled_desc:0 "Sectors across empire are §Gallowed§! (default) to build Planetary Shields. Toggle the edict to change."
+
+  edict_sabe_empire_shield_disabled:0 "SAI :: Planetary Shields :: §Rprohibited§!"
+  edict_sabe_empire_shield_disabled_desc:0 "Sectors across empire are §Rprohibited§! from building Planetary Shields. Can also be prohibited per-planet. Toggle the edict to change."
+
+  edict_sabe_planet_shield_enabled:0 "SAI :: Pl. Shields :: §Gallowed§!"
+  edict_sabe_planet_shield_enabled_desc:0 "Sector government is §Gallowed§! (default) to build Planetary Shields on this planet. Prohibiting overrides similar empire-wide policy. Toggle the edict to change."
+
+  edict_sabe_planet_shield_disabled:0 "SAI :: Pl. Shields :: §Rprohibited§!"
+  edict_sabe_planet_shield_disabled_desc:0 "Sector government is §Rprohibited§! from building Planetary Shields on this planet. Prohibiting overrides similar empire-wide policy. Toggle the edict to change."

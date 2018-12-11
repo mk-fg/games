@@ -1,99 +1,7 @@
 # Sector AI Building Edicts
 # Overrides for first-tier (new on tile) buildings with only diff
 #  of adding ai_allow= dependency on edict flags from this mod
-
-
-
-building_hydroponics_farm_1 = {
-	tags = { hydroponics_farm }
-
-	base_buildtime = @b1time
-
-	cost = {
-		minerals = @b1cost
-	}
-
-	produced_resources = {
-		food = 2
-	}
-
-	produced_resource_trigger = {
-		modifier = {
-			has_valid_civic = civic_agrarian_idyll
-			NOT = { has_swapped_tradition = tr_adaptability_finish }
-			resources = {
-				unity = 1
-			}
-		}
-		modifier = {
-			has_swapped_tradition = tr_adaptability_finish
-			NOT = { has_valid_civic = civic_agrarian_idyll }
-			resources = {
-				minerals = 1
-			}
-		}
-		modifier = {
-			has_swapped_tradition = tr_adaptability_finish
-			has_valid_civic = civic_agrarian_idyll
-			resources = {
-				unity = 1
-				minerals = 1
-			}
-		}
-	}
-
-	required_resources = {
-		energy = @b1upkeep
-	}
-
-	upgrades = {
-		building_hydroponics_farm_2
-	}
-
-	prerequisites = {
-		"tech_eco_simulation"
-	}
-
-	show_tech_unlock_if = { NOT = { has_authority = auth_machine_intelligence } }
-
-	potential = {
-		NOT = {
-			owner = { has_authority = auth_machine_intelligence }
-		}
-		planet = {
-			NOT = { is_planet_class = pc_habitat }
-		}
-	}
-
-	destroy_if = {
-		exists = owner
-		owner = { has_authority = auth_machine_intelligence }
-	}
-
-	ai_allow = {
-		nor = {
-			has_resource = {
-				type = sr_betharian
-				amount > 0
-			}
-			has_resource = {
-				type = sr_alien_pets
-				amount > 0
-			}
-		}
-		nand = {
-			owner = { is_ai = no }
-			or = {
-				planet = { has_planet_flag = sabe_disable_farm }
-				owner = { has_country_flag = sabe_disable_farm_empire }
-			}
-		}
-	}
-
-	ai_weight = {
-		factor = 1
-	}
-}
+# Base buildings are not from vanilla stellaris, but from glavius compat mod
 
 
 
@@ -166,5 +74,206 @@ building_colony_shelter = {
 		}
 	}
 
+	ai_replace = no
+}
+
+
+
+building_hydroponics_farm_1 = {
+	tags = { hydroponics_farm }
+
+	base_buildtime = @b1time
+
+	cost = {
+		minerals = @b1cost
+	}
+
+	produced_resources = {
+		food = 2
+	}
+
+	produced_resource_trigger = {
+		modifier = {
+			has_valid_civic = civic_agrarian_idyll
+			NOT = { has_swapped_tradition = tr_adaptability_finish }
+			resources = {
+				unity = 1
+			}
+		}
+		modifier = {
+			has_swapped_tradition = tr_adaptability_finish
+			NOT = { has_valid_civic = civic_agrarian_idyll }
+			resources = {
+				minerals = 1
+			}
+		}
+		modifier = {
+			has_swapped_tradition = tr_adaptability_finish
+			has_valid_civic = civic_agrarian_idyll
+			resources = {
+				unity = 1
+				minerals = 1
+			}
+		}
+	}
+
+	required_resources = {
+		energy = @b1upkeep
+	}
+
+	upgrades = {
+		building_hydroponics_farm_2
+	}
+
+	prerequisites = {
+		"tech_eco_simulation"
+	}
+
+	show_tech_unlock_if = { NOT = { has_authority = auth_machine_intelligence } }
+
+	potential = {
+		NOT = {
+			owner = { has_authority = auth_machine_intelligence }
+		}
+		planet = {
+			NOT = { is_planet_class = pc_habitat }
+		}
+	}
+
+	destroy_if = {
+		exists = owner
+		owner = { has_authority = auth_machine_intelligence }
+	}
+
+	ai_allow = {
+		gai_has_sr = no
+		nand = {
+			owner = { is_ai = no }
+			or = {
+				planet = { has_planet_flag = sabe_disable_farm }
+				owner = { has_country_flag = sabe_disable_farm_empire }
+			}
+		}
+	}
+
+	ai_weight = {
+		weight = 0
+		modifier = {
+			weight = 50
+			gai_farm_okay = yes
+		}
+	}
+}
+
+
+
+building_planetary_shield_generator = {
+	icon = "building_shield_generator"
+	base_buildtime = 360
+	planet_unique = yes
+	immune_to_bombardment = yes
+
+	cost = {
+		minerals = 500
+	}
+
+	required_resources = {
+		energy = 5
+	}
+
+	planet_modifier = {
+		planet_orbital_bombardment_damage = -0.75
+	}
+
+	produced_resources = {
+		engineering_research = 3
+		physics_research = 3
+	}
+
+	potential = {
+		planet = {
+			NOT = { is_planet_class = pc_habitat }
+		}
+	}
+
+	allow = {
+		if = {
+			limit = {
+				owner = {
+					NOT = { has_authority = auth_machine_intelligence }
+				}
+			}
+			custom_tooltip = {
+				text = "requires_building_capital_1"
+				planet = {
+					OR = {
+						has_building = "building_capital_1"
+						has_building = "building_capital_2"
+						has_building = "building_capital_3"
+					}
+				}
+			}
+		}
+		if = {
+			limit = {
+				owner = { has_authority = auth_machine_intelligence }
+			}
+			custom_tooltip = {
+				text = "requires_building_machine_capital_1"
+				planet = {
+					OR = {
+						has_building = "building_machine_capital_1"
+						has_building = "building_machine_capital_2"
+						has_building = "building_machine_capital_3"
+					}
+				}
+			}
+		}
+	}
+
+	prerequisites = {
+		"tech_planetary_shield_generator"
+	}
+
+	ai_allow = {
+		has_building = no
+		NOT = { gai_has_sr = yes }
+		OR = {
+			AND = {
+				gai_is_blank = yes
+				NOT = {
+					any_neighboring_tile = {
+						OR = {
+							gai_upgraded_capital = yes
+							gai_shelter_capital = yes
+						}
+					}
+				}
+			}
+			gai_has_physics = yes
+			gai_has_engineering = yes
+			gai_build_on_food_okay = yes
+		}
+		nand = {
+			owner = { is_ai = no }
+			or = {
+				planet = { has_planet_flag = sabe_disable_shield }
+				owner = { has_country_flag = sabe_disable_shield_empire }
+			}
+		}
+	}
+
+	ai_weight = {
+		weight = 0
+		modifier = {
+			weight = 150
+			or = {
+				gai_has_physics = yes
+				gai_has_engineering = yes
+				gai_blank_okay = yes
+				gai_build_on_food_okay = yes
+			}
+		}
+	}
 	ai_replace = no
 }
