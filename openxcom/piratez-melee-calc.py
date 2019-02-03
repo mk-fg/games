@@ -64,10 +64,8 @@ def parse_items(p_rul, p_lang=None, p_cqc=None):
 		p_log('Missing STR_OPENXCOM with mod version in translation files')
 	else:
 		version = str_trans['STR_OPENXCOM'].split()[-1]
-		if not re.search(r'^\d+\.\d+', version):
-			p_log( 'Ignoring bogus version string'
-				' {!r}, parsed from: {!r}', version, str_trans['STR_OPENXCOM'] )
-		else: items['STR_VERSION'] = dict(type='STR_VERSION', value=version)
+		version = re.sub(r'^v\.?', '', version)
+		items['STR_VERSION'] = dict(type='STR_VERSION', value=version)
 
 	return items
 

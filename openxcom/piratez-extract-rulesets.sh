@@ -9,7 +9,7 @@ rul= rul_dir=
 while read v d; do
 	v="$d"/user/mods/Piratez/Language/en-US.yml
 	[[ -f "$v" ]] || { echo >&2 "Missing en-US.yml with version in $d"; exit 1; }
-	v=$(awk 'match($0,/^ *STR_OPENXCOM: .* (\S+)\"$/,a) {print a[1]}' "$v")
+	v=$(awk 'match($0,/^ *STR_OPENXCOM: .* (\S+)\"$/,a) {sub(/^v\.?/,"",a[1]); print a[1]}' "$v")
 	rul=ruleset_"$v".yaml rul_dir=$d
 	[[ -e "$rul" ]] && continue
 	echo "--- $rul"
