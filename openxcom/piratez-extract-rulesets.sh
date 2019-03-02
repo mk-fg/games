@@ -3,7 +3,16 @@ shopt -s nullglob
 
 game_dirs=( "$@" )
 [[ ${#game_dirs[@]} -gt 0 ]] \
-	|| readarray -t game_dirs < <(ls -1d {OpenXcom,Dioxine}_XPiratez*)
+	|| game_dirs=( {OpenXcom,Dioxine}_XPiratez* )
+
+usage() {
+	bin=$(basename $0)
+	echo >&2 "Usage: $bin [gamedir]"
+	echo >&2 "If no gamedir specified,"
+	echo >&2 "  {OpenXcom,Dioxine}_XPiratez* gets looked-up in current dir."
+	exit ${1:-0}
+}
+[[ "${#game_dirs[@]}" -eq 0 || "$1" = -h || "$1" = --help ]] && usage
 
 rul= rul_dir=
 while read v d; do
