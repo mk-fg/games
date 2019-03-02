@@ -298,7 +298,9 @@ let
 	// From enum in RuleDamageType.h, described under DRT_ stuff
 	info_random_types = {
 		0: 'vanilla', 1: '1d(x0-x2)', 2: '1d(x.5-x1.5)', 3: 'flat(x1)',
-		4: 'fire(5-10)', 5: 'no-dmg(x0)', 6: '2d(x0-x1)', 7: '1d(x.5-x2)' }
+		4: 'fire(5-10)', 5: 'no-dmg(x0)', 6: '2d(x0-x1)', 7: '1d(x.5-x2)' },
+	// From RuleDamageType::getRandomDamage when randType == DRT_DEFAULT
+	info_random_types_for_dt = {0: 5, 2: 4, 3: 2, 9: 5}
 
 let
 	items_info_type_str = d => d.replace(/^STR_/, '').toLowerCase(),
@@ -574,15 +576,18 @@ let item_stats = d => {
 				else if (kx === 'toWound') ext_title.push(`- "${kx}": fatal wound count multiplier.`)
 				else ext_title.push(`- "${kx}": "${da_key}.${k}" damage multiplier value.`) }) }
 
-		obj_pop_run(da, 'RandomType', d => {
-			k = info_random_types[d]
+		DescribeRandomType: {
+			let dt = da.ResistType || d.damageType
+			let drt = obj_pop(da, 'RandomType') || info_random_types_for_dt[dt]
+			k = info_random_types[drt]
 			if (!k) {
-				k = `rnd=DRT#${d}`; ext.push(k)
+				k = `rnd=DRT#${drt}`; ext.push(k)
 				ext_title.push(`- ${k} shows raw unrecognized RandomType value.`) }
 			else {
 				k = `rnd=${k}`; ext.push(k)
 				ext_title.push( `- "${k}" is how weapon Power value translates to rnd-ish damage.\n`+
-					'  "XdY" is X uniform dice rolls of Y, e.g. 2d(x0-x1) is a more mid-range 0-200%.' ) } })
+					'  "XdY" is X uniform dice rolls of Y, e.g. 2d(x0-x1) is a more mid-range 0-200%.' ) }
+		}
 
 		da_key_desc('FixRadius', d => [`blast-r=${d}`, `- "blast-r": blast radius.`])
 		da_key_desc('RandomWound', d => [ !d && `rnd-wound=${d}`,
