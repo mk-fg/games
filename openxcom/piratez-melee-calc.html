@@ -579,8 +579,9 @@ let item_stats = d => {
 		DescribeRandomType: {
 			let dt = da.ResistType || d.damageType
 			let drt = obj_pop(da, 'RandomType') || info_random_types_for_dt[dt]
-			k = info_random_types[drt]
-			if (!k) {
+			k = drt ? info_random_types[drt] : 0
+			if (k === 0) null
+			else if (!k) {
 				k = `rnd=DRT#${drt}`; ext.push(k)
 				ext_title.push(`- ${k} shows raw unrecognized RandomType value.`) }
 			else {
