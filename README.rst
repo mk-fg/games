@@ -367,6 +367,11 @@ Fair warning though - art/text in that mod can get a bit weird.
   all XPiratez dirs under current one, extracting versioned/cleaned rulesets
   (to run diff on them) and creating json caches for each.
 
+- oxce-loadout-manager.py
+
+  | Script to save/restore armor + loadouts for all soldiers from/to a specific save file.
+  | Useful for mass-switching loadouts for when diff missions require diff armors (e.g. land, sea, infiltration).
+
 .. _OpenXCOM XPirateZ mod: https://www.ufopaedia.org/index.php/Piratez
 
 
