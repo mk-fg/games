@@ -34,7 +34,6 @@ done < <(
 	./piratez-melee-calc.py "$rul".cache.json \
 			-r "$rul_dir"/user/mods/Piratez/Ruleset/Piratez.rul \
 			-m "$rul_dir"/user/mods/Piratez/Ruleset/'Gun CqC'.rul \
-			-l "$rul_dir"/standard/xcom1/Language/en-US.yml \
 			-l "$rul_dir"/user/mods/Piratez/Language/en-US.yml \
 		|| echo >&2 "ERROR: failed to create calc-cache json!!!"
 }
