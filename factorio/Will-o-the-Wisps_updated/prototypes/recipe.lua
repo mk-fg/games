@@ -5,7 +5,7 @@ data:extend{
 		energy_required = 14,
 		ingredients = {
 			{'stone', 20},
-			{'raw-wood', 20},
+			{'wood', 20},
 			{'coal', 20},
 		},
 		result = 'alien-flora-sample',

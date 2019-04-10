@@ -7,9 +7,9 @@ data:extend{
 		unit = {
 			count = 200,
 			ingredients = {
-				{'science-pack-1', 1},
-				{'science-pack-2', 1},
-				{'science-pack-3', 1} },
+				{'automation-science-pack', 1},
+				{'logistic-science-pack', 1},
+				{'chemical-science-pack', 1} },
 			time = 30 },
 		effects = {
 			{type='unlock-recipe', recipe='alien-flora-sample'},

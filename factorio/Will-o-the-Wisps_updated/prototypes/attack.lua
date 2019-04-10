@@ -9,8 +9,8 @@ data:extend{
 		animations = {
 			{ filename = '__Will-o-the-Wisps_updated__/graphics/null.png',
 				priority = 'high',
-				width = 0,
-				height = 0,
+				width = 1,
+				height = 1,
 				frame_count = 1,
 				animation_speed = 0.4,
 				shift = {0, 0} }

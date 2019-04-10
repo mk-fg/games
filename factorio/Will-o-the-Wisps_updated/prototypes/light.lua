@@ -13,8 +13,8 @@ for wisp_name, light_info_list in pairs(conf.wisp_light_entities) do
 			animations = {
 				{ filename = '__Will-o-the-Wisps_updated__/graphics/null.png',
 					priority = 'high',
-					width = 0,
-					height = 0,
+					width = 1,
+					height = 1,
 					frame_count = 1,
 					animation_speed = light_info.speed or conf.wisp_light_anim_speed,
 					shift = {0, 0} } },
@@ -31,8 +31,8 @@ data:extend{{
 	animations = {
 		{ filename = '__Will-o-the-Wisps_updated__/graphics/entity/wisp-detector/wisp-detector-light.png',
 			priority = 'high',
-			width = 0,
-			height = 0,
+			width = 1,
+			height = 1,
 			frame_count = 1,
 			animation_speed = conf.wisp_light_anim_speed_detector,
 			shift = util.by_pixel(0, -9) } },
@@ -47,27 +47,9 @@ data:extend{{
 	animations = {
 		{ filename = '__Will-o-the-Wisps_updated__/graphics/null.png',
 			priority = 'high',
-			width = 0,
-			height = 0,
+			width = 1,
+			height = 1,
 			frame_count = 1,
 			animation_speed = 1,
 			shift = {0, 0} } },
 	rotate = false }}
-
--- For compatibility with old versions
-for _, light in pairs{'wisp-light-generic', 'wisp-flash'}
-do data:extend{{
-	type = 'explosion',
-	name = light,
-	flags = {'not-on-map', 'placeable-off-grid'},
-	animations = {
-		{ filename = '__Will-o-the-Wisps_updated__/graphics/null.png',
-			priority = 'high',
-			width = 0,
-			height = 0,
-			frame_count = 1,
-			animation_speed = 0.03,
-			shift = {0, 0} } },
-	rotate = false,
-	light = {intensity=0.7, size=4}
-}} end

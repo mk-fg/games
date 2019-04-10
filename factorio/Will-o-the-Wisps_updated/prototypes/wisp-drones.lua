@@ -74,8 +74,8 @@ data:extend{{
 	shadow_idle = {
 		filename = '__Will-o-the-Wisps_updated__/graphics/null.png',
 		priority = 'high',
-		width = 0,
-		height = 0,
+		width = 1,
+		height = 1,
 		frame_count = 1,
 		direction_count = 1,
 		shift = {0, 0}
@@ -83,8 +83,8 @@ data:extend{{
 	shadow_in_motion = {
 		filename = '__Will-o-the-Wisps_updated__/graphics/null.png',
 		priority = 'high',
-		width = 0,
-		height = 0,
+		width = 1,
+		height = 1,
 		frame_count = 1,
 		direction_count = 1,
 		shift = {0, 0}
@@ -99,8 +99,8 @@ data:extend{{
 	animations = {
 		{ filename = '__Will-o-the-Wisps_updated__/graphics/entity/wisps/wisp-drone-blue-death.png',
 			priority = 'high',
-			width = 0,
-			height = 0,
+			width = 1,
+			height = 1,
 			frame_count = 6,
 			animation_speed = 0.03,
 			shift = {0, 0} } },
@@ -162,7 +162,6 @@ data:extend{
 		name = 'wisp-drone-blue-capsule',
 		icon = '__Will-o-the-Wisps_updated__/graphics/icons/wisp-drone-blue.png',
 		icon_size = 32,
-		flags = {'goes-to-quickbar'},
 		subgroup = 'capsule',
 		order = 'c[wisp-drone-blue-capsule]',
 		stack_size = 100,
