@@ -169,7 +169,7 @@ Easy to fix with mods though, which are one of the best parts of the game.
 
 Useful companion links for the game:
 
-- https://doomeer.com/factorio/ - production chain calculator, simpliest.
+- http://doomeer.com/factorio/ - production chain calculator, simpliest.
 - https://rubyruy.github.io/factorio-calc/ - same as above, but found it harder to use.
 - https://kirkmcdonald.github.io/calc.html - also rates-calculator, with belts and power.
 - https://dddgamer.github.io/factorio-cheat-sheet/ - good cheatsheet for numbers/ratios.
