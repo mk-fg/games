@@ -918,65 +918,7 @@ local function update_recipes(with_reset)
 end
 
 local function apply_version_updates(old_v, new_v)
-	local function remap_key(o, k_old, k_new, default)
-		if not o[k_new] then o[k_new], o[k_old] = o[k_old] end
-		if not o[k_new] then o[k_new] = default end
-	end
-
-	if utils.version_less_than(old_v, '0.0.3') then
-		utils.log('    - Updating TTL/TTU keys in global objects')
-		for _,wisp in ipairs(Wisps) do remap_key(wisp, 'TTL', 'ttl') end
-	end
-
-	if utils.version_less_than(old_v, '0.0.7') then
-		for _,k in ipairs{
-				'stepLIGTH', 'stepTTL', 'stepGC',
-				'stepUV', 'stepDTCT', 'recentDayTime' }
-			do global[k] = nil end
-	end
-
-	if utils.version_less_than(old_v, '0.0.10')
-		then remap_key(WorkSteps, 'ttl', 'expire') end
-
-	if utils.version_less_than(old_v, '0.0.13') then
-		Wisps.n, UVLights.n, Detectors.n = #Wisps, #UVLights, #Detectors
-		WorkSteps.gc, global.chunks, global.forests = nil
-	end
-
-	if utils.version_less_than(old_v, '0.0.17') then
-		WorkSteps.spawn, WorkSteps.expire = nil
-		for _, wisp in ipairs(Wisps) do wisp.uv_level = 0 end
-	end
-
-	if utils.version_less_than(old_v, '0.0.25') then
-		WorkSteps.light = nil
-		for _, force in pairs(game.forces)
-			do for _, k in ipairs{'wisp-yellow', 'wisp-purple', 'wisp-red'}
-				do force.recipes[k].enabled = false end end
-	end
-
-	if utils.version_less_than(old_v, '0.0.28') then
-		global.wisp_drones, global.wispDrones = WispDrones
-		global.uv_lights, global.uvLights = UVLights
-		global.map_stats, global.mapUVLevel = MapStats
-		global.work_steps, global.workSteps = WorkSteps
-	end
-
-	if utils.version_less_than(old_v, '0.0.34') then
-		local wisps = game.forces.wisps
-		for _, force in ipairs(get_player_forces()) do wisps.set_cease_fire(force, true) end
-		wisp_force_init('wisp')
-		wisp_force_init('wisp_attack', true)
-		game.merge_forces('wisps', 'wisp')
-	end
-
-	if utils.version_less_than(old_v, '0.0.53') then
-		chunk_map, global.zones.forest_set = global.zones.chunk_map
-		-- Just re-scan it all from scratch so that wisps will keep spawning
-		for k, _ in pairs(chunk_map) do chunk_map[k] = nil end
-		zones.refresh_chunks(WispSurface)
-		zones.full_update(true)
-	end
+	return -- cleared at 0.1.0, assuming any old games should be gone or at latest by now
 end
 
 local function init_commands()
