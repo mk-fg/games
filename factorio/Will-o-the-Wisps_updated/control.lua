@@ -955,14 +955,15 @@ end
 
 
 script.on_load(function()
-	utils.log('Loading game...')
+	utils.log('[will-o-wisps] Loading game...')
 	init_commands()
 	init_refs()
 	apply_runtime_settings()
+	utils.log('[will-o-wisps] Game init: done')
 end)
 
 script.on_configuration_changed(function(data)
-	utils.log('Updating mod configuration...')
+	utils.log('[will-o-wisps] Updating mod configuration...')
 	-- Add any new globals and pick them up in init_refs() again
 	init_globals()
 	init_refs()
@@ -974,7 +975,7 @@ script.on_configuration_changed(function(data)
 
 	utils.log('Processing mod updates...')
 	local update = data.mod_changes and data.mod_changes[script.mod_name]
-	if not update then return end
+	if not update then goto done end
 	if update.old_version then
 		local v_old, v_new = update.old_version, update.new_version
 		utils.log(' - Will-o-the-Wisps updated: %s -> %s', v_old, v_new)
@@ -984,10 +985,12 @@ script.on_configuration_changed(function(data)
 		utils.log(' - Updating tech requirements...')
 		update_recipes()
 	end
+
+	::done:: utils.log('[will-o-wisps] Updating mod configuration: done')
 end)
 
 script.on_init(function()
-	utils.log('Initializing mod for a new game...')
+	utils.log('[will-o-wisps] Initializing mod for a new game...')
 
 	init_commands()
 	init_globals()
@@ -998,6 +1001,7 @@ script.on_init(function()
 	wisp_force_init('wisp_attack', true)
 
 	apply_runtime_settings()
+	utils.log('[will-o-wisps] Game init: done')
 end)
 
 

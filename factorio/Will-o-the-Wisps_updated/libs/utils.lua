@@ -125,7 +125,7 @@ function utils.map(t, func)
 		func = function(v) return v[key] end
 	end
 	local res = {}
-	for n, v in ipairs(t) do table.insert(res, func(v, n)) end
+	for n = 1, #t do table.insert(res, func(t[n], n)) end
 	return res
 end
 
