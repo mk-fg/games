@@ -1,6 +1,5 @@
 local conf = require('config')
-conf.multiplier = settings.startup['day-night-multiplier'].value
-conf.adjust_accumulators = settings.startup['adjust-accumulator-capacity'].value
+conf.update_from_settings()
 
 local function multiply_bc(bc)
 	local n, unit = string.match(bc, '([%d%.]+)(%a+)')

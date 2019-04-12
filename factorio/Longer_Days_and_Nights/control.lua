@@ -1,6 +1,5 @@
 local conf = require('config')
-conf.multiplier = settings.startup['day-night-multiplier'].value
-conf.adjust_accumulators = settings.startup['adjust-accumulator-capacity'].value
+conf.update_from_settings()
 
 script.on_nth_tick(conf.tick, function(ev)
 	for _, s in pairs(game.surfaces) do
