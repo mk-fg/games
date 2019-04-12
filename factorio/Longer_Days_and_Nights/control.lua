@@ -9,10 +9,7 @@ script.on_nth_tick(conf.tick, function(ev)
 			elseif global.counter == 1 then s.freeze_daytime = true end
 		end
 	end
-	global.counter = (global.counter + 1) % global.multiplier
+	global.counter = (global.counter + 1) % conf.multiplier
 end)
 
-script.on_init(function()
-	global.counter = global.counter or 0
-	global.multiplier = global.multiplier or conf.multiplier
-end)
+script.on_init(function() global.counter = global.counter or 0 end)

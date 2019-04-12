@@ -144,6 +144,11 @@ Easy to fix with mods though, which are one of the best parts of the game.
   Adds GUI panel with buttons to toggle acceleration and brakes, so that you
   don't have to hold W or S.
 
+- `Longer Days and Nights
+  <https://mods.factorio.com/mod/Longer_Days_and_Nights>`_
+
+  Gives control over the length of day/night cycle.
+
 - ReducedResearchX
 
   Local mod to reduce all research costs by somewhat complicated formula,
