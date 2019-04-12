@@ -73,7 +73,7 @@ See [original Will-o'-the-wisps mod](https://mods.factorio.com/mod/Will-o-the-wi
 
 ## Mod Suggestions
 
-- [Day Night Extender](https://mods.factorio.com/mod/DayNightExtender) - more nights, more shinies!
+- [Longer Days and Nights](https://mods.factorio.com/mod/Longer_Days_and_Nights) - more nights, more shinies!
 - [Time Tools](https://mods.factorio.com/mods/binbinhfr/TimeTools) - UI clock and speed settings plus time/darkness-tracking combinators.
 - [Bullet Trails](https://mods.factorio.com/mod/bullet-trails) - essential visual upgrade, which can also be seen on images here.
 - [Picker Extended](https://mods.factorio.com/mod/PickerExtended) - probably the best Quality-of-Life mod, including distance/radius measuring tool.
