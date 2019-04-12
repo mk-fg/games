@@ -1,4 +1,13 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.1.0
+Date: 12. 04. 2019
+  Changes:
+    - Update mod for Factorio-0.17.x compatibility, dropping 0.16.x (use 0.0.x releases there).
+  Features:
+    - Lights for wisps use new LuaRendering API, which should improve performance.
+  Bugfixes:
+    - Fixed wisp drone death animation.
+---------------------------------------------------------------------------------------------------
 Version: 0.0.53
 Date: 10. 11. 2018
   Bugfixes:

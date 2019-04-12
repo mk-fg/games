@@ -174,11 +174,9 @@ c.dst_next_building_radius = 128 -- radius to pick target building in from dst p
 conf.intervals = {
 	spawn_near_players=107, spawn_on_map=113,
 	pacify=311, tactics=97, radicalize=3613,
-	light_wisps=3, light_detectors=17, light_drones=5,
 	congregate=3607, recongregate=353,
 	detectors=47, uv=31, expire_ttl=73, expire_uv=61 }
 conf.work_steps = {
-	light_wisps=2, light_detectors=4, light_drones=1,
 	recongregate=5, detectors=4, uv=4, expire_ttl=8, expire_uv=5 }
 
 -- Chunks are checked for pollution/player spread during daytime only, can ~10k chunks
@@ -197,19 +195,19 @@ conf.work_limit_per_tick = 20
 
 -- ---------- Lighing effects
 
--- *_light_anim_speed should be low enough for light to stay around until next update.
--- animation_speed=1 is "display light for 1 tick only"
--- Note: used in prototypes only, so re-read on factorio restart, not savegame load!
-conf.wisp_light_anim_speed = 1 / (conf.intervals.light_wisps * conf.work_steps.light_wisps + 1)
-conf.wisp_light_anim_speed_detector = 1
-	/ (conf.intervals.light_detectors * conf.work_steps.light_detectors * 3)
-conf.wisp_light_anim_speed_drone = 1 / (conf.intervals.light_drones * conf.work_steps.light_drones + 1)
+-- Light to attach to wisp entity is picked at random on creation from per-entity sub-list.
+-- Missing/empty entity table here will mean "no light from this wisp".
+-- Lights can be made dynamic (change over time, flicker, rotate, etc),
+--  but for wisps only slow changes make sense - constant lights look best.
+-- Default sprite is 300px "utility/light_medium" (tile is 32px), if not specified explicitly.
+-- Special key "size" will be translated to "scale" via "scale = size / 9.375" (default sprite).
 
--- Disables light for wisps that are about to expire
-conf.wisp_light_min_ttl = conf.intervals.expire_ttl
+conf.light_defaults = {
+	sprite='utility/light_medium',
+	minimum_darkness=conf.min_darkness_to_emit_light }
+conf.light_aliases = {['wisp-purple-harmless']='wisp-purple'}
 
--- Missing entity info here will mean "no light from this wisp"
-conf.wisp_light_entities = {
+conf.light_entities = {
 	['wisp-yellow']={
 		{intensity=0.5, size=5},
 		{intensity=0.7, size=6, color={r=0.95, g=0.84, b=0.1}},
@@ -226,24 +224,19 @@ conf.wisp_light_entities = {
 		{intensity=0.3, size=7, color={r=0.95, g=0.0, b=0.8}},
 		{intensity=0.2, size=12, color={r=0.95, g=0.0, b=0.3}}
 	},
-	['wisp-purple']={ -- light from these can be disabled to increase performance
+	['wisp-purple']={
 		{intensity=0.7, size=5, color={r=0.30, g=0.24, b=1.0, a=0.5}},
 		{intensity=0.4, size=11, color={r=0.36, g=0.15, b=0.82, a=0.8}},
 		{intensity=0.6, size=7, color={r=0.40, g=0.05, b=0.80, a=0.6}},
 		{intensity=0.5, size=3, color={r=0.15, g=0.02, b=0.88, a=0.7}}
 	},
 	['wisp-drone-blue']={
-		{ intensity=0.7, size=100,
-			speed=conf.wisp_light_anim_speed_drone,
-			color={r=0, g=1.0, b=0.95, a=0.7} },
+		{intensity=0.7, size=110, color={r=0, g=1.0, b=0.95, a=0.7}},
+	},
+	['wisp-detector']={
+		{intensity=0.3, size=7, color={r=0.95, g=0.0, b=0.8}},
 	},
 }
-conf.wisp_light_name_fmt = '%s-light-%02d'
-conf.wisp_light_aliases = {['wisp-purple-harmless']='wisp-purple'}
-conf.wisp_light_counts = {}
-for wisp_name, light_info_list in pairs(conf.wisp_light_entities) do
-	conf.wisp_light_counts[wisp_name] = #light_info_list end
-conf.wisp_light_counts['wisp-detector'] = 1
 
 
 -- ---------- Testing hacks

@@ -210,8 +210,10 @@ end
 
 function zones.refresh_chunks(surface)
 	-- Forces re-scan of all existing chunks and adds any newly-revealed ones.
-	-- Should only be called on game/mod updates,
+	-- Ideally should only be called on game/mod updates,
 	--  in case these might change chunks or how they are handled.
+	-- But in practice, get_chunks() always returns more chunks after
+	--  game load than on_chunk_generated events do prior to save, no idea why.
 	local chunks_found, chunks_diff, k, c = {}, 0
 
 	for chunk in surface.get_chunks() do
@@ -310,15 +312,16 @@ function zones.print_stats(print_func)
 		table.sort(p_table)
 		local p_mean = p_sum / #p_table
 		print_func(
-			('zones:  - %s pollution chunks=%s min=%s max=%s mean=%s sum=%s')
+			('zones:  - %s pollution: chunks=%s min=%s max=%s mean=%s sum=%s')
 			:format( key, table.unpack(utils.map( fmt_bign,
 				{#p_table, p_table[1], p_table[#p_table], p_mean, p_sum} )) ) )
 		local fmt, fmt_vals = percentiles(p_table, {10, 25, 50, 75, 90, 95, 99})
-		print_func(('zones:  - %s pollution %s'):format(
+		print_func(('zones:  - %s pollution: %s'):format(
 			key, table.concat(fmt, ' ') ):format(table.unpack(fmt_vals)))
 	end
 
 	print_func('zones: stats')
+	print_func(('zones:  - total: chunks=%s'):format(#ChunkList))
 	pollution_table_stats('spread', ChunkList)
 	local forest_chunks = {}
 	for k, _ in pairs(ForestArea) do table.insert(forest_chunks, k) end

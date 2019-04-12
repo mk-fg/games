@@ -203,17 +203,43 @@ end
 
 
 ------------------------------------------------------------
--- Wisp entities
+-- Entities
 ------------------------------------------------------------
 
 local function entity_is_tree(e) return e.type == 'tree' end
 local function entity_is_rock(e) return utils.match_word(e.name, 'rock') end
+
+local function init_light(o)
+	-- Passed object can be wisp, drone or wisp-detector
+	local light = o.entity.name
+	light = conf.light_aliases[light] or light
+	local lights = conf.light_entities[light] or {}
+	if not next(lights) then goto done end
+	light = lights[math.random(#lights)]
+	if light.size then light.scale, light.size = light.size / 9.375 end
+	o.light = rendering.draw_light(utils.tc{
+		conf.light_defaults, light,
+		surface=o.entity.surface, target=o.entity })
+	::done:: return o
+end
+
+local function uv_light_init(entity)
+	local n = UVLights.n + 1
+	UVLights.n, UVLights[n] = n, {entity=entity}
+end
+
+local function detector_init(entity)
+	local n = Detectors.n + 1
+	Detectors.n, Detectors[n] = n, init_light{entity=entity}
+end
 
 local wisp_unit_proto_map = {['wisp-red']=true, ['wisp-yellow']=true, ['wisp-green']=true}
 local function wisp_unit_proto_check(name) return wisp_unit_proto_map[name] end
 
 local wisp_spore_proto = 'wisp-purple'
 local function wisp_spore_proto_check(name) return name:match('^wisp%-purple') end
+
+local function wisp_drone_proto_check(name) return name:match('^wisp%-drone%-') end
 
 local function wisp_find_units(surface, pos, radius)
 	local area
@@ -241,7 +267,7 @@ local function wisp_init(entity, ttl, n)
 		ttl = ttl + utils.pick_jitter(conf.wisp_ttl_jitter)
 	end
 	entity.force = game.forces.wisp
-	local wisp = {entity=entity, ttl=ttl, uv_level=0}
+	local wisp = init_light{entity=entity, ttl=ttl, uv_level=0}
 	if not n then n = Wisps.n + 1; Wisps.n = n end
 	Wisps[n] = wisp
 end
@@ -267,33 +293,6 @@ local function wisp_create_at_random(name, near_entity)
 			distraction=defines.distraction.by_damage }
 	end
 	return e
-end
-
-local function wisp_emit_light(wisp)
-	local light = wisp.light
-	if not light then
-		light = wisp.entity.name
-		light = conf.wisp_light_aliases[light] or light
-		light = conf.wisp_light_name_fmt:format(
-			light, math.random(conf.wisp_light_counts[light]) )
-		wisp.light = light
-	end
-	wisp.entity.surface.create_entity{name=light, position=wisp.entity.position}
-end
-
-
-------------------------------------------------------------
--- Tech
-------------------------------------------------------------
-
-local function uv_light_init(entity)
-	local n = UVLights.n + 1
-	UVLights.n, UVLights[n] = n, {entity=entity}
-end
-
-local function detector_init(entity)
-	local n = Detectors.n + 1
-	Detectors.n, Detectors[n] = n, {entity=entity}
 end
 
 
@@ -438,12 +437,6 @@ local tasks_monolithic = {
 local tasks_entities = {
 	-- Tasks to run for valid entities, each run adding "work" to on_tick workload.
 	-- Args: object, entity, surface.
-
-	light_wisps = {work=0.5, func=function(wisp, e, s)
-		if wisp.ttl >= conf.wisp_light_min_ttl
-			then wisp_emit_light(wisp) end end},
-	light_detectors = {work=0.5, func=function(detector, e, s) wisp_emit_light(detector) end},
-	light_drones = {work=0.3, func=function(drone, e, s) wisp_emit_light(drone) end},
 
 	expire_ttl = {work=0.3, func=function(wisp, e, s)
 		-- Works by time passing by reducing ttl value,
@@ -653,11 +646,6 @@ local function on_tick(event)
 		run('tactics', surface)
 		run('congregate', surface)
 		run('radicalize', surface)
-		if surface.darkness > conf.min_darkness_to_emit_light then
-			if drones then run('light_drones', WispDrones) end
-			if wisps then run('light_wisps', Wisps) end
-			if detectors then run('light_detectors', Detectors) end
-		end
 	else
 		run('zones_spread', surface)
 		run('zones_forest', surface)
@@ -690,7 +678,8 @@ local function on_death(event)
 		wisp_aggression_set(e.surface, true, event.force, area)
 		if e.surface.darkness >= conf.min_darkness
 			then wisp_create(wisp_spore_proto, e.surface, e.position) end
-	end
+	elseif wisp_drone_proto_check(e.name)
+		then e.surface.create_entity{name=e.name..'-death', position=e.position} end
 end
 
 local function on_mined_entity(event)
@@ -716,9 +705,8 @@ local function on_drone_placed(event)
 			if WispDrones[n].entity == entity then entity = nil; break end
 		end
 		if not entity then goto skip end
-		local drone = {entity=entity}
 		local n = WispDrones.n + 1
-		WispDrones[n], WispDrones.n = drone, n
+		WispDrones.n, WispDrones[n] = n, init_light{entity=entity}
 	::skip:: end
 end
 

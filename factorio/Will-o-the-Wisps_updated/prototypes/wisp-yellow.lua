@@ -23,6 +23,7 @@ data:extend{{
 	distance_per_frame = 0.15,
 	pollution_to_join_attack = 9000,
 	dying_explosion = 'blood-explosion-small',
+	has_belt_immunity = true,
 
 	working_sound = {
 		sound = {

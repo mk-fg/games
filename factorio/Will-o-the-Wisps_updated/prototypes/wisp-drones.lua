@@ -21,14 +21,6 @@ data:extend{{
 	range_from_player = 6.0,
 	speed = 0.01,
 
-	destroy_action = {
-		type = 'direct',
-		action_delivery = {
-			type = 'instant',
-			source_effects = {
-				type = 'create-entity',
-				entity_name = 'wisp-drone-blue-death' } } },
-
 	attack_parameters = {
 		type = 'beam',
 		ammo_category = 'combat-robot-beam',
@@ -99,13 +91,13 @@ data:extend{{
 	animations = {
 		{ filename = '__Will-o-the-Wisps_updated__/graphics/entity/wisps/wisp-drone-blue-death.png',
 			priority = 'high',
-			width = 1,
-			height = 1,
+			width = 158,
+			height = 158,
 			frame_count = 6,
-			animation_speed = 0.03,
+			animation_speed = 0.06,
 			shift = {0, 0} } },
 	rotate = false,
-	light = {intensity=0.5, size=45, color={r=0.8, g=0.1, b=0.9, a=0.7}} }}
+	light = {intensity=0.4, size=45, color={r=0, g=1.0, b=0.95, a=0.7}} }}
 
 
 data:extend{

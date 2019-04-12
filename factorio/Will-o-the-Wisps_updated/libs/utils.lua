@@ -129,6 +129,20 @@ function utils.map(t, func)
 	return res
 end
 
+function utils.tc(opts)
+	-- Copy table, applying any specified updates (tables/keys) to it.
+	-- Usage: tc{table, update1, update2, ..., k1=v1, k2=v2, ...}
+	local t, n = {}, 1
+	while true do
+		if opts[n] then
+			for k,v in pairs(opts[n]) do t[k] = v end
+			opts[n], n = nil, n + 1
+		else break end
+	end
+	for k,v in pairs(opts) do t[k] = v end
+	return t
+end
+
 function utils.t(s, value)
 	-- Helper to make padded table from other table keys or a string of keys
 	local t = {}

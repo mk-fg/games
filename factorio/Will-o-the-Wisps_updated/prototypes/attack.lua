@@ -18,6 +18,19 @@ data:extend{
 		rotate = false,
 		light = {intensity = 0.6, size = 2, color = {r=0.2, g=0.9, b=0.4, a=0.1}}
 	},
+	{ type = 'explosion',
+		name = 'wisp-null-effect',
+		flags = {'not-on-map', 'placeable-off-grid'},
+		animations = {
+			{ filename = '__Will-o-the-Wisps_updated__/graphics/null.png',
+				priority = 'high',
+				width = 1,
+				height = 1,
+				frame_count = 1,
+				animation_speed = 1,
+				shift = {0, 0} } },
+		rotate = false
+	},
 
 	{ type = 'beam',
 		name = 'wisp-orange-beam',

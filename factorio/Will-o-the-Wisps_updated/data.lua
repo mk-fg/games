@@ -1,7 +1,6 @@
 require('prototypes.item')
 require('prototypes.recipe')
 require('prototypes.technology')
-require('prototypes.light')
 require('prototypes.attack')
 require('prototypes.wisp-yellow')
 require('prototypes.wisp-green')
