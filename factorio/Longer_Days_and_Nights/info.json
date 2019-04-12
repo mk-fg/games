@@ -1,0 +1,9 @@
+{
+	"name": "Longer_Days_and_Nights",
+	"version": "0.0.1",
+	"factorio_version": "0.17",
+	"dependencies": ["base >= 0.17.0"],
+	"title": "Longer Days and Nights",
+	"author": "mk-fg",
+	"description": "Makes days/nights 4x longer and multiplies accumulator capacities by the same value, all adjustable via Mod Settings."
+}
