@@ -1,4 +1,9 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.1.1
+Date: 12. 04. 2019
+  Bugfixes:
+    - Fix wisp force aggression options initialization due to delayed player creation.
+---------------------------------------------------------------------------------------------------
 Version: 0.1.0
 Date: 12. 04. 2019
   Changes:
@@ -6,7 +11,7 @@ Date: 12. 04. 2019
   Features:
     - Lights for wisps use new LuaRendering API, which should improve performance.
   Bugfixes:
-    - Fixed wisp drone death animation.
+    - Fix wisp drone death animation.
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.53
 Date: 10. 11. 2018

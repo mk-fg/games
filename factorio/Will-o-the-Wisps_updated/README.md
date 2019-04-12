@@ -43,6 +43,7 @@ Technologies:
 
 - Avoid burning forests at night.
 - Trees destroyed or mined at night-time might spawn yellow wisps, rocks - red ones.
+- Forests can be hard to find on a desert map, fix via moisture/trees bias in map generator.
 - Purple wisps are only dangerous to specific building categories, like power production, refineries and defences.
 - Wisps in the area attack when one of them is killed, but are not very fast or dangerous in low numbers.
 - Disable turrets targeting wisps in Mod Options menu to avoid accidental aggression.

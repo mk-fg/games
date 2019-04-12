@@ -906,7 +906,16 @@ local function update_recipes(with_reset)
 end
 
 local function apply_version_updates(old_v, new_v)
-	return -- cleared at 0.1.0, assuming any old games should be gone or at latest by now
+	-- cleared at 0.1.0, assuming any old games should be gone or at latest by now
+	if utils.version_less_than(old_v, '0.1.1') then
+		local wisps, wisps_attack = game.forces.wisp, game.forces.wisp_attack
+		for _, force in ipairs(get_player_forces()) do
+			wisps.set_cease_fire(force, true)
+			force.set_cease_fire(wisps, conf.peaceful_defences)
+			wisps_attack.set_cease_fire(force, false)
+			force.set_cease_fire(wisps_attack, false)
+		end
+	end
 end
 
 local function init_commands()
@@ -984,9 +993,12 @@ script.on_init(function()
 	init_globals()
 	init_refs()
 
-	utils.log('Init wisps force...')
-	wisp_force_init('wisp')
-	wisp_force_init('wisp_attack', true)
+	script.on_event(defines.events.on_player_created, function()
+		utils.log('Init wisps force...')
+		wisp_force_init('wisp')
+		wisp_force_init('wisp_attack', true)
+		script.on_event(defines.events.on_player_created, nil)
+	end)
 
 	apply_runtime_settings()
 	utils.log('[will-o-wisps] Game init: done')
