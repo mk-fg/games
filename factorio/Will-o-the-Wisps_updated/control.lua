@@ -38,16 +38,12 @@ local function get_player_forces()
 	return forces
 end
 
-local function wisp_force_init(name, attack_players)
-	local peaceful, wisps = not attack_players
+local function wisp_force_init(name)
+	local wisps
 	if not game.forces[name] then
 		wisps = game.create_force(name)
 		wisps.ai_controllable = true
 	else wisps = game.forces[name] end
-	for _, force in ipairs(get_player_forces()) do
-		wisps.set_cease_fire(force, peaceful)
-		force.set_cease_fire(wisps, peaceful and conf.peaceful_defences)
-	end
 	wisps.set_cease_fire(game.forces.enemy, true)
 	game.forces.enemy.set_cease_fire(wisps, true)
 	if wisps.name ~= 'wisp' and game.forces.wisp then
@@ -131,6 +127,15 @@ local function wisp_aggression_stop(surface)
 		e.set_command{type=defines.command.wander, distraction=defines.distraction.none}
 	::skip:: end
 	wisp_aggression_set(surface, false)
+end
+
+local function wisp_player_aggression_set(player_force)
+	local peace
+	for _, wisps in ipairs{'wisp', 'wisp_attack'} do
+		peace, wisps = not wisps == 'wisp_attack', game.forces[wisps]
+		wisps.set_cease_fire(player_force, peace)
+		player_force.set_cease_fire(wisps, peace and conf.peaceful_defences)
+	end
 end
 
 local function wisp_biter_aggression_set()
@@ -738,6 +743,11 @@ local function on_tick_init(event)
 	on_tick(event)
 end
 
+local function on_player_change(event)
+	-- With on_player_changed_force, old force doesn't get any changes
+	wisp_player_aggression_set(game.players[event.player_index].force)
+end
+
 
 ------------------------------------------------------------
 -- Console command-line Interface
@@ -993,12 +1003,9 @@ script.on_init(function()
 	init_globals()
 	init_refs()
 
-	script.on_event(defines.events.on_player_created, function()
-		utils.log('Init wisps force...')
-		wisp_force_init('wisp')
-		wisp_force_init('wisp_attack', true)
-		script.on_event(defines.events.on_player_created, nil)
-	end)
+	utils.log('Init wisps force...')
+	wisp_force_init('wisp')
+	wisp_force_init('wisp_attack')
 
 	apply_runtime_settings()
 	utils.log('[will-o-wisps] Game init: done')
@@ -1015,3 +1022,5 @@ script.on_event(defines.events.on_chunk_generated, on_chunk_generated)
 script.on_event(defines.events.on_trigger_created_entity, on_trigger_created)
 script.on_event(defines.events.on_player_used_capsule, on_drone_placed)
 script.on_event(defines.events.on_runtime_mod_setting_changed, apply_runtime_settings)
+script.on_event(defines.events.on_player_created, on_player_change)
+script.on_event(defines.events.on_player_changed_force, on_player_change)
