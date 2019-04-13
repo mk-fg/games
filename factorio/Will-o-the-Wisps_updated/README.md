@@ -1,7 +1,7 @@
 Compatibility update and tweaks to [Will-o'-the-wisps mod by Betep3akata](https://mods.factorio.com/mod/Will-o-the-wisps).
 [[Feedback forum thread link](https://forums.factorio.com/viewtopic.php?f=190&t=60876&p=366660)] - [[github link](https://github.com/mk-fg/games/tree/master/factorio/Will-o-the-Wisps_updated)]
 
-This is the first 0.17.x release, which I've only tested briefly, please report any problems.
+Haven't tested it a lot after 0.17.x update yet, please report any problems.
 Loading an old 0.16.x save, make sure mod is updated to latest version there first (0.0.53).
 
 **Important:** this mod reported to not work in multiplayer games, causing desync issues.
