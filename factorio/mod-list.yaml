@@ -1,15 +1,8 @@
-version: 0.16.51
 mods:
   - enabled: true
     name: base
   - enabled: true
     name: '200 Inventory Size'
-  - enabled: true
-    name: auto-research
-  - enabled: true
-    name: beautiful_bridge_railway
-  - enabled: true
-    name: Big_Brother
   - enabled: true
     name: Bottleneck
   - enabled: true
@@ -17,60 +10,44 @@ mods:
   - enabled: true
     name: Burner_Drill_4x4_Area
   - enabled: true
-    name: DayNightExtender
+    name: ConfigUnderLengths
   - enabled: true
-    name: DeadlockLoaders
-  - enabled: true
-    name: DeadlockStacking
+    name: deadlock-beltboxes-loaders
   - enabled: true
     name: even-distribution
   - enabled: true
-    name: EvoGUI
-  - enabled: true
     name: far-reach
-  - enabled: true
-    name: FARL
   - enabled: true
     name: FasterStart
   - enabled: true
     name: 'Flow Control'
   - enabled: true
-    name: GDIW
-  - enabled: true
-    name: GDIWHotkey
-  - enabled: true
     name: InserterFuelLeech
   - enabled: true
-    name: Laser_Beam_Turrets
+    name: Lane-Balancer
   - enabled: true
-    name: longer-belts-redux
+    name: laserlines
   - enabled: true
-    name: nixie-tubes
+    name: Longer_Days_and_Nights
+  - enabled: true
+    name: MushroomCloud
+  - enabled: true
+    name: PickerAtheneum
+  - enabled: true
+    name: PickerDollies
   - enabled: true
     name: PickerExtended
   - enabled: true
-    name: ReducedResearchX
-  - enabled: true
-    name: ResourceLabels
-  - enabled: true
     name: 'Side Inserters'
-  - enabled: true
-    name: Single-Splitter
   - enabled: true
     name: 'Squeak Through'
   - enabled: true
+    name: stdlib
+  - enabled: true
     name: TimeTools
   - enabled: true
-    name: 'Underground Indicators'
-  - enabled: true
-    name: 'Vehicle Wagon'
-  - enabled: true
     name: Vehicle_Cruise_Control
-  - enabled: true
-    name: Waterfill_v15
   - enabled: true
     name: WideChests
   - enabled: true
     name: Will-o-the-Wisps_updated
-  - enabled: true
-    name: YARM
