@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+
+<title>Factorio Planner</title>
+<meta charset='utf-8'>
+<link rel="stylesheet" type="text/css" href="style.css">
+<script src="factorio.js"></script>
+
+<style>
+input.count {
+	box-sizing: border-box;
+	background: white;
+	padding: .5em .4em;
+	border: 1px gray solid;
+	border-radius: 3px;
+	margin: 3px .5em 3px 0;
+}
+input.filled { background: #eeb5b5; }
+</style>
+
+<script>
+let window_onload = window.onload
+window.onload = (ev) => {
+	window_onload(ev)
+	let obj_to_arr = obj => [].map.call(obj, v=> v)
+	let els = (q, node) => {
+		if (typeof node === 'undefined' || node === 'null') node = document
+		return obj_to_arr(node.querySelectorAll(q)) }
+	els('input.count').forEach(e => {
+		let input_handler = () => {
+			if (Number.parseInt(e.value) === 0 || e.value.replace(/\s/, '') == '')
+				e.classList.remove('filled')
+			else e.classList.add('filled') }
+		e.addEventListener('input', input_handler)
+		if (Number.parseInt(e.value) === 0) e.value = ''
+		input_handler()
+	})
+}
+</script>
+
+<body>
+</body>

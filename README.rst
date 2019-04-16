@@ -172,6 +172,11 @@ Easy to fix with mods though, which are one of the best parts of the game.
 - blueprints.yaml - misc blueprints I came up with, esp. for defence units or
   stuff like circuit logic parts.
 
+- doomeer-factorio-calc.index.html - replacement index.html for online `doomeer/factorio`_
+  production-chains calculator to fix only major issue I had with it - filled-in
+  fields visually lost among pointless pre-filled "0" values or just empty ones
+  (filed as `doomeer/factorio#75`_).
+
 Useful companion links for the game:
 
 - http://doomeer.com/factorio/ - production chain calculator, simpliest.
@@ -184,6 +189,8 @@ advance how much basic resources (like copper and steel) to put into main belts
 for some desired output level, and how many assemblers/throughput it'd require.
 
 .. _Factorio: http://factorio.com/
+.. _doomeer/factorio: http://github.com/doomeer/factorio/
+.. _doomeer/factorio#75: https://github.com/doomeer/factorio/issues/75
 
 
 `Surviving Mars`_
