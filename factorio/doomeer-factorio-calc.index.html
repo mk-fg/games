@@ -15,7 +15,7 @@ input.count {
 	border-radius: 3px;
 	margin: 3px .5em 3px 0;
 }
-input.filled { background: #eeb5b5; }
+input.filled { background: #a8e496; }
 </style>
 
 <script>
@@ -28,7 +28,9 @@ window.onload = (ev) => {
 		return obj_to_arr(node.querySelectorAll(q)) }
 	els('input.count').forEach(e => {
 		let input_handler = () => {
-			if (Number.parseInt(e.value) === 0 || e.value.replace(/\s/, '') == '')
+			let v = e.value.replace(/\s/, '')
+			if ( v.match(/^\d+$/) &&
+					Number.parseInt(e.value) === 0 || v === '' )
 				e.classList.remove('filled')
 			else e.classList.add('filled') }
 		e.addEventListener('input', input_handler)
