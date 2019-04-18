@@ -1,13 +1,40 @@
 
 count-shortage-pulse:
-	-- checks sig_check count for < sig_thresh every t_check ticks
-	-- on triggering, sends single-pulse sig_pulse alarm and sleeps for t_pulse ticks
-	-- useful for triggering alarm siren when some production line fails
 
-	local sig_pulse = 'signal-A'
-	local sig_check, sig_thresh = 'solid-fuel', 10
-	local t_pulse, t_check = 60 * 60 * 2, 60 * 2
+-- checks sig_check count (red) for < sig_thresh every t_check ticks
+-- on triggering, sends single-pulse sig_pulse alarm and sleeps for t_pulse ticks
+-- useful for triggering alarm siren when some production line fails
 
-	if output['signal-A'] then delay, output[sig_pulse] = t_pulse, nil
-	elseif (rednet[sig_check] or 0) < sig_thresh then output[sig_pulse] = 1
-	else delay = t_check end
+local net, sig_pulse = rednet, 'signal-A'
+local sig_check, sig_thresh = 'solid-fuel', 10
+local t_pulse, t_check = 60 * 60 * 2, 60 * 2
+
+if output['signal-A'] then delay, output[sig_pulse] = t_pulse, nil
+elseif (net[sig_check] or 0) < sig_thresh then output[sig_pulse] = 1
+else delay = t_check end
+
+
+cargo-limit:
+
+-- emits filter/enable signal to control inserters up to some cargo limit (green input)
+
+local net, sig_train, delay = greennet, 'signal-T', 60
+local at, an = 'chemical-science-pack', 450
+if net[sig_train] and (net[at] or 0) < an
+  then output[at] = 1 else output[at] = nil end
+
+
+cargo-wagon-balance:
+
+-- emits filter signals to control inserters to load two goods up to limit (green input)
+-- only enables filters when auto-train is stopped
+
+local net, sig_train, delay = greennet, 'signal-T', 60
+local at, an = 'plastic-bar', 950
+local bt, bn = 'sulfur', 450
+
+output[at], output[bt] = nil
+if net[sig_train] then
+  if (net[at] or 0) < an then output[at] = 1 end
+  if (net[bt] or 0) < bn then output[bt] = 1 end
+end
