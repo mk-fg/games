@@ -1,0 +1,13 @@
+
+count-shortage-pulse:
+	-- checks sig_check count for < sig_thresh every t_check ticks
+	-- on triggering, sends single-pulse sig_pulse alarm and sleeps for t_pulse ticks
+	-- useful for triggering alarm siren when some production line fails
+
+	local sig_pulse = 'signal-A'
+	local sig_check, sig_thresh = 'solid-fuel', 10
+	local t_pulse, t_check = 60 * 60 * 2, 60 * 2
+
+	if output['signal-A'] then delay, output[sig_pulse] = t_pulse, nil
+	elseif (rednet[sig_check] or 0) < sig_thresh then output[sig_pulse] = 1
+	else delay = t_check end

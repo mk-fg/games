@@ -172,6 +172,8 @@ Easy to fix with mods though, which are one of the best parts of the game.
 - blueprints.yaml - misc blueprints I came up with, esp. for defence units or
   stuff like circuit logic parts.
 
+- lua-combinator-code.txt - lua code for `LuaCombinator 2 mod`_, best combinator logic mod.
+
 - doomeer-factorio-calc.index.html - replacement index.html for online `doomeer/factorio`_
   production-chains calculator to fix only major issue I had with it - filled-in
   fields visually lost among pointless pre-filled "0" values or just empty ones
@@ -191,6 +193,7 @@ for some desired output level, and how many assemblers/throughput it'd require.
 .. _Factorio: http://factorio.com/
 .. _doomeer/factorio: http://github.com/doomeer/factorio/
 .. _doomeer/factorio#75: https://github.com/doomeer/factorio/issues/75
+.. _LuaCombinator 2: https://mods.factorio.com/mod/LuaCombinator2
 
 
 `Surviving Mars`_
