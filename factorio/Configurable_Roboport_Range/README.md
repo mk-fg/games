@@ -28,7 +28,8 @@ Adds following Mod Settings (Startup tab):
 	Construction bot range of the roboport. Default/vanilla is 55.
 	Special values: -1 - do not change it via this option, -2 - set to be equal to logistics range.
 	Applied after multiplier above and after static logistics range value (if set).
-	&nbsp;
+
+Does not modify robots themselves (e.g. battery values), so setting too large ranges will probably make them drain their batteries when trying to reach too far.
 
 
 ## Cookbook
