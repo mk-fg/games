@@ -1,7 +1,7 @@
 ## Description
 
 Allows to adjust roboport construction/logistics bot ranges via Mod Settings menu.
-Specifically, setting range multiplier value, specific static ranges or copying one range to another.
+Specifically - setting range multiplier value, specific static range values or copying one range to another.
 
 Applies to all buildings of "roboport" type, so should also modify roboports added by mods, if any.
 I don't play with any custom roboports though, so feel free to test and report if there are any issues.

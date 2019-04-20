@@ -1,8 +1,6 @@
 local conf = require('config')
 conf.update_from_settings()
 
-local roboport = data.raw.roboport.roboport
-
 local function round(num, dec_places)
 	local mult = 10^(dec_places or 0)
 	return math.floor(num * mult + 0.5) / mult
