@@ -1,0 +1,9 @@
+{
+	"name": "Configurable_Roboport_Range",
+	"version": "0.0.1",
+	"factorio_version": "0.17",
+	"dependencies": ["base >= 0.17.0"],
+	"title": "Configurable Roboport Range",
+	"author": "mk-fg",
+	"description": "Allows to adjust roboport construction/logistics bot ranges via Mod Settings menu."
+}

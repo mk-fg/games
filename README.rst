@@ -149,6 +149,11 @@ Easy to fix with mods though, which are one of the best parts of the game.
 
   Gives control over the length of day/night cycle.
 
+- `Configurable_Roboport_Range
+  <https://mods.factorio.com/mod/Configurable_Roboport_Range>`_
+
+  Small tweak to change Roboport building ranges.
+
 - ReducedResearchX
 
   Local mod to reduce all research costs by somewhat complicated formula,
