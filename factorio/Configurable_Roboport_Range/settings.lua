@@ -19,4 +19,10 @@ data:extend{
 		type = 'int-setting',
 		minimum_value = -2,
 		default_value = conf.range_construction },
+	{ order = '04',
+		setting_type = 'startup',
+		name = 'robot-energy-multiplier',
+		type = 'double-setting',
+		minimum_value = 0,
+		default_value = conf.robot_energy_multiplier },
 }
