@@ -9,9 +9,26 @@ local net, sig_pulse = rednet, 'signal-A'
 local sig_check, sig_thresh = 'solid-fuel', 10
 local t_pulse, t_check = 60 * 60 * 2, 60 * 2
 
-if output['signal-A'] then delay, output[sig_pulse] = t_pulse, nil
+if output[sig_pulse] then delay, output[sig_pulse] = t_pulse
 elseif (net[sig_check] or 0) < sig_thresh then output[sig_pulse] = 1
 else delay = t_check end
+
+
+battery-low-pulse:
+
+-- same as count-shortage-pulse but for triggering on battery discharge
+-- triggers on acc_n_ignore < net[acc_sig] < acc_n_alarm before idle_hour
+-- hour signal is from timetools mod combinator
+
+local net, sig_pulse, idle_hour = rednet, 'signal-red', 4
+local acc_sig, acc_n_alarm, acc_n_ignore = 'signal-B', 20, 10
+local t_pulse, t_idle, t_check = 60 * 60 * 3, 60 * 60 * 10, 60 * 60 * 1
+
+if net['signal-clock-hour'] < idle_hour and net[acc_sig] then
+	if output[sig_pulse] then delay, output[sig_pulse] = t_pulse
+	elseif net[acc_sig] < acc_n_alarm and net[acc_sig] > acc_n_ignore
+		then output[sig_pulse] = 1 else delay = t_check end
+else delay = t_idle end
 
 
 cargo-limit:
