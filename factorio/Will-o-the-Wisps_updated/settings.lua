@@ -35,6 +35,11 @@ data:extend{
 		name = 'wisp-biter-aggression',
 		type = 'bool-setting',
 		default_value = conf.wisp_biter_aggression },
+	{ order = '0060',
+		setting_type = 'runtime-global',
+		name = 'wisp-aggro-on-player-only',
+		type = 'bool-setting',
+		default_value = conf.wisp_aggro_on_player_only },
 
 	{ order = '0110',
 		setting_type = 'runtime-global',

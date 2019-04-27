@@ -31,10 +31,13 @@ local UVLightEnergyLimit = 2844.45
 
 local wisp_forces = utils.t('wisp wisp_attack')
 
-local function get_player_forces()
+local function get_player_forces(force)
 	local forces = {}
-	for _, player in pairs(game.players)
-		do if player.connected then table.insert(forces, player.force) end end
+	for _, player in pairs(game.players) do
+		if player.connected
+				and (not force or force.index == player.force.index)
+			then table.insert(forces, player.force) end
+	end
 	return forces
 end
 
@@ -420,7 +423,7 @@ local tasks_monolithic = {
 			structure_type=defines.compound_command.return_last,
 			commands={
 				{type=defines.command.go_to_location, destination=pos},
-				{type=defines.command.wander} } }
+				{type=defines.command.wander, wander_in_group=false} } }
 		local cg = {dst=pos, dst_ts=game.tick, force_name=force_name, entity=group}
 		local set = WispCongregations
 		set[set.n+1], set.n = cg, set.n+1
@@ -677,10 +680,13 @@ local function on_death(event)
 	if entity_is_tree(e) then wisp_create_at_random('wisp-yellow', e) end
 	if entity_is_rock(e) then wisp_create_at_random('wisp-red', e) end
 	if wisp_unit_proto_check(e.name) then
-		local area
+		local aggro, area = true
 		if conf.wisp_death_retaliation_radius > 0
 			then area = utils.get_area(conf.wisp_death_retaliation_radius, e.position) end
-		wisp_aggression_set(e.surface, true, event.force, area)
+		if conf.wisp_aggro_on_player_only
+				and not next(get_player_forces(event.force or (event.cause and event.cause.force)))
+			then aggro = false end
+		if aggro then wisp_aggression_set(e.surface, true, event.force, area) end
 		if e.surface.darkness >= conf.min_darkness
 			then wisp_create(wisp_spore_proto, e.surface, e.position) end
 	elseif wisp_drone_proto_check(e.name)
@@ -876,6 +882,8 @@ local function apply_runtime_settings(event)
 		conf.wisp_biter_aggression = knob.value
 		if game then wisp_biter_aggression_set() end
 	end
+	knob = key_update('wisp-aggro-on-player-only')
+	if knob then conf.wisp_aggro_on_player_only = knob.value end
 
 	knob = key_update('wisp-aggression-factor')
 	if knob then conf.wisp_aggression_factor = knob.value end

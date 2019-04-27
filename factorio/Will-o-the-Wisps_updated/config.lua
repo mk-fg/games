@@ -29,6 +29,12 @@ conf.wisp_aggression_factor = 0
 -- Can cause red wisp numbers to go out of control.
 conf.wisp_biter_aggression = false
 
+-- Normally wisps become aggressive regardless
+--  of what killed them, except the sun, as players are their only natural enemy.
+-- This option adds a check for which "force" damage
+--  came from, and whether it matches one of players.
+conf.wisp_aggro_on_player_only = false
+
 -- UV lamps
 conf.uv_lamp_energy_min = 0.2
 conf.uv_lamp_range = 12
