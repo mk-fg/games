@@ -154,6 +154,12 @@ Easy to fix with mods though, which are one of the best parts of the game.
 
   Small tweak to change Roboport building ranges.
 
+- `Circuit Power Measurement Pole
+  <https://mods.factorio.com/mod/Circuit_Power_Measurement_Pole>`_
+
+  Adds "Smart Meter" Circuit Network Pole which can be used to measure electric
+  network power production.
+
 - ReducedResearchX
 
   Local mod to reduce all research costs by somewhat complicated formula,

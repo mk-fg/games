@@ -1,7 +1,7 @@
 local conf = {}
 
 -- Tick on which game will freeze/unfreeze daytime advancement.
--- Lower values will mean smoother transitions but slightly less load.
+-- Lower values will mean smoother transitions but slightly more cpu load.
 conf.tick = 13
 
 -- Mod advances unfreezes daytime every Nth tick-period, this is N.
