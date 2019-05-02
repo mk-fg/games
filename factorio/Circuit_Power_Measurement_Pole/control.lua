@@ -137,10 +137,11 @@ end
 script.on_nth_tick(conf.ticks_between_updates, function(ev)
 	if Ticks.pole_check
 			or (conf.ticks_between_rescan and Ticks.pole_check < ev.tick) then
+		local pole_uns = {}
+		for n = 1, PoleInfoSet.n do pole_uns[PoleInfoSet[n].unit_number] = true end
 		for _, e in ipairs( game.surfaces.nauvis
 				.find_entities_filtered{type='electric-pole', name='circuit-electric-pole'} ) do
-			for n = 1, PoleInfoSet.n do if PoleInfoSet[n].e == e then e = nil; break end end
-			if e then pole_init(e) end
+			if not pole_uns[e.unit_number] then pole_init(e) end
 		end
 		Ticks.pole_check = ev.tick + (conf.ticks_between_rescan or 0)
 	end
