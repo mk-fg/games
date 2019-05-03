@@ -4,7 +4,6 @@ local conf = require('config')
 local utils = require('libs/utils')
 
 -- Refs to globals
-local Vars -- misc stuff that's reset on every load
 local ChunkList, ChunkMap -- always up-to-date, existing chunks never removed
 local ForestArea -- {chunk_key=area}
 local ChunkSpreadQueue -- see control.lua for info on how sets are managed
@@ -255,21 +254,21 @@ function zones.scan_new_chunks(surface)
 	return n
 end
 
-function zones.init(vars, zs, surface)
-	Vars = vars
-	if Vars.init then return end
+function zones.init_globals(zs)
 	for _, k in ipairs{'chunk_list', 'chunk_map', 'forest_area'}
 		do if not zs[k] then zs[k] = {} end end
 	for _, k in ipairs{'chunk_spread_queue', 'chart_labels'}
 		do if not zs[k] then zs[k] = {n=0} end end
+end
+
+function zones.init_refs(zs)
 	ChunkList, ChunkMap, ForestArea = zs.chunk_list, zs.chunk_map, zs.forest_area
 	ChunkSpreadQueue, ChartLabels = zs.chunk_spread_queue, zs.chart_labels
-	local chunks_new = 0
-	if surface then chunks_new = zones.scan_new_chunks(surface) end
 	utils.log(
-		' - Zone stats: chunks=%d (new=%d) forests=%d spread-queue=%d labels=%d',
-		#ChunkList, chunks_new, #ForestArea, ChunkSpreadQueue.n, ChartLabels.n )
-	Vars.init = true
+		' - Zone stats: chunks=%d forests=%d spread-queue=%d labels=%d',
+		#ChunkList, table_size(ForestArea), ChunkSpreadQueue.n, ChartLabels.n )
+	if table_size(ChunkList) ~= #ChunkList
+		then utils.log(' - WARNING: ChunkList has broken index!!!') end
 end
 
 

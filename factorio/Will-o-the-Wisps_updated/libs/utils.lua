@@ -59,24 +59,6 @@ end
 function utils.error(msg, ...) error(utils.fmt(msg, ...)) end
 
 
-function utils.version_to_num(ver, padding)
-	local ver_nums = {}
-	ver:gsub('(%d+)', function(v) ver_nums[#ver_nums+1] = tonumber(v) end)
-	ver = 0
-	for n,v in pairs(ver_nums)
-		do ver = ver + v * math.pow(10, ((#ver_nums-n)*(padding or 3))) end
-	return ver
-end
-
-function utils.version_less_than(v1, v2)
-	if utils.version_to_num(v1) < utils.version_to_num(v2) then
-		utils.log('  - Update from pre-'..v2)
-		return true
-	end
-	return false
-end
-
-
 function utils.pick_weight(chances, sum)
 	-- Returns key for randomly-picked weight value from table
 	-- E.g. pick_weight{a=0.3, b=0.7} will return 'b' with 70% chance
@@ -108,6 +90,15 @@ function utils.pick_jitter(limit, positive)
 	return math.random(positive and -limit or 0, limit)
 end
 
+
+function utils.version_to_num(ver, padding)
+	local ver_nums = {}
+	ver:gsub('(%d+)', function(v) ver_nums[#ver_nums+1] = tonumber(v) end)
+	ver = 0
+	for n,v in pairs(ver_nums)
+		do ver = ver + v * math.pow(10, ((#ver_nums-n)*(padding or 3))) end
+	return ver
+end
 
 function utils.match_word(s, word)
 	-- Returns non-nil if s ~ /\bword\b/ (pcre)

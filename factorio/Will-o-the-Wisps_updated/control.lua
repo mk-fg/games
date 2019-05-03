@@ -15,12 +15,11 @@ local zones = require('libs/zones')
 --  unlike table.insert/table.remove (which are O(n) and are very slow comparatively).
 
 -- local references to globals
+local Init, InitState
 local Wisps, WispDrones, WispCongregations, UVLights, Detectors -- sets
 local WispAttackEntities -- temporary set of aggressive wisp entities
 local MapStats, WorkSteps
 
--- All locals are placed here, reset by init_vars() on every game load
-local Vars
 -- Not sure how UVLightEnergyLimit value is calculated, so re-adjusted if ever seen higher
 local UVLightEnergyLimit = 2844.45
 
@@ -640,15 +639,8 @@ local function on_tick(event)
 	-- script.on_nth_tick can be used here,
 	--  but central on_tick can de-duplicate bunch of common checks,
 	--  like check darkness level and skip bunch of stuff based on that.
-	if Vars.init then
-		Vars.wisp_surface = game.surfaces[conf.surface_name]
-		init_commands()
-		apply_runtime_settings()
-		zones.init(Vars.zones, global.zones, Vars.wisp_surface)
-		wisp_biter_aggression_set()
-	end
-
-	local surface, tick = Vars.wisp_surface, event.tick
+	if not InitState.configured then Init.state_tick() end
+	local surface, tick = InitState.surface, event.tick
 
 	local workload = on_tick_run_backlog(workload or 0)
 	local function run(task, target)
@@ -744,7 +736,7 @@ local function on_built_entity(event)
 end
 
 local function on_chunk_generated(event)
-	if event.surface.index ~= Vars.wisp_surface.index then return end
+	if event.surface.index ~= InitState.surface.index then return end
 	zones.reset_chunk_area(event.surface, event.area)
 end
 
@@ -802,7 +794,7 @@ local function run_wisp_command(cmd)
 		elseif cmd == 'labels' then
 			if args[3] ~= 'remove' then
 				local label_threshold = tonumber(args[3] or '0.005')
-				zones.forest_labels_add(Vars.wisp_surface, player.force, label_threshold)
+				zones.forest_labels_add(InitState.surface, player.force, label_threshold)
 			else zones.forest_labels_remove(player.force) end
 		elseif cmd == 'spawn' then
 			local cycles = tonumber(args[3] or '1')
@@ -810,14 +802,14 @@ local function run_wisp_command(cmd)
 			player.print(
 				('Simulating %d spawn-cycle(s) (%s [%s ticks] of night time)')
 				:format(cycles, utils.fmt_ticks(ticks), utils.fmt_n_comma(ticks)) )
-			for n = 1, cycles do tasks_monolithic.spawn_on_map(Vars.wisp_surface) end
+			for n = 1, cycles do tasks_monolithic.spawn_on_map(InitState.surface) end
 		else return usage() end
 	elseif cmd == 'incidents' then
 		wisp_incident_labels(MapStats.incidents, args[2] == 'remove')
-	elseif cmd == 'congregate' then tasks_monolithic.congregate(Vars.wisp_surface)
-	elseif cmd == 'attack' then wisp_aggression_set(Vars.wisp_surface, true)
-	elseif cmd == 'radicalize' then tasks_monolithic.radicalize(Vars.wisp_surface)
-	elseif cmd == 'peace' then wisp_aggression_stop(Vars.wisp_surface)
+	elseif cmd == 'congregate' then tasks_monolithic.congregate(InitState.surface)
+	elseif cmd == 'attack' then wisp_aggression_set(InitState.surface, true)
+	elseif cmd == 'radicalize' then tasks_monolithic.radicalize(InitState.surface)
+	elseif cmd == 'peace' then wisp_aggression_stop(InitState.surface)
 	elseif cmd == 'stats' then wisp_print_stats(player.print)
 	else return usage() end
 end
@@ -826,12 +818,14 @@ end
 ------------------------------------------------------------
 -- Init / updates / settings
 ------------------------------------------------------------
+Init = {} -- to allow defining/calling these in any order
 
-local function apply_runtime_settings(event)
+function Init.settings(event)
+	utils.log(' - Updating runtime options')
+
 	local key, knob = event and event.setting
 	local function key_update(k)
 		if not (not key or key == k) then return end
-		utils.log('Updating runtime option: %s', k)
 		return settings.global[k]
 	end
 
@@ -843,7 +837,7 @@ local function apply_runtime_settings(event)
 			if v then
 				local wisps = game.forces.wisp_attack
 				for _, force in ipairs(get_player_forces()) do wisps.set_cease_fire(force, true) end
-			elseif not v then wisp_aggression_stop(Vars.wisp_surface) end
+			elseif not v then wisp_aggression_stop(InitState.surface) end
 		end
 	end
 	knob = key_update('wisp-death-retaliation-radius')
@@ -906,118 +900,121 @@ local function apply_runtime_settings(event)
 	end
 end
 
-local function update_recipes(with_reset)
-	for _, force in pairs(game.forces) do
-		if with_reset then force.reset_recipes() end
-		if force.technologies['alien-bio-technology'].researched then
-			force.recipes['alien-flora-sample'].enabled = true
-			force.recipes['wisp-detector'].enabled = true
-		end
-		if force.technologies['solar-energy'].researched then
-			force.recipes['UV-lamp'].enabled = true
-		end
-		if force.technologies['combat-robotics'].researched then
-			force.recipes['wisp-drone-blue-capsule'].enabled = true
-		end
-	end
-end
-
-local function apply_version_updates(old_v, new_v)
-	-- cleared at 0.1.0, assuming any old games should be gone or at latest by now
-	if utils.version_less_than(old_v, '0.1.3') then
-		for _, force in ipairs(get_player_forces()) do wisp_player_aggression_set(force) end
-	end
-end
-
-local function init_commands()
-	utils.log('Init commands...')
-	commands.add_command( 'wisp',
-		run_wisp_command(), run_wisp_command )
-end
-
-local function init_globals()
+function Init.globals()
 	local sets = utils.t([[
 		wisps wisp_drones wisp_congregations
 		uv_lights detectors wisp_attack_entities ]])
 	for k, _ in pairs(utils.t([[
 			wisps wisp_drones wisp_congregations wisp_attack_entities
-			uv_lights detectors zones map_stats work_steps vars ]])) do
+			uv_lights detectors zones map_stats work_steps init_state ]])) do
 		if global[k] then goto skip end
 		global[k] = {}
 		if sets[k] and not global[k].n then global[k].n = #(global[k]) end
 	::skip:: end
+	zones.init_globals(global.zones)
 end
 
-local function init_vars()
-	-- These would've been locals, but apparently these desync mp, so are globals
-	Vars = global.vars
-	if not Vars then return end -- for on_load in pre-0.1.5, before on_configuration_changed
-	Vars.init, Vars.wisp_surface = nil
-	Vars.zones = {}
-end
-
-local function init_refs()
+function Init.refs()
 	utils.log('Init local references to globals...')
+	InitState = global.init_state
 	Wisps, WispDrones = global.wisps, global.wisp_drones
 	WispCongregations = global.wisp_congregations
 	UVLights, Detectors = global.uv_lights, global.detectors
 	WispAttackEntities = global.wisp_attack_entities
 	MapStats, WorkSteps = global.map_stats, global.work_steps
-	init_vars()
 	utils.log(
 		' - Object stats: wisps=%s drones=%s uvs=%s detectors=%s%s',
 		Wisps and Wisps.n, WispDrones and WispDrones.n,
 		UVLights and UVLights.n, Detectors and Detectors.n, '' )
+	zones.init_refs(global.zones)
 end
+
+function Init.state_reset()
+	for k, _ in pairs(InitState) do InitState[k] = nil end
+end
+
+function Init.state_tick()
+	InitState.surface = game.surfaces[conf.surface_name]
+	Init.settings()
+
+	-- XXX: scan_new_chunks on some reasonable interval
+	-- chunks_new = zones.scan_new_chunks(InitState.surface)
+	zones.refresh_chunks(InitState.surface)
+
+	if InitState.update then
+		if InitState.update_versions then
+			local v_old, v_new = table.unpack(InitState.update_versions)
+			local v_old_int = utils.version_to_num(v_old)
+			function version_less_than(ver)
+				if v_old_int < utils.version_to_num(ver)
+					then utils.log(' - Applying mod update from pre-'..ver); return true end
+			end
+
+			if version_less_than('0.1.3') then
+				for _, force in ipairs(get_player_forces()) do wisp_player_aggression_set(force) end
+			end
+			if version_less_than('0.1.6') then wisp_biter_aggression_set() end
+
+		end
+
+		for _, force in pairs(game.forces) do
+			if InitState.update_versions then force.reset_recipes() end
+			if force.technologies['alien-bio-technology'].researched then
+				force.recipes['alien-flora-sample'].enabled = true
+				force.recipes['wisp-detector'].enabled = true
+			end
+			if force.technologies['solar-energy'].researched
+				then force.recipes['UV-lamp'].enabled = true end
+			if force.technologies['combat-robotics'].researched
+				then force.recipes['wisp-drone-blue-capsule'].enabled = true end
+		end
+	end
+
+	InitState.configured = true
+end
+
+
+commands.add_command('wisp', run_wisp_command(), run_wisp_command)
 
 script.on_load(function()
 	utils.log('[will-o-wisps] Loading game...')
-	init_refs()
-	utils.log('[will-o-wisps] Game init: done')
+	Init.refs()
+	utils.log('[will-o-wisps] Game load: done')
 end)
 
 script.on_configuration_changed(function(data)
-	utils.log('[will-o-wisps] Updating mod configuration...')
-	-- Add any new globals and pick them up in init_refs() again
-	init_globals()
-	init_refs()
-	Vars.wisp_surface = game.surfaces[conf.surface_name]
+	utils.log('[will-o-wisps] Resetting init state flags')
 
-	utils.log('Updating zone scan info...')
-	zones.init(Vars.zones, global.zones)
-	zones.refresh_chunks(Vars.wisp_surface)
+	Init.globals()
+	Init.refs() -- repeat for new globals and such
+	Init.state_reset()
 
-	utils.log('Processing mod updates...')
 	local update = data.mod_changes and data.mod_changes[script.mod_name]
-	if not update then goto done end
-	if update.old_version then
-		local v_old, v_new = update.old_version, update.new_version
-		utils.log(' - Will-o-the-Wisps updated: %s -> %s', v_old, v_new)
-		update_recipes(true)
-		apply_version_updates(v_old, v_new)
-	else
-		utils.log(' - Updating tech requirements...')
-		update_recipes()
+	if update then
+		InitState.update = true
+		if update.old_version then
+			local v_old, v_new = update.old_version, update.new_version
+			InitState.update_versions = {v_old, v_new}
+		end
 	end
 
-	::done:: utils.log('[will-o-wisps] Updating mod configuration: done')
+	utils.log('[will-o-wisps] Init state flags: %s', InitState)
 end)
 
 script.on_init(function()
 	utils.log('[will-o-wisps] Initializing mod for a new game...')
 
-	init_commands()
-	init_globals()
-	init_refs()
+	Init.globals()
+	Init.refs()
 
 	utils.log('Init wisps force...')
 	wisp_force_init('wisp')
 	wisp_force_init('wisp_attack')
 	for _, force in ipairs(get_player_forces()) do wisp_player_aggression_set(force) end
+	wisp_biter_aggression_set()
 
 	utils.log('[will-o-wisps] Game init: done')
 end)
-
 
 script.on_event(defines.events.on_tick, on_tick)
 script.on_event(defines.events.on_entity_died, on_death)
