@@ -19,8 +19,8 @@ local Wisps, WispDrones, WispCongregations, UVLights, Detectors -- sets
 local WispAttackEntities -- temporary set of aggressive wisp entities
 local MapStats, WorkSteps
 
--- WispSurface must only be used directly on entry points, and passed from there
-local WispSurface
+-- All locals are placed here, reset by init_vars() on every game load
+local Vars
 -- Not sure how UVLightEnergyLimit value is calculated, so re-adjusted if ever seen higher
 local UVLightEnergyLimit = 2844.45
 
@@ -637,7 +637,18 @@ local function on_tick_run(name, tick, workload, target)
 end
 
 local function on_tick(event)
-	local surface, tick = WispSurface, event.tick
+	-- script.on_nth_tick can be used here,
+	--  but central on_tick can de-duplicate bunch of common checks,
+	--  like check darkness level and skip bunch of stuff based on that.
+	if Vars.init then
+		Vars.wisp_surface = game.surfaces[conf.surface_name]
+		init_commands()
+		apply_runtime_settings()
+		zones.init(Vars.zones, global.zones, Vars.wisp_surface)
+		wisp_biter_aggression_set()
+	end
+
+	local surface, tick = Vars.wisp_surface, event.tick
 
 	local workload = on_tick_run_backlog(workload or 0)
 	local function run(task, target)
@@ -733,20 +744,8 @@ local function on_built_entity(event)
 end
 
 local function on_chunk_generated(event)
-	if event.surface.index ~= WispSurface.index then return end
+	if event.surface.index ~= Vars.wisp_surface.index then return end
 	zones.reset_chunk_area(event.surface, event.area)
-end
-
-local function on_tick_init(event)
-	WispSurface = game.surfaces[conf.surface_name]
-	zones.init(global.zones, WispSurface)
-	wisp_biter_aggression_set()
-
-	-- script.on_nth_tick can be used here,
-	--  but central on_tick can de-duplicate bunch of common checks,
-	--  like check darkness level and skip bunch of stuff based on that.
-	script.on_event(defines.events.on_tick, on_tick)
-	on_tick(event)
 end
 
 local function on_player_change(event)
@@ -803,7 +802,7 @@ local function run_wisp_command(cmd)
 		elseif cmd == 'labels' then
 			if args[3] ~= 'remove' then
 				local label_threshold = tonumber(args[3] or '0.005')
-				zones.forest_labels_add(WispSurface, player.force, label_threshold)
+				zones.forest_labels_add(Vars.wisp_surface, player.force, label_threshold)
 			else zones.forest_labels_remove(player.force) end
 		elseif cmd == 'spawn' then
 			local cycles = tonumber(args[3] or '1')
@@ -811,14 +810,14 @@ local function run_wisp_command(cmd)
 			player.print(
 				('Simulating %d spawn-cycle(s) (%s [%s ticks] of night time)')
 				:format(cycles, utils.fmt_ticks(ticks), utils.fmt_n_comma(ticks)) )
-			for n = 1, cycles do tasks_monolithic.spawn_on_map(WispSurface) end
+			for n = 1, cycles do tasks_monolithic.spawn_on_map(Vars.wisp_surface) end
 		else return usage() end
 	elseif cmd == 'incidents' then
 		wisp_incident_labels(MapStats.incidents, args[2] == 'remove')
-	elseif cmd == 'congregate' then tasks_monolithic.congregate(WispSurface)
-	elseif cmd == 'attack' then wisp_aggression_set(WispSurface, true)
-	elseif cmd == 'radicalize' then tasks_monolithic.radicalize(WispSurface)
-	elseif cmd == 'peace' then wisp_aggression_stop(WispSurface)
+	elseif cmd == 'congregate' then tasks_monolithic.congregate(Vars.wisp_surface)
+	elseif cmd == 'attack' then wisp_aggression_set(Vars.wisp_surface, true)
+	elseif cmd == 'radicalize' then tasks_monolithic.radicalize(Vars.wisp_surface)
+	elseif cmd == 'peace' then wisp_aggression_stop(Vars.wisp_surface)
 	elseif cmd == 'stats' then wisp_print_stats(player.print)
 	else return usage() end
 end
@@ -840,11 +839,11 @@ local function apply_runtime_settings(event)
 	if knob then
 		local v_old, v = conf.peaceful_wisps, not knob.value
 		conf.peaceful_wisps = v
-		if game and v_old ~= v then
+		if v_old ~= v then
 			if v then
 				local wisps = game.forces.wisp_attack
 				for _, force in ipairs(get_player_forces()) do wisps.set_cease_fire(force, true) end
-			elseif not v then wisp_aggression_stop(WispSurface) end
+			elseif not v then wisp_aggression_stop(Vars.wisp_surface) end
 		end
 	end
 	knob = key_update('wisp-death-retaliation-radius')
@@ -854,7 +853,7 @@ local function apply_runtime_settings(event)
 	if knob then
 		local v_old, v = conf.peaceful_wisps, not knob.value
 		conf.peaceful_defences = v
-		if game and v_old ~= v then for _, force in ipairs(get_player_forces()) do
+		if v_old ~= v then for _, force in ipairs(get_player_forces()) do
 			force.set_cease_fire(game.forces.wisp, conf.peaceful_defences)
 		end end
 	end
@@ -864,7 +863,7 @@ local function apply_runtime_settings(event)
 		local v_old, v = conf.peaceful_spores, not knob.value
 		conf.peaceful_spores = v
 		wisp_spore_proto = v and 'wisp-purple-harmless' or 'wisp-purple'
-		if game and v_old ~= v then
+		if v_old ~= v then
 			-- Replace all existing spores with harmless/corroding variants
 			for n, wisp in ipairs(Wisps) do
 				if not wisp.entity.valid
@@ -880,7 +879,7 @@ local function apply_runtime_settings(event)
 	knob = key_update('wisp-biter-aggression')
 	if knob then
 		conf.wisp_biter_aggression = knob.value
-		if game then wisp_biter_aggression_set() end
+		wisp_biter_aggression_set()
 	end
 	knob = key_update('wisp-aggro-on-player-only')
 	if knob then conf.wisp_aggro_on_player_only = knob.value end
@@ -942,11 +941,19 @@ local function init_globals()
 		uv_lights detectors wisp_attack_entities ]])
 	for k, _ in pairs(utils.t([[
 			wisps wisp_drones wisp_congregations wisp_attack_entities
-			uv_lights detectors zones map_stats work_steps ]])) do
+			uv_lights detectors zones map_stats work_steps vars ]])) do
 		if global[k] then goto skip end
 		global[k] = {}
 		if sets[k] and not global[k].n then global[k].n = #(global[k]) end
 	::skip:: end
+end
+
+local function init_vars()
+	-- These would've been locals, but apparently these desync mp, so are globals
+	Vars = global.vars
+	if not Vars then return end -- for on_load in pre-0.1.5, before on_configuration_changed
+	Vars.init, Vars.wisp_surface = nil
+	Vars.zones = {}
 end
 
 local function init_refs()
@@ -956,18 +963,16 @@ local function init_refs()
 	UVLights, Detectors = global.uv_lights, global.detectors
 	WispAttackEntities = global.wisp_attack_entities
 	MapStats, WorkSteps = global.map_stats, global.work_steps
+	init_vars()
 	utils.log(
 		' - Object stats: wisps=%s drones=%s uvs=%s detectors=%s%s',
 		Wisps and Wisps.n, WispDrones and WispDrones.n,
 		UVLights and UVLights.n, Detectors and Detectors.n, '' )
 end
 
-
 script.on_load(function()
 	utils.log('[will-o-wisps] Loading game...')
-	init_commands()
 	init_refs()
-	apply_runtime_settings()
 	utils.log('[will-o-wisps] Game init: done')
 end)
 
@@ -976,11 +981,11 @@ script.on_configuration_changed(function(data)
 	-- Add any new globals and pick them up in init_refs() again
 	init_globals()
 	init_refs()
-	WispSurface = game.surfaces[conf.surface_name]
+	Vars.wisp_surface = game.surfaces[conf.surface_name]
 
 	utils.log('Updating zone scan info...')
-	zones.init(global.zones)
-	zones.refresh_chunks(WispSurface)
+	zones.init(Vars.zones, global.zones)
+	zones.refresh_chunks(Vars.wisp_surface)
 
 	utils.log('Processing mod updates...')
 	local update = data.mod_changes and data.mod_changes[script.mod_name]
@@ -1010,12 +1015,11 @@ script.on_init(function()
 	wisp_force_init('wisp_attack')
 	for _, force in ipairs(get_player_forces()) do wisp_player_aggression_set(force) end
 
-	apply_runtime_settings()
 	utils.log('[will-o-wisps] Game init: done')
 end)
 
 
-script.on_event(defines.events.on_tick, on_tick_init)
+script.on_event(defines.events.on_tick, on_tick)
 script.on_event(defines.events.on_entity_died, on_death)
 script.on_event(defines.events.on_pre_player_mined_item, on_mined_entity)
 script.on_event(defines.events.on_robot_pre_mined, on_mined_entity)

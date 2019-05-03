@@ -3,7 +3,8 @@ local zones = {}
 local conf = require('config')
 local utils = require('libs/utils')
 
-local InitDone -- not global, to skip duplicate zones.init calls in one game
+-- Refs to globals
+local Vars -- misc stuff that's reset on every load
 local ChunkList, ChunkMap -- always up-to-date, existing chunks never removed
 local ForestArea -- {chunk_key=area}
 local ChunkSpreadQueue -- see control.lua for info on how sets are managed
@@ -254,8 +255,9 @@ function zones.scan_new_chunks(surface)
 	return n
 end
 
-function zones.init(zs, surface)
-	if InitDone then return end
+function zones.init(vars, zs, surface)
+	Vars = vars
+	if Vars.init then return end
 	for _, k in ipairs{'chunk_list', 'chunk_map', 'forest_area'}
 		do if not zs[k] then zs[k] = {} end end
 	for _, k in ipairs{'chunk_spread_queue', 'chart_labels'}
@@ -267,7 +269,7 @@ function zones.init(zs, surface)
 	utils.log(
 		' - Zone stats: chunks=%d (new=%d) forests=%d spread-queue=%d labels=%d',
 		#ChunkList, chunks_new, #ForestArea, ChunkSpreadQueue.n, ChartLabels.n )
-	InitDone = true
+	Vars.init = true
 end
 
 

@@ -1,4 +1,9 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.1.5
+Date: 03. 05. 2019
+  Changes:
+    - Fix all multiplayer desync code issues that are well-documented. Unlikely to be all of them.
+---------------------------------------------------------------------------------------------------
 Version: 0.1.4
 Date: 27. 04. 2019
   Features:
