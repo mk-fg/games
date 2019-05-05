@@ -18,7 +18,7 @@ local zones = require('libs/zones')
 local Init, InitState
 local Wisps, WispDrones, WispCongregations, UVLights, Detectors -- sets
 local WispAttackEntities -- temporary set of aggressive wisp entities
-local MapStats, WorkSteps
+local MapStats, WorkSteps, WorkSets, WorkChecks
 
 -- Not sure how UVLightEnergyLimit value is calculated, so re-adjusted if ever seen higher
 local UVLightEnergyLimit = 2844.45
@@ -304,7 +304,7 @@ end
 
 
 ------------------------------------------------------------
--- on_tick tasks
+-- Routine tasks to run periodically from on_tick handlers
 ------------------------------------------------------------
 
 local tasks_monolithic = {
@@ -573,9 +573,6 @@ local tasks_entities = {
 
 }
 
-
-local on_tick_backlog = {} -- delayed tasks due to work_limit_per_tick
-
 local function run_on_object_set(set, task_func, step, steps)
 	-- Iterate over n%steps==step entities, check o.entity.valid
 	--  and either efficiently remove o from the set or run task_func on it.
@@ -591,7 +588,8 @@ local function run_on_object_set(set, task_func, step, steps)
 	return (n - step) / steps -- count
 end
 
-local function on_tick_run_task(name, target)
+local function run_periodic_task(name, target)
+	-- Returns workload value, which is not used
 	local iter_task, steps, res = tasks_entities[name], conf.work_steps[name]
 	if steps then
 		n = (WorkSteps[name] or 0) + 1
@@ -609,68 +607,41 @@ local function on_tick_run_task(name, target)
 	return res or 0
 end
 
-local function on_tick_run_backlog(workload)
-	-- if next(on_tick_backlog)
-	-- 	then utils.log('tick backlog check [count=%d]', #on_tick_backlog) end
-	for n, task in pairs(on_tick_backlog) do
-		workload = workload + on_tick_run_task(task.name, task.target)
-		table.remove(on_tick_backlog, n)
-		if workload >= conf.work_limit_per_tick then break end
-	end
-	return workload
-end
 
-local function on_tick_run(name, tick, workload, target)
-	if tick % conf.intervals[name] ~= 0 then return 0 end
-	if workload >= conf.work_limit_per_tick then
-		table.insert(on_tick_backlog, {target=target, name=name})
-		if #on_tick_backlog > 100 then
-			-- Should never be more than #on_tick_tasks, unless bugs
-			utils.error('Too many tasks in on_tick backlog'..
-				' - most likely a bug in config.lua file of this mod') end
-		-- utils.log(
-		-- 	'tick task to backlog - %s [workload %d >= %d]',
-		-- 	name, workload, conf.work_limit_per_tick )
-		return 0
-	else return workload + on_tick_run_task(name, target) end
-end
+------------------------------------------------------------
+-- on_tick handlers - more special than other events
+------------------------------------------------------------
 
-local function on_tick(event)
-	-- script.on_nth_tick can be used here,
-	--  but central on_tick can de-duplicate bunch of common checks,
-	--  like check darkness level and skip bunch of stuff based on that.
+local tick_handlers = {}
+
+local function on_nth_tick(event)
 	if not InitState.configured then Init.state_tick() end
-	local surface, tick = InitState.surface, event.tick
+	local ev_name = tick_handlers[event.nth_tick]
 
-	local workload = on_tick_run_backlog(workload or 0)
-	local function run(task, target)
-		workload = workload + on_tick_run(task, tick, workload, target)
+	-- Some things run under certain conditions,
+	--  with ev_check being condition name from WorkChecks.
+	local ev_check = WorkChecks[ev_name]
+	if ev_check then
+		local is_dark = InitState.surface.darkness > conf.min_darkness
+		if not ({ wisps=Wisps.n > 0,
+				dark=is_dark, light=not is_dark })[ev_check]
+			then return end
 	end
 
-	local is_dark = surface.darkness > conf.min_darkness
-	local wisps, drones, cgs = Wisps.n > 0, WispDrones.n > 0, WispCongregations.n > 0
-	local uvlights, detectors = UVLights.n > 0, Detectors.n > 0
+	-- Skip running tasks that iterate over sets when sets are empty.
+	local ev_set = WorkSets[ev_name]
+	if not ev_set then ev_set = InitState.surface
+	elseif ev_set.n <= 0 then return end
 
-	if is_dark then
-		run('spawn_near_players', surface)
-		run('spawn_on_map', surface)
-		run('tactics', surface)
-		run('congregate', surface)
-		run('radicalize', surface)
-	else
-		run('zones_spread', surface)
-		run('zones_forest', surface)
+	run_periodic_task(ev_name, ev_set)
+end
+
+for ev, tick in pairs(conf.intervals) do
+	if tick_handlers[tick] then
+		error(('BUG: duplicate tick handlers: "%s" and "%s"'):format(ev, tick_handlers[tick]))
 	end
-
-	if detectors then run('detectors', Detectors) end
-
-	if wisps then
-		if uvlights then run('uv', UVLights) end
-		if cgs then run('recongregate', WispCongregations) end
-		run('expire_uv', Wisps)
-		run('expire_ttl', Wisps)
-		run('pacify', surface)
-	end
+	tick_handlers[tick] = ev
+	script.on_nth_tick(tick, on_nth_tick)
 end
 
 
@@ -922,6 +893,14 @@ function Init.refs()
 	UVLights, Detectors = global.uv_lights, global.detectors
 	WispAttackEntities = global.wisp_attack_entities
 	MapStats, WorkSteps = global.map_stats, global.work_steps
+	WorkSets = { detectors=Detectors,
+		uv=UVLights, recongregate=WispCongregations,
+		expire_uv=Wisps, expire_ttl=Wisps }
+	WorkChecks = {
+		spawn_near_players='dark', spawn_on_map='dark',
+		tactics='dark', congregate='dark', radicalize='dark',
+		zones_spread='light', zones_forest='light',
+		uv='wisps', recongregate='wisps', pacify='wisps' }
 	utils.log(
 		' - Object stats: wisps=%s drones=%s uvs=%s detectors=%s%s',
 		Wisps and Wisps.n, WispDrones and WispDrones.n,

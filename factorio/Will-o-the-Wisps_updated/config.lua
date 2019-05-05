@@ -174,8 +174,8 @@ c.dst_next_building_radius = 128 -- radius to pick target building in from dst p
 
 -- ---------- Performance stuff
 
--- Intervals don't really have to be primes, but it might help to
---  space them out on ticks more evenly, to minimize clashes/backlog.
+-- Intervals are for on_nth_tick handler, ideally should be primes (less collisions).
+-- Must not be on the same tick.
 
 conf.intervals = {
 	spawn_near_players=107, spawn_on_map=113,
@@ -195,8 +195,6 @@ conf.intervals.zones_spread = 79
 -- Takes 1.89s to scan 682 chunks finding 243 forests here - almost 3ms per scan!
 conf.work_steps.zones_forest = 600
 conf.intervals.zones_forest = 89
-
-conf.work_limit_per_tick = 20
 
 
 -- ---------- Lighing effects
