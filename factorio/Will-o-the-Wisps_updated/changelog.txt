@@ -1,4 +1,9 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.1.8
+Date: 10. 05. 2019
+  Bugfixes:
+    - Fix updating settings via on_runtime_mod_setting_changed event, also broken by init code rewrite in 0.1.5-0.1.7.
+---------------------------------------------------------------------------------------------------
 Version: 0.1.7
 Date: 05. 05. 2019
   Changes:
