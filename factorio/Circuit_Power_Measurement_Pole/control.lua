@@ -118,6 +118,7 @@ local function update_pole_signal(e, ec, stats_abs)
 	table.sort(ps_free, function(a,b) return a[2] < b[2] end)
 	for k, w in pairs(w_stats) do
 		w = utils.round(w / 1000) -- W -> kW
+		w = math.min(w, 2^31-1) -- can maybe go there if "w - w_last" above runs too late
 		if ps_stat[k] then n, idx = table.unpack(ps_stat[k])
 		else for m, slot in pairs(ps_free) do
 			n, idx, ps_free[m] = table.unpack(slot)

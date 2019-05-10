@@ -11,6 +11,8 @@ These are **current** power production values, as set by grid power demand and l
 Signals are set on the nearest Constant Combinator within Small Electric Pole range (2 tiles around pole), if any, as pole itself cannot interact with circuit network.
 
 Updates signals once per 1 in-game second (60 ticks at 1x speed) by default, which can be adjusted via Mod settings menu (Startup tab).
+Measured values are capped at 2 TW (>10k vanilla nuclear reactors).
+Large single-period spikes in measured values can happen when connecting two long-running electrical grids together.
 
 Available after unlocking Circuit Network technology, located next to Power Switch and Speaker items on the crafting grid.
 
