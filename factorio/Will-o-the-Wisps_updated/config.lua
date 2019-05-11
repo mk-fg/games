@@ -157,7 +157,7 @@ conf.surface_name = 'nauvis'
 
 -- ---------- Parameters for wisps visiting player
 
-c = {}
+local c = {}
 conf.congregate = c
 
 c.entity = 'wisp-green'

@@ -1,6 +1,6 @@
 -- Main entry point file, (re-)loaded on every new game start or savegame load.
 
-local conf = require('config')
+local conf_base = require('config')
 local utils = require('libs/utils')
 local zones = require('libs/zones')
 
@@ -206,6 +206,16 @@ local function wisp_print_stats(print_func)
 	print_types('hostile', 'types_hostile')
 	print_types_force('force-peaceful', 'wisp')
 	print_types_force('force-hostile', 'wisp_attack')
+
+	local cf_state, k1, k2 = {}
+	for _, cf in ipairs{'wisp-player', 'wisp_attack-player', 'wisp-enemy', 'wisp_attack-enemy'} do
+		k1, k2 = string.match(cf, '^([%w_]+)-([%w_]+)$')
+		table.insert(cf_state, game.forces[k1].get_cease_fire(game.forces[k2]) and 'peace' or 'war')
+		table.insert(cf_state, game.forces[k2].get_cease_fire(game.forces[k1]) and 'peace' or 'war')
+	end
+	print_func( ('wisps: cease-fire-settings w/p=%s/%s'..
+		' wa/p=%s/%s w/b=%s/%s wa/b=%s/%s'):format(table.unpack(cf_state)) )
+	print_func(('wisps: spores-harmless=%s'):format(conf.peaceful_spores))
 end
 
 
@@ -289,10 +299,10 @@ local function wisp_create(name, surface, position, ttl, n)
 end
 
 local function wisp_create_at_random(name, near_entity)
-	-- Create wisp based on conf.wisp_chance_func()
+	-- Create wisp based on wisp_chance_func()
 	local e = near_entity
 	if not ( e and e.valid
-		and conf.wisp_chance_func(e.surface.darkness) ) then return end
+		and conf_base.wisp_chance_func(e.surface.darkness) ) then return end
 	e = wisp_create(name, e.surface, e.position)
 	if e and not wisp_spore_proto_check(name) then
 		e.set_command{
@@ -352,7 +362,7 @@ local tasks_monolithic = {
 	pacify = function(surface)
 		local uv = math.floor((1 - surface.darkness) / conf.wisp_uv_expire_step)
 		if (surface.darkness <= conf.min_darkness or uv > (MapStats.uv_level or 0))
-				and conf.wisp_uv_peace_chance_func(surface.darkness, uv)
+				and conf_base.wisp_uv_peace_chance_func(surface.darkness, uv)
 			then wisp_aggression_set(surface, false) end
 		MapStats.uv_level = uv
 		return 1
@@ -451,7 +461,7 @@ local tasks_entities = {
 		-- wisp_chance_func is rolled to not decrease ttl at night, to spread-out ttls.
 		-- e.destroy() works one cycle after expire, so that light will be disabled first.
 		if wisp.ttl  <= 0 then return e.destroy() end
-		if not conf.wisp_chance_func(s.darkness, wisp)
+		if not conf_base.wisp_chance_func(s.darkness, wisp)
 			then wisp.ttl = wisp.ttl - conf.intervals.expire_ttl * conf.work_steps.expire_ttl end
 	end},
 
@@ -462,7 +472,7 @@ local tasks_entities = {
 		if wisp.ttl <= 0 then return end
 		local uv = math.floor((1 - s.darkness) / conf.wisp_uv_expire_step)
 		if (s.darkness <= conf.min_darkness or uv > wisp.uv_level)
-				and conf.wisp_uv_expire_chance_func(s.darkness, uv, wisp) then
+				and conf_base.wisp_uv_expire_chance_func(s.darkness, uv, wisp) then
 			wisp.ttl = math.min(wisp.ttl, utils.pick_jitter(conf.wisp_uv_expire_jitter, true))
 		end
 		wisp.uv_level = uv
@@ -479,7 +489,7 @@ local tasks_entities = {
 		-- Effects on unit-type wisps - reds and yellows
 		local wisps, wisp = wisp_find_units(s, e.position, conf.uv_lamp_range)
 		if next(wisps) then
-			local damage = conf.uv_lamp_damage_func(energy_percent)
+			local damage = conf_base.uv_lamp_damage_func(energy_percent)
 			for _, entity in ipairs(wisps) do
 				entity.set_command{ type=defines.command.flee,
 					from=e, distraction=defines.distraction.none }
@@ -491,7 +501,7 @@ local tasks_entities = {
 		wisps = s.find_entities_filtered{
 			name=wisp_spore_proto, area=utils.get_area(conf.uv_lamp_range, e.position) }
 		if next(wisps) then for _, entity in ipairs(wisps) do
-			if conf.uv_lamp_spore_kill_chance_func(energy_percent) then entity.destroy() end
+			if conf_base.uv_lamp_spore_kill_chance_func(energy_percent) then entity.destroy() end
 		end end
 	end},
 
@@ -636,7 +646,7 @@ local function on_nth_tick(event)
 	run_periodic_task(ev_name, ev_set)
 end
 
-for ev, tick in pairs(conf.intervals) do
+for ev, tick in pairs(conf_base.intervals) do
 	if tick_handlers[tick] then
 		error(('BUG: duplicate tick handlers: "%s" and "%s"'):format(ev, tick_handlers[tick]))
 	end
@@ -794,73 +804,64 @@ Init = {} -- to allow defining/calling these in any order
 function Init.settings(event)
 	utils.log(' - Updating runtime options')
 
-	local key, knob = event and event.setting
-	local function key_update(k)
-		if not (not key or key == k) then return end
+	local key, knob, v = event and event.setting
+	local function key_update(k, k_conf, v_invert)
+		if key and key ~= k then return end
+		utils.log('  - updating key: %s - %s %s', k, settings.global[k].value, '-')
+		if k_conf then
+			v = settings.global[k].value
+			if v_invert then v = not v end
+			if conf[k_conf] == v then return end
+			utils.log('   - conf key %s: %s -> %s %s', k_conf, conf[k_conf], v, ':')
+			conf[k_conf] = v
+		end
 		return settings.global[k]
 	end
 
-	knob = key_update('wisps-can-attack')
+	knob = key_update('wisps-can-attack', 'peaceful_wisps', true)
 	if knob then
-		local v_old, v = conf.peaceful_wisps, not knob.value
-		conf.peaceful_wisps = v
-		if v_old ~= v then
-			if v then
-				local wisps = game.forces.wisp_attack
-				for _, force in ipairs(get_player_forces()) do wisps.set_cease_fire(force, true) end
-			elseif not v then wisp_aggression_stop(InitState.surface) end
-		end
-	end
-	knob = key_update('wisp-death-retaliation-radius')
-	if knob then conf.wisp_death_retaliation_radius = knob.value end
-
-	knob = key_update('defences-shoot-wisps')
-	if knob then
-		local v_old, v = conf.peaceful_wisps, not knob.value
-		conf.peaceful_defences = v
-		if v_old ~= v then for _, force in ipairs(get_player_forces()) do
-			force.set_cease_fire(game.forces.wisp, conf.peaceful_defences)
-		end end
-	end
-
-	knob = key_update('purple-wisp-damage')
-	if knob then
-		local v_old, v = conf.peaceful_spores, not knob.value
-		conf.peaceful_spores = v
-		wisp_spore_proto = v and 'wisp-purple-harmless' or 'wisp-purple'
-		if v_old ~= v then
-			-- Replace all existing spores with harmless/corroding variants
-			for n, wisp in ipairs(Wisps) do
-				if not wisp.entity.valid
-						or not wisp_spore_proto_check(wisp.entity.name)
-					then goto skip end
-				local surface, pos = wisp.entity.surface, wisp.entity.position
-				wisp.entity.destroy()
-				wisp = wisp_create(wisp_spore_proto, surface, pos, wisp.ttl, n)
-			::skip:: end
+		if conf.peaceful_wisps then
+			local wa = game.forces.wisp_attack
+			for _, force in ipairs(get_player_forces()) do wa.set_cease_fire(force, true) end
+			wisp_aggression_stop(InitState.surface)
+		else
+			for _, force in ipairs(get_player_forces()) do wa.set_cease_fire(force, false) end
 		end
 	end
 
-	knob = key_update('wisp-biter-aggression')
-	if knob then
-		conf.wisp_biter_aggression = knob.value
-		wisp_biter_aggression_set()
-	end
-	knob = key_update('wisp-aggro-on-player-only')
-	if knob then conf.wisp_aggro_on_player_only = knob.value end
+	knob = key_update('defences-shoot-wisps', 'peaceful_defences', true)
+	if knob then for _, force in ipairs(get_player_forces()) do
+		force.set_cease_fire(game.forces.wisp, conf.peaceful_defences)
+	end end
 
-	knob = key_update('wisp-aggression-factor')
-	if knob then conf.wisp_aggression_factor = knob.value end
-	knob = key_update('wisp-map-spawn-count')
-	if knob then conf.wisp_max_count = knob.value end
-	knob = key_update('wisp-map-spawn-pollution-factor')
-	if knob then conf.wisp_forest_spawn_pollution_factor = knob.value end
+	knob = key_update('purple-wisp-damage', 'peaceful_spores', true)
+	if knob then
+		wisp_spore_proto = conf.peaceful_spores and 'wisp-purple-harmless' or 'wisp-purple'
+		-- Replace all existing spores with harmless/corroding variants
+		local surface, pos
+		for n, wisp in ipairs(Wisps) do
+			if not wisp.entity.valid
+					or not wisp_spore_proto_check(wisp.entity.name)
+				then goto skip end
+			surface, pos = wisp.entity.surface, wisp.entity.position
+			wisp.entity.destroy()
+			wisp = wisp_create(wisp_spore_proto, surface, pos, wisp.ttl, n)
+		::skip:: end
+	end
+
+	knob = key_update('wisp-biter-aggression', 'wisp_biter_aggression')
+	if knob then wisp_biter_aggression_set() end
+
+	key_update('wisp-death-retaliation-radius', 'wisp_death_retaliation_radius')
+	key_update('wisp-aggro-on-player-only', 'wisp_aggro_on_player_only')
+	key_update('wisp-aggression-factor', 'wisp_aggression_factor')
+	key_update('wisp-map-spawn-count', 'wisp_max_count')
+	key_update('wisp-map-spawn-pollution-factor', 'wisp_forest_spawn_pollution_factor')
 
 	local wisp_spawns_sum = 0
 	for _, c in ipairs{'purple', 'yellow', 'red', 'green'} do
 		local k, k_conf = 'wisp-map-spawn-'..c, 'wisp_forest_spawn_chance_'..c
-		knob = key_update(k)
-		if knob then conf[k_conf] = knob.value end
+		key_update(k, k_conf)
 		wisp_spawns_sum = wisp_spawns_sum + conf[k_conf]
 	end
 	if wisp_spawns_sum > 1 then
@@ -872,6 +873,7 @@ function Init.settings(event)
 end
 
 function Init.globals()
+	utils.log('Init: globals')
 	local sets = utils.t([[
 		wisps wisp_drones wisp_congregations
 		uv_lights detectors wisp_attack_entities ]])
@@ -882,12 +884,14 @@ function Init.globals()
 		global[k] = {}
 		if sets[k] and not global[k].n then global[k].n = #(global[k]) end
 	::skip:: end
+	if not global.conf then global.conf = {} end
+	for k, v in pairs(conf_base) do global.conf[k] = v end
 	zones.init_globals(global.zones)
 end
 
 function Init.refs()
-	utils.log('Init local references to globals...')
-	InitState = global.init_state
+	utils.log('Init: refs')
+	conf, InitState = global.conf, global.init_state
 	Wisps, WispDrones = global.wisps, global.wisp_drones
 	WispCongregations = global.wisp_congregations
 	UVLights, Detectors = global.uv_lights, global.detectors
@@ -913,6 +917,7 @@ function Init.state_reset()
 end
 
 function Init.state_tick()
+	utils.log('Init: state')
 	InitState.surface = game.surfaces[conf.surface_name]
 	Init.settings()
 
@@ -933,7 +938,6 @@ function Init.state_tick()
 				for _, force in ipairs(get_player_forces()) do wisp_player_aggression_set(force) end
 			end
 			if version_less_than('0.1.6') then wisp_biter_aggression_set() end
-
 		end
 
 		for _, force in pairs(game.forces) do

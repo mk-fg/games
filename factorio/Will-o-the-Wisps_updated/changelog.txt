@@ -1,4 +1,11 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.1.9
+Date: 11. 05. 2019
+  Features:
+    - Print force ceasefire states and purple wisp info in "/wisp stats" output.
+  Bugfixes:
+    - Fix one more potential mp bug, multiple issues when using Mod Settings.
+---------------------------------------------------------------------------------------------------
 Version: 0.1.8
 Date: 10. 05. 2019
   Bugfixes:

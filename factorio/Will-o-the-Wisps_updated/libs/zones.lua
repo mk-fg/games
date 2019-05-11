@@ -1,9 +1,9 @@
 local zones = {}
 
-local conf = require('config')
 local utils = require('libs/utils')
 
 -- Refs to globals
+local conf
 local ChunkList, ChunkMap -- always up-to-date, existing chunks never removed
 local ForestArea -- {chunk_key=area}
 local ChunkSpreadQueue -- see control.lua for info on how sets are managed
@@ -262,6 +262,7 @@ function zones.init_globals(zs)
 end
 
 function zones.init_refs(zs)
+	conf = global.conf
 	ChunkList, ChunkMap, ForestArea = zs.chunk_list, zs.chunk_map, zs.forest_area
 	ChunkSpreadQueue, ChartLabels = zs.chunk_spread_queue, zs.chart_labels
 	utils.log(
