@@ -213,8 +213,8 @@ local function wisp_print_stats(print_func)
 		table.insert(cf_state, game.forces[k1].get_cease_fire(game.forces[k2]) and 'peace' or 'war')
 		table.insert(cf_state, game.forces[k2].get_cease_fire(game.forces[k1]) and 'peace' or 'war')
 	end
-	print_func( ('wisps: cease-fire-settings w/p=%s/%s'..
-		' wa/p=%s/%s w/b=%s/%s wa/b=%s/%s'):format(table.unpack(cf_state)) )
+	print_func(( 'wisps: cease-fire-settings w/p=%s/%s'..
+		' wa/p=%s/%s w/b=%s/%s wa/b=%s/%s' ):format(table.unpack(cf_state)))
 	print_func(('wisps: spores-harmless=%s'):format(conf.peaceful_spores))
 end
 
@@ -562,15 +562,15 @@ local tasks_entities = {
 
 	recongregate = {work=20, func=function(cg, group, s)
 		if not #group.members then group.destroy(); return end
-		local tick, dst_dist = game.tick, cg.dst
+		local tick, dst_dist, c = game.tick, cg.dst, conf.congregate
 		if not dst_dist then return end
 		local dst_dist = utils.get_distance(dst_dist, group.position)
-		if dst_dist > conf.congregate.dst_arrival_radius
+		if dst_dist > c.dst_arrival_radius
 				and (tick - cg.dst_ts) < c.dst_arrival_ticks
 			then return end
-		local pos = wisp_find_player_target_pos(
-			s, utils.get_area(c.dst_next_building_radius, cg.dst),
-			conf.congregate.entity, cg.force_name )
+		local pos = wisp_find_player_target_pos( s,
+			utils.get_area(c.dst_next_building_radius, cg.dst),
+			c.entity, cg.force_name )
 		if not pos then cg.dst, cg.dst_ts = nil; return end
 		cg.dst, cg.dst_ts = pos, tick
 		group.set_command{
@@ -743,6 +743,7 @@ zone spawn [n] - Spawn wisps in the forested map zones.
 incidents - Add map labels for last wisp aggression-change incidents.
 incidents remove - Remove map labels for wisp aggression incidents.
 attack - Have all will-o-wisps on the map turn hostile towards player(s).
+congregate - Find green wisps ground and send them to players base.
 radicalize - Make wisps in randomly-picked spawn zones aggressive.
 peace - Pacify all will-o-the-wisps on the map, command them to stop attacking.
 stats - Print some stats about wisps on the map.
