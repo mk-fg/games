@@ -1,4 +1,9 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.1.11
+Date: 13. 05. 2019
+  Bugfixes:
+    - Fix applying "no damage from purple wisps" settings after save/load, yet another mp-bad local.
+---------------------------------------------------------------------------------------------------
 Version: 0.1.10
 Date: 12. 05. 2019
   Bugfixes:

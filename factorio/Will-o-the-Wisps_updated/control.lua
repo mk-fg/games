@@ -253,7 +253,8 @@ end
 local wisp_unit_proto_map = {['wisp-red']=true, ['wisp-yellow']=true, ['wisp-green']=true}
 local function wisp_unit_proto_check(name) return wisp_unit_proto_map[name] end
 
-local wisp_spore_proto = 'wisp-purple'
+local function wisp_spore_proto_name()
+	return conf.peaceful_spores and 'wisp-purple-harmless' or 'wisp-purple' end
 local function wisp_spore_proto_check(name) return name:match('^wisp%-purple') end
 
 local function wisp_drone_proto_check(name) return name:match('^wisp%-drone%-') end
@@ -348,7 +349,7 @@ local tasks_monolithic = {
 		if Wisps.n >= conf.wisp_max_count * conf.wisp_forest_on_map_percent then return end
 		trees = zones.get_wisp_trees_anywhere(conf.wisp_forest_spawn_count)
 		local wisp_chances, wisp_name = {
-			[wisp_spore_proto]=conf.wisp_forest_spawn_chance_purple,
+			[wisp_spore_proto_name()]=conf.wisp_forest_spawn_chance_purple,
 			['wisp-yellow']=conf.wisp_forest_spawn_chance_yellow,
 			['wisp-green']=conf.wisp_forest_spawn_chance_green,
 			['wisp-red']=conf.wisp_forest_spawn_chance_red }
@@ -499,7 +500,7 @@ local tasks_entities = {
 
 		-- Effects on non-unit wisps - purple
 		wisps = s.find_entities_filtered{
-			name=wisp_spore_proto, area=utils.get_area(conf.uv_lamp_range, e.position) }
+			name=wisp_spore_proto_name(), area=utils.get_area(conf.uv_lamp_range, e.position) }
 		if next(wisps) then for _, entity in ipairs(wisps) do
 			if conf_base.uv_lamp_spore_kill_chance_func(energy_percent) then entity.destroy() end
 		end end
@@ -539,7 +540,7 @@ local tasks_entities = {
 			for _, wisp in ipairs(wisps)
 				do counts[wisp.name] = (counts[wisp.name] or 0) + 1 end
 			wisps = s.count_entities_filtered{
-				name=wisp_spore_proto, area=utils.get_area(range, e.position) }
+				name=wisp_spore_proto_name(), area=utils.get_area(range, e.position) }
 			if wisps > 0 then counts['wisp-purple'] = wisps end
 		end
 
@@ -672,7 +673,7 @@ local function on_death(event)
 			then aggro = false end
 		if aggro then wisp_aggression_set(e.surface, true, event.force, area) end
 		if e.surface.darkness >= conf.min_darkness
-			then wisp_create(wisp_spore_proto, e.surface, e.position) end
+			then wisp_create(wisp_spore_proto_name(), e.surface, e.position) end
 	elseif wisp_drone_proto_check(e.name)
 		then e.surface.create_entity{name=e.name..'-death', position=e.position} end
 end
@@ -712,7 +713,7 @@ local function on_built_entity(event)
 	if e.name == 'wisp-purple' then
 		local surface, pos = e.surface, e.position
 		e.destroy()
-		local wisp =  wisp_create(wisp_spore_proto, surface, pos)
+		local wisp =  wisp_create(wisp_spore_proto_name(), surface, pos)
 	else wisp_init(e) end
 end
 
@@ -837,16 +838,15 @@ function Init.settings(event)
 
 	knob = key_update('purple-wisp-damage', 'peaceful_spores', true)
 	if knob then
-		wisp_spore_proto = conf.peaceful_spores and 'wisp-purple-harmless' or 'wisp-purple'
 		-- Replace all existing spores with harmless/corroding variants
-		local surface, pos
+		local proto, surface, pos = wisp_spore_proto_name()
 		for n, wisp in ipairs(Wisps) do
 			if not wisp.entity.valid
 					or not wisp_spore_proto_check(wisp.entity.name)
 				then goto skip end
 			surface, pos = wisp.entity.surface, wisp.entity.position
 			wisp.entity.destroy()
-			wisp = wisp_create(wisp_spore_proto, surface, pos, wisp.ttl, n)
+			wisp = wisp_create(proto, surface, pos, wisp.ttl, n)
 		::skip:: end
 	end
 
