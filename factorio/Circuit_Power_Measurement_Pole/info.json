@@ -1,6 +1,6 @@
 {
 	"name": "Circuit_Power_Measurement_Pole",
-	"version": "0.0.3",
+	"version": "0.0.4",
 	"factorio_version": "0.17",
 	"dependencies": ["base >= 0.17.0"],
 	"title": "Circuit Power Measurement Pole",

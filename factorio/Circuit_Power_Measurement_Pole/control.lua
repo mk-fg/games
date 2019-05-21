@@ -109,9 +109,7 @@ local function update_pole_signal(pole)
 		if not p.signal.name then table.insert(ps_free, {n, p.index})
 		else
 			k = ('%s.%s'):format(p.signal.type, p.signal.name)
-			if w_stats[k]
-			then ps_stat[k], ps_last[k] = {n, p.index}, p.index
-			else
+			if w_stats[k] then ps_stat[k] = {n, p.index} else
 				-- Check here drops signals that were updated
 				--  from pole before, but no longer are due to grid changes.
 				if ps_last[k] ~= p.index then ps[k] = p end
@@ -134,8 +132,8 @@ local function update_pole_signal(pole)
 		end end
 		if n then
 			e_type, e_name = k:match('^([^.]+).(.+)$')
-			ps[n], n = { index=idx, count=w,
-				signal={type=e_type, name=e_name} }
+			ps[n], ps_last[k], n = { index=idx,
+				count=w, signal={type=e_type, name=e_name} }, idx
 		else break end
 	end
 
