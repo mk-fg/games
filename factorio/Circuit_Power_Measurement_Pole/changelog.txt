@@ -1,4 +1,9 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.0.3
+Date: 21. 05. 2018
+  Changes:
+    - Remove combinator values that were tracked, but no longer are due to grid changes, instead of leaving them at last value.
+---------------------------------------------------------------------------------------------------
 Version: 0.0.2
 Date: 10. 05. 2018
   Bugfixes:

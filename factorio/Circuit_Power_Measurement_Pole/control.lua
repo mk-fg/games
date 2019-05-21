@@ -70,7 +70,7 @@ script.on_load(init_refs)
 script.on_configuration_changed(function(data)
 	init_globals(); init_refs()
 	local update = data.mod_changes and data.mod_changes[script.mod_name]
-	if not update then return else init_recipes(update.old_version) end
+	if update then init_recipes(update.old_version) end
 end)
 
 
@@ -87,13 +87,13 @@ script.on_event(defines.events.on_built_entity, on_built)
 script.on_event(defines.events.on_robot_built_entity, on_built)
 
 
-local function update_pole_signal(e, ec, stats_abs)
-	local ecc = ec.get_control_behavior()
+local function update_pole_signal(pole)
+	local ecc = pole.c.get_control_behavior()
 	if not (ecc and ecc.enabled) then return end
 	local k, n, w, idx
 
-	local w_stats, w_total = {}, 0
-	for k, w in pairs(e.electric_network_statistics.output_counts) do
+	local w_stats, w_total, stats_abs = {}, 0, pole.stats_abs
+	for k, w in pairs(pole.e.electric_network_statistics.output_counts) do
 		w_last, stats_abs[k] = stats_abs[k], w
 		if not w_last then goto skip end
 		-- 0 in case of integer value rollover. Value is in watts per 60 ticks, hence division.
@@ -104,21 +104,29 @@ local function update_pole_signal(e, ec, stats_abs)
 	utils.log('stats', w_stats)
 
 	-- Scan existing signals for slots to replace or fill-in
-	local ps, ps_stat, ps_free = {}, {}, {}
+	local ps, ps_stat, ps_free, ps_last = {}, {}, {}, pole.params_last or {}
 	for n, p in ipairs(ecc.parameters.parameters) do
 		if not p.signal.name then table.insert(ps_free, {n, p.index})
 		else
 			k = ('%s.%s'):format(p.signal.type, p.signal.name)
-			if w_stats[k] then ps_stat[k] = {n, p.index} else ps[k] = p end
+			if w_stats[k]
+			then ps_stat[k], ps_last[k] = {n, p.index}, p.index
+			else
+				-- Check here drops signals that were updated
+				--  from pole before, but no longer are due to grid changes.
+				if ps_last[k] ~= p.index then ps[k] = p end
+				ps_last[k] = nil
+			end
 		end
 	end
+	pole.params_last = ps_last -- initialized here
 
 	-- Replace/fill-in detected parameter slots
 	local e_type, e_name
-	table.sort(ps_free, function(a,b) return a[2] < b[2] end)
+	table.sort(ps_free, function(a, b) return a[2] < b[2] end)
 	for k, w in pairs(w_stats) do
 		w = utils.round(w / 1000) -- W -> kW
-		w = math.min(w, 2^31-1) -- can maybe go there if "w - w_last" above runs too late
+		w = math.min(w, 2^31-1) -- can happen when connecting long-running grids
 		if ps_stat[k] then n, idx = table.unpack(ps_stat[k])
 		else for m, slot in pairs(ps_free) do
 			n, idx, ps_free[m] = table.unpack(slot)
@@ -165,7 +173,7 @@ script.on_nth_tick(conf.ticks_between_updates, function(ev)
 		end
 		if not p.c then goto skip end
 
-		update_pole_signal(p.e, p.c, p.stats_abs)
+		update_pole_signal(p)
 
 	::skip:: n = n + 1 ::drop:: end
 end)
