@@ -2,7 +2,8 @@ Compatibility update and tweaks to [Will-o'-the-wisps mod by Betep3akata](https:
 [[Feedback forum thread link](https://forums.factorio.com/viewtopic.php?f=190&t=60876&p=366660)] - [[github link](https://github.com/mk-fg/games/tree/master/factorio/Will-o-the-Wisps_updated)]
 
 **Important:** this mod is reported to cause desync issues in multiplayer games.
-Fixed known causes of this since then, so feel free to test and report whether it works there.
+I try to fix known causes of this, and feel free to report any, but never play mp myself,
+so don't test changes there or know much about how it works beyond other people's reports.
 
 
 ## Description
@@ -61,7 +62,6 @@ Technologies:
 - Rebalanced stats, resistances, costs of technologies.
 - Some new technologies, visual tweaks.
 - Ingame changelog with full list of features, fixes and tweaks for each version.
-- Broken multiplayer, if it worked before :(
 
 See [original Will-o'-the-wisps mod](https://mods.factorio.com/mod/Will-o-the-wisps) and its [forum thread](https://forums.factorio.com/viewtopic.php?f=93&t=41514) for more information.
 
