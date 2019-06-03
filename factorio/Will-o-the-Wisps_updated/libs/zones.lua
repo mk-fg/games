@@ -8,8 +8,8 @@ local ChunkList, ChunkMap -- always up-to-date, existing chunks never removed
 local ForestArea -- {chunk_key=area}
 local ChunkSpreadQueue -- see control.lua for info on how sets are managed
 local ChartLabels -- only set via debug commands
-
-local SpawnChanceCache -- cached list of chunk-chances, discarded on ForestArea changes
+local Cache -- for stuff that can be easily reset to nil
+-- Cache.spawn_chance - cached list of chunk-chances, discarded on ForestArea changes
 
 
 -- Chunk table: { (cx, cy, surface) - where the chunk is
@@ -108,7 +108,7 @@ function zones.update_forests_in_spread(step, steps, rescan)
 		chunk.scan_trees = tick + utils.pick_jitter(conf.chunk_rescan_jitter)
 
 		if #trees >= conf.wisp_forest_min_density
-			then ForestArea[k], SpawnChanceCache = area end
+			then ForestArea[k], Cache.spawn_chance = area end
 
 		::drop::
 		if chunk then chunk.spread = nil end
@@ -120,7 +120,7 @@ end
 
 
 local function get_forest_spawn_chances(pollution_factor)
-	if SpawnChanceCache then return table.unpack(SpawnChanceCache) end
+	if Cache.spawn_chance then return table.unpack(Cache.spawn_chance) end
 	local chances, chance_sum, p_max, chunk, p = {}, 0, 0
 	if not pollution_factor
 		then pollution_factor = conf.wisp_forest_spawn_pollution_factor end
@@ -134,7 +134,7 @@ local function get_forest_spawn_chances(pollution_factor)
 		p = 1 + pollution_factor * chance / p_max
 		chances[k], chance_sum = p, chance_sum + p
 	end end
-	SpawnChanceCache = {chances, chance_sum}
+	Cache.spawn_chance = {chances, chance_sum}
 	return chances, chance_sum
 end
 
@@ -148,7 +148,7 @@ function zones.get_wisp_trees_anywhere(count, pollution_factor)
 		trees = chunk and area
 			and chunk.surface.find_entities_filtered{type='tree', area=area}
 		if trees and #trees >= conf.wisp_forest_min_density then break end
-		trees, ForestArea[k], SpawnChanceCache = nil
+		trees, ForestArea[k], Cache.spawn_chance = nil
 	end
 	if trees then for n = 1, count do
 		table.insert(wisp_trees, trees[math.random(#trees)])
@@ -239,7 +239,7 @@ function zones.refresh_chunks(surface)
 
 	for n, _ in pairs(ChunkList) do ChunkList[n] = nil end
 	for k,_ in pairs(ChunkMap) do ChunkList[#ChunkList+1] = k end
-	SpawnChanceCache = nil
+	Cache.spawn_chance = nil
 end
 
 function zones.scan_new_chunks(surface)
@@ -255,7 +255,7 @@ function zones.scan_new_chunks(surface)
 end
 
 function zones.init_globals(zs)
-	for _, k in ipairs{'chunk_list', 'chunk_map', 'forest_area'}
+	for _, k in ipairs{'chunk_list', 'chunk_map', 'forest_area', 'cache'}
 		do if not zs[k] then zs[k] = {} end end
 	for _, k in ipairs{'chunk_spread_queue', 'chart_labels'}
 		do if not zs[k] then zs[k] = {n=0} end end
@@ -263,8 +263,9 @@ end
 
 function zones.init_refs(zs)
 	conf = global.conf
-	ChunkList, ChunkMap, ForestArea = zs.chunk_list, zs.chunk_map, zs.forest_area
-	ChunkSpreadQueue, ChartLabels = zs.chunk_spread_queue, zs.chart_labels
+	ChunkList, ChunkMap = zs.chunk_list, zs.chunk_map
+	ChunkSpreadQueue, ForestArea = zs.chunk_spread_queue, zs.forest_area
+	ChartLabels, Cache = zs.chart_labels, zs.cache
 	utils.log(
 		' - Zone stats: chunks=%d forests=%d spread-queue=%d labels=%d',
 		#ChunkList, table_size(ForestArea), ChunkSpreadQueue.n, ChartLabels.n )
