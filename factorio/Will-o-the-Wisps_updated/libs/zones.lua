@@ -341,7 +341,7 @@ function zones.forest_labels_add(surface, force, threshold)
 		if n < threshold then n = nil end
 		label = {force_name=force.name, label=force.add_chart_tag(
 			surface, { position=label,
-				icon={type='item', name='raw-wood'},
+				icon={type='item', name='wood'},
 				text=n and ('%.2f%%'):format(100 * n) } )}
 		set[set.n+1], set.n = label, set.n+1
 	end
