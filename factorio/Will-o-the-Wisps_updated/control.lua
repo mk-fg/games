@@ -620,7 +620,7 @@ end
 
 
 ------------------------------------------------------------
--- on_tick handlers - more special than other events
+-- Event handlers
 ------------------------------------------------------------
 
 local tick_handlers = {}
@@ -647,20 +647,8 @@ local function on_nth_tick(event)
 	run_periodic_task(ev_name, ev_set)
 end
 
-for ev, tick in pairs(conf_base.intervals) do
-	if tick_handlers[tick] then
-		error(('BUG: duplicate tick handlers: "%s" and "%s"'):format(ev, tick_handlers[tick]))
-	end
-	tick_handlers[tick] = ev
-	script.on_nth_tick(tick, on_nth_tick)
-end
-
-
-------------------------------------------------------------
--- Event handlers
-------------------------------------------------------------
-
 local function on_death(event)
+	if not (InitState and InitState.configured) then return end
 	local e = event.entity
 	if entity_is_tree(e) then wisp_create_at_random('wisp-yellow', e) end
 	if entity_is_rock(e) then wisp_create_at_random('wisp-red', e) end
@@ -679,11 +667,31 @@ local function on_death(event)
 end
 
 local function on_mined_entity(event)
+	if not (InitState and InitState.configured) then return end
 	if entity_is_tree(event.entity) then wisp_create_at_random('wisp-yellow', event.entity) end
 	if entity_is_rock(event.entity) then wisp_create_at_random('wisp-red', event.entity) end
 end
 
+local function on_built_entity(event)
+	if not (InitState and InitState.configured) then return end
+	local e = event.created_entity
+	if e.name == 'UV-lamp' then return uv_light_init(e) end
+	if e.name == 'wisp-detector' then return detector_init(e) end
+	if e.name == 'wisp-purple' then
+		local surface, pos = e.surface, e.position
+		e.destroy()
+		local wisp =  wisp_create(wisp_spore_proto_name(), surface, pos)
+	else wisp_init(e) end
+end
+
+local function on_chunk_generated(event)
+	if not (InitState and InitState.configured) then return end
+	if event.surface.index ~= InitState.surface.index then return end
+	zones.reset_chunk_area(event.surface, event.area)
+end
+
 local function on_trigger_created(event)
+	if not (InitState and InitState.configured) then return end
 	-- Limit red wisps' replication via trigger_created_entity to specific percentage
 	if event.entity.name ~= 'wisp-red' then return end
 	if utils.pick_chance(conf.wisp_red_damage_replication_chance)
@@ -692,6 +700,7 @@ local function on_trigger_created(event)
 end
 
 local function on_drone_placed(event)
+	if not (InitState and InitState.configured) then return end
 	local surface = game.players[event.player_index].surface
 	local drones = surface.find_entities_filtered{
 		name='wisp-drone-blue', area=utils.get_area(1, event.position) }
@@ -706,23 +715,8 @@ local function on_drone_placed(event)
 	::skip:: end
 end
 
-local function on_built_entity(event)
-	local e = event.created_entity
-	if e.name == 'UV-lamp' then return uv_light_init(e) end
-	if e.name == 'wisp-detector' then return detector_init(e) end
-	if e.name == 'wisp-purple' then
-		local surface, pos = e.surface, e.position
-		e.destroy()
-		local wisp =  wisp_create(wisp_spore_proto_name(), surface, pos)
-	else wisp_init(e) end
-end
-
-local function on_chunk_generated(event)
-	if event.surface.index ~= InitState.surface.index then return end
-	zones.reset_chunk_area(event.surface, event.area)
-end
-
 local function on_player_change(event)
+	if not (InitState and InitState.configured) then return end
 	-- With on_player_changed_force, old force doesn't get any changes
 	wisp_player_aggression_set(game.players[event.player_index].force)
 end
@@ -1000,7 +994,15 @@ script.on_init(function()
 	utils.log('[will-o-wisps] Game init: done')
 end)
 
-script.on_event(defines.events.on_tick, on_tick)
+-- Multiple script.on_nth_tick use same handler via tick_handlers dispatcher
+for ev, tick in pairs(conf_base.intervals) do
+	if tick_handlers[tick] then
+		error(('BUG: duplicate tick handlers: "%s" and "%s"'):format(ev, tick_handlers[tick]))
+	end
+	tick_handlers[tick] = ev
+	script.on_nth_tick(tick, on_nth_tick)
+end
+
 script.on_event(defines.events.on_entity_died, on_death)
 script.on_event(defines.events.on_pre_player_mined_item, on_mined_entity)
 script.on_event(defines.events.on_robot_pre_mined, on_mined_entity)
@@ -1009,6 +1011,7 @@ script.on_event(defines.events.on_robot_built_entity, on_built_entity)
 script.on_event(defines.events.on_chunk_generated, on_chunk_generated)
 script.on_event(defines.events.on_trigger_created_entity, on_trigger_created)
 script.on_event(defines.events.on_player_used_capsule, on_drone_placed)
-script.on_event(defines.events.on_runtime_mod_setting_changed, Init.settings)
 script.on_event(defines.events.on_player_created, on_player_change)
 script.on_event(defines.events.on_player_changed_force, on_player_change)
+
+script.on_event(defines.events.on_runtime_mod_setting_changed, Init.settings)
