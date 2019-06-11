@@ -66,10 +66,13 @@ Technologies:
 See [original Will-o'-the-wisps mod](https://mods.factorio.com/mod/Will-o-the-wisps) and its [forum thread](https://forums.factorio.com/viewtopic.php?f=93&t=41514) for more information.
 
 
+## Cosmetic Compatibility Mod(s)
+
+- [Inlaid UV-lamp](https://mods.factorio.com/mod/InlaidUVLamp) -  makes UV lamps look like ones in [Schall Lamp Contrast](https://mods.factorio.com/mod/SchallLampContrast) and [Inlaid Lamps Extended](https://mods.factorio.com/mod/InlaidLampsExtended) mods.
+
+
 ## Mod Suggestions
 
 - [Longer Days and Nights](https://mods.factorio.com/mod/Longer_Days_and_Nights) - more nights, more shinies!
 - [Time Tools](https://mods.factorio.com/mods/binbinhfr/TimeTools) - UI clock and speed settings plus time/darkness-tracking combinators.
-- [Bullet Trails](https://mods.factorio.com/mod/bullet-trails) - essential visual upgrade, which can also be seen on images here.
-- [Picker Extended](https://mods.factorio.com/mod/PickerExtended) - probably the best Quality-of-Life mod, including distance/radius measuring tool.
 - [Diplomacy](https://mods.factorio.com/mod/diplomacy) and [Rampant](https://mods.factorio.com/mod/Rampant) - for [emergent game faction dynamics and challenge](https://forums.factorio.com/viewtopic.php?p=377032#p377032).
