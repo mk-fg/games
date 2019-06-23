@@ -25,4 +25,9 @@ data:extend{
 		type = 'double-setting',
 		minimum_value = 0,
 		default_value = conf.robot_energy_multiplier },
+	{ order = '05',
+		setting_type = 'startup',
+		name = 'affect-mod-entities',
+		type = 'bool-setting',
+		default_value = conf.affect_mod_entities },
 }

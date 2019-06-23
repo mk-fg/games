@@ -3,7 +3,7 @@
 Allows to adjust roboport construction/logistics bot ranges via Mod Settings menu.
 Specifically - setting range multiplier value, specific static range values or copying one range to another.
 
-Applies to all buildings of "roboport" type, so should also modify roboports added by mods, if any.
+Applies to all buildings of "roboport" type by default, so should also modify roboports added by mods, if any.
 I don't play with any custom roboports though, so feel free to test and report if there are any issues.
 
 Adds following Mod Settings (Startup tab):
@@ -33,6 +33,11 @@ Adds following Mod Settings (Startup tab):
 
 	Max energy value multiplier for construction and logistic robots.
 	Values >1 will allow these bots to fly longer without running out of power.
+	&nbsp;
+
+- Affect Mod Roboports/Robots (yes/no boolean)
+
+	If enabled (default), mod will affect all roboports/robots in their respective categories, including those added by mods, and only ones from base game otherwise.
 
 
 ## Cookbook
@@ -44,6 +49,8 @@ Adds following Mod Settings (Startup tab):
 - Set roboport construction bots range to be 90 tiles: set Construction Range to 90.
 
 - Allow robots to stay in the air 5x longer: set Robot Energy Multiplier to 5.
+
+- Don't affect already-buff roboports/robots from other mods: uncheck Affect Mod Roboports/Robots.
 
 
 [[github link](https://github.com/mk-fg/games/tree/master/factorio/Configurable_Roboport_Range)]

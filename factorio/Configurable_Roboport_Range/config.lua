@@ -12,11 +12,17 @@ conf.range_construction = -1
 -- Multiplier for logistic/construction robot max_energy values
 conf.robot_energy_multiplier = 1.0
 
+-- Whether mod will patch all roboports/robots in their category (if true) or just vanilla ones (if false)
+conf.affect_mod_entities = true
+
 function conf.update_from_settings()
-	conf.range_multiplier = settings.startup['range-multiplier'].value
-	conf.range_logistics = settings.startup['range-logistics'].value
-	conf.range_construction = settings.startup['range-construction'].value
-	conf.robot_energy_multiplier = settings.startup['robot-energy-multiplier'].value
+	local k_conf
+	for _, k in ipairs{ 'range-multiplier', 'range-logistics',
+			'range-construction', 'robot-energy-multiplier', 'affect-mod-entities' } do
+		k_conf = k:gsub('%-', '_')
+		if conf[k_conf] == nil then error(('BUG - config key typo: %s'):format(k)) end
+		conf[k_conf] = settings.startup[k].value
+	end
 end
 
 return conf

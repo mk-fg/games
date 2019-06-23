@@ -12,9 +12,25 @@ local function multiply_energy(e, m)
 	return ('%.1f%s'):format(n * m, unit)
 end
 
+
+local function get_entities(t)
+	local entities = {}
+	for _, e in pairs(data.raw[t]) do
+		if not conf.affect_mod_entities
+			and e.name ~= t then goto skip end
+		table.insert(entities, e)
+	::skip:: end
+	return entities
+end
+
+local roboports = get_entities('roboport')
+local robots_logistic = get_entities('logistic-robot')
+local robots_cons = get_entities('construction-robot')
+
+
 -- Value multipliers
 if conf.range_multiplier ~= 1.0 then
-	for _, p in pairs(data.raw.roboport) do
+	for _, p in pairs(roboports) do
 		p.logistics_radius = round(p.logistics_radius * conf.range_multiplier)
 		p.construction_radius = round(p.construction_radius * conf.range_multiplier)
 	end
@@ -22,26 +38,26 @@ end
 
 -- Static values
 if conf.range_logistics >= 0
-	then for _, p in pairs(data.raw.roboport)
+	then for _, p in pairs(roboports)
 		do p.logistics_radius = round(conf.range_logistics) end end
 if conf.range_construction >= 0
-	then for _, p in pairs(data.raw.roboport)
+	then for _, p in pairs(roboports)
 		do p.construction_radius = round(conf.range_construction) end end
 
 -- Copy values
 if conf.range_logistics == -2
-	then for _, p in pairs(data.raw.roboport)
+	then for _, p in pairs(roboports)
 		do p.logistics_radius = p.construction_radius end end
 if conf.range_construction == -2
-	then for _, p in pairs(data.raw.roboport)
+	then for _, p in pairs(roboports)
 		do p.construction_radius = p.logistics_radius end end
 
 -- Robot energy multiplier
 if conf.robot_energy_multiplier ~= 1.0 then
-	for _, p in pairs(data.raw['logistic-robot'])
+	for _, p in pairs(robots_logistic)
 		do p.max_energy = multiply_energy(
 			p.max_energy, conf.robot_energy_multiplier ) end
-	for _, p in pairs(data.raw['construction-robot'])
+	for _, p in pairs(robots_cons)
 		do p.max_energy = multiply_energy(
 			p.max_energy, conf.robot_energy_multiplier ) end
 end

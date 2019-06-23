@@ -1,6 +1,6 @@
 {
 	"name": "Configurable_Roboport_Range",
-	"version": "0.0.2",
+	"version": "0.0.3",
 	"factorio_version": "0.17",
 	"dependencies": ["base >= 0.17.0"],
 	"title": "Configurable Roboport Range",
