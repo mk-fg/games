@@ -1,4 +1,11 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.0.5
+Date: 28. 06. 2018
+  Features:
+    - Non-item power-generating entities (usually invisible, added by mods) now counted as O (others) signal.
+  Bugfixes:
+    - Fix crash with mod entities that don't have corresponding items to use as signals.
+---------------------------------------------------------------------------------------------------
 Version: 0.0.4
 Date: 21. 05. 2018
   Bugfixes:

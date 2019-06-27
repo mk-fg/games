@@ -92,15 +92,19 @@ local function update_pole_signal(pole)
 	if not (ecc and ecc.enabled) then return end
 	local k, n, w, idx
 
-	local w_stats, w_total, stats_abs = {}, 0, pole.stats_abs
+	local w_stats, w_total, w_other, stats_abs = {}, 0, 0, pole.stats_abs
 	for k, w in pairs(pole.e.electric_network_statistics.output_counts) do
 		w_last, stats_abs[k] = stats_abs[k], w
 		if not w_last then goto skip end
 		-- 0 in case of integer value rollover. Value is in watts per 60 ticks, hence division.
 		w = math.max(0, w - w_last) / (conf.ticks_between_updates / 60)
-		w_stats[('item.%s'):format(k)], w_total = w, w_total + w
+		w_total = w_total + w
+		if game.item_prototypes[k]
+			then w_stats[('item.%s'):format(k)] = w
+			else w_other = w_other + w end -- stats for non-item entities, can't be used as signals
 	::skip:: end
 	w_stats[conf.sig_kw_total] = w_total
+	if w_other > 0 then w_stats[conf.sig_kw_other] = w_other end
 	utils.log('stats', w_stats)
 
 	-- Scan existing signals for slots to replace or fill-in

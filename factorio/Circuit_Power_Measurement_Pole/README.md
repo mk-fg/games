@@ -4,7 +4,10 @@ Adds Small "Smart Meter" Electric Pole which can be used to measure electric net
 
 Multiple signals are transmitted for each energy source (e.g. Solar Panel, Steam Engine, Accumulator, etc), with values set to combined production of that building type in kW, rounded to nearest integer.
 
-Special "W" signal is also generated for total power production in the connected energy grid (sum of all per-building-type values), which should match grid usage.
+Special "W" signal is generated for total power production in the connected energy grid (sum of all per-building-type values), which should match grid usage.
+
+Another special "O" signal is used for sum of production of all non-item power-generating entities added by mods, which can't be used as signals themselves.
+(these are non-craftable/placeable invisible things that some mods use internally to represent power added to grid from somewhere, e.g. Personal Transformer mod sending excess power production from player's armor into the grid that way)
 
 These are **current** power production values, as set by grid power demand and limited by available sources, not static maximum values of any kind.
 
