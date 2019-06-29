@@ -149,16 +149,18 @@ Easy to fix with mods though, which are one of the best parts of the game.
 
   Gives control over the length of day/night cycle.
 
-- `Configurable_Roboport_Range
+- `Configurable Roboport Range
   <https://mods.factorio.com/mod/Configurable_Roboport_Range>`_
 
   Small tweak to change Roboport building ranges.
 
 - `Circuit Power Measurement Pole
-  <https://mods.factorio.com/mod/Circuit_Power_Measurement_Pole>`_
+  <https://mods.factorio.com/mod/Circuit_Power_Measurement_Pole>`_ /
+  `Circuit Power Measurement Combinator
+  <https://mods.factorio.com/mod/Circuit_Power_Measurement_Combinator>`_
 
-  Adds "Smart Meter" Circuit Network Pole which can be used to measure electric
-  network power production.
+  Power grid production/consumption measuring mods, outputting signals to
+  circuit network, which were curiously absent until now.
 
 - ReducedResearchX
 
@@ -204,7 +206,7 @@ for some desired output level, and how many assemblers/throughput it'd require.
 .. _Factorio: http://factorio.com/
 .. _doomeer/factorio: http://github.com/doomeer/factorio/
 .. _doomeer/factorio#75: https://github.com/doomeer/factorio/issues/75
-.. _LuaCombinator 2: https://mods.factorio.com/mod/LuaCombinator2
+.. _LuaCombinator 2 mod: https://mods.factorio.com/mod/LuaCombinator2
 
 
 `Surviving Mars`_

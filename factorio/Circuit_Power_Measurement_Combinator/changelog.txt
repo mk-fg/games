@@ -1,0 +1,5 @@
+---------------------------------------------------------------------------------------------------
+Version: 0.0.1
+Date: 29. 04. 2018
+  Features:
+    - Initial release, based on Circuit Power Measurement Pole 0.0.5 code with minor changes.
