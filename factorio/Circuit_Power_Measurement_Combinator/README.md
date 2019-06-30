@@ -41,4 +41,4 @@ Comparing such high-watermark value against measured output can be used to get g
     Left there mostly to avoid breaking how stuff works for any existing users.
 
 
-[[github link](https://github.com/mk-fg/games/tree/master/factorio/Circuit_Power_Measurement_Pole)]
+[[github link](https://github.com/mk-fg/games/tree/master/factorio/Circuit_Power_Measurement_Combinator)]
