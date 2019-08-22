@@ -2,7 +2,7 @@ mods:
   - enabled: true
     name: base
   - enabled: true
-    name: '200 Inventory Size'
+    name: 200_Inventory_Size
   - enabled: true
     name: Bottleneck
   - enabled: true
@@ -10,7 +10,11 @@ mods:
   - enabled: true
     name: Burner_Drill_4x4_Area
   - enabled: true
+    name: Circuit_Power_Measurement_Combinator
+  - enabled: true
     name: ConfigUnderLengths
+  - enabled: true
+    name: Configurable_Roboport_Range
   - enabled: true
     name: deadlock-beltboxes-loaders
   - enabled: true
@@ -28,17 +32,13 @@ mods:
   - enabled: true
     name: laserlines
   - enabled: true
+    name: laser_fix
+  - enabled: true
     name: Longer_Days_and_Nights
   - enabled: true
     name: LuaCombinator2
   - enabled: true
     name: MushroomCloud
-  - enabled: true
-    name: PickerAtheneum
-  - enabled: true
-    name: PickerDollies
-  - enabled: true
-    name: PickerExtended
   - enabled: true
     name: pushbutton
   - enabled: true
