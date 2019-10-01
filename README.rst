@@ -244,7 +244,8 @@ history, obsoleted by official game updates:
 
 - `green-mars-terraforming-lightmodel <https://www.nexusmods.com/survivingmars/mods/95>`_
 
-  Covers mars terrain and atmosphere with greenish bioluminescent microbiotic life.
+  | Covers mars terrain and atmosphere with greenish bioluminescent microbiotic life.
+  | Simple lightmodel switch, was made before DLC with the same name came out.
 
 - polymers-production-buff, unlock-oval-dome, quick-cash-refund
 
@@ -257,6 +258,12 @@ history, obsoleted by official game updates:
 
   Requres bootstrap via initial console via ``c.init(load)`` command, to give access
   to full _G env for all subroutines there, ``c.h()`` for more info on all the tools there.
+
+- sm-music-pls.py
+
+  Script to reshuffle music files extracted from HPK archives
+  (e.g. via `nickelc/hpk <https://github.com/nickelc/hpk>`_ tool),
+  producing game-radio-like playlist with radio blurbs/talks interspersed with music.
 
 .. _Surviving Mars: https://www.survivingmars.com/
 
