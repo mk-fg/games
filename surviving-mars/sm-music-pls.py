@@ -22,19 +22,25 @@ def main(args=None):
 				' extensions (can be mp3, ogg or original opus).')
 	parser.add_argument('dst_pls',
 		help='Destination pls file to produce.')
-	parser.add_argument('--chance-blurb',
+	parser.add_argument('--chance-pre',
 		type=float, default=0.8, metavar='float',
-		help='Chance of adding blurb before music track (range: 0 - 1.0). Default: %(default)s')
+		help='Chance of adding blurb/talk before music track (range: 0 - 1.0). Default: %(default)s')
 	parser.add_argument('--chance-talk',
+		type=float, default=0.7, metavar='float',
+		help='Chance of adding talk segment instead'
+			' of blurb before music track (if any, range: 0 - 1.0). Default: %(default)s')
+	parser.add_argument('--chance-ad',
 		type=float, default=0.5, metavar='float',
-		help='Chance of adding talk segment before music track'
-			' and after blurb (if any, range: 0 - 1.0). Default: %(default)s')
+		help='Chance of adding commercial segment before'
+			' any blurb/talk/music track combo (range: 0 - 1.0). Default: %(default)s')
 	opts = parser.parse_args(sys.argv[1:] if args is None else args)
+
+	### Find tracks
 
 	src = pl.Path(opts.src_dir)
 	src_lists = dict()
 	src_t_res = dict( blurb=re.compile(r'^Blurb_'),
-		talk=re.compile(r'^Talks_'), music=re.compile('.') )
+		talk=re.compile(r'^Talks_'), ad=re.compile('^Commercials_'), music=re.compile('.') )
 
 	src_rp = str(src.resolve())
 	for root, dirs, files, dir_fd in os.fwalk(src, follow_symlinks=True):
@@ -54,32 +60,43 @@ def main(args=None):
 				break
 			else: raise RuntimeError(f'Failed to detect track type: {track} [{root} / {p}]')
 
+	### Assemble playlist
+
 	pls = list()
-	chances = adict(blurb=opts.chance_blurb, talk=opts.chance_talk)
 
 	if '' in src_lists:
 		tracks = src_lists.pop('').music.values()
 		random.shuffle(tracks)
 		pls.extend(tracks)
 
-	while src_lists:
-		t = random.choice(list(src_lists))
+	# Weighted random is used so that longest track-list won't end up in the tail
+	src_weights = adict((k, len(v.music)) for k,v in src_lists.items())
+	while src_weights:
+		t, = random.choices(list(src_weights.keys()), src_weights.values())
 		src_list = src_lists[t]
+		if not src_list.music:
+			src_weights.pop(t)
+			continue
 
-		for k, chance in chances.items():
-			if random.random() < chance:
-				files = src_list.get(k)
-				if files:
-					k = random.choice(list(files))
-					p = files.pop(k)
-					pls.append(p)
-
-		if src_list.music:
-			k = random.choice(list(src_list.music))
-			p = src_list.music.pop(k)
+		if random.random() < opts.chance_ad and src_list.get('ad'):
+			k = random.choice(list(src_list.ad))
+			p = src_list.ad.pop(k)
 			pls.append(p)
 
-		if not src_list.music: src_lists.pop(t)
+		if random.random() < opts.chance_pre:
+			k = 'blurb' if random.random() > opts.chance_talk else 'talk'
+			files = src_list.get(k)
+			if not files: files = src_list.get(next(iter({'blurb', 'talk'}.difference([k]))))
+			if files:
+				k = random.choice(list(files))
+				p = files.pop(k)
+				pls.append(p)
+
+		k = random.choice(list(src_list.music))
+		p = src_list.music.pop(k)
+		pls.append(p)
+
+	### Write playlist
 
 	pl.Path(opts.dst_pls).write_text(''.join(f'{p}\n' for p in pls))
 
