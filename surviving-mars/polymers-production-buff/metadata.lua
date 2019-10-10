@@ -4,7 +4,7 @@ return PlaceObj('ModDef', {
 	'id', 'TrF3sid',
 	'author', 'mk-fg',
 	'version', 5,
-	'lua_revision', LuaRevision,
+	'lua_revision', 245618,
 	'code', {'Code/polymers-prod-buff.lua'},
 	'saved', 1521872694,
 	-- 'image', 'thumb.png',

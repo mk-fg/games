@@ -4,7 +4,7 @@ return PlaceObj('ModDef', {
 	'id', 'rqVOzs',
 	'author', 'mk-fg',
 	'version', 3,
-	'lua_revision', LuaRevision,
+	'lua_revision', 245618,
 	'code', {'Code/no-more-idiots.lua'},
 	'saved', 1521871933,
 	-- 'image', 'thumb.png',

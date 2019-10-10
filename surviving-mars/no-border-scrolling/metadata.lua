@@ -4,7 +4,7 @@ return PlaceObj('ModDef', {
 	'id', 'f43U6Cx',
 	'author', 'mk-fg',
 	'version', 5,
-	'lua_revision', LuaRevision,
+	'lua_revision', 245618,
 	'code', {'Code/no-border-scrolling.lua'},
 	'saved', 1521881220,
 	-- 'image', 'thumb.png',

@@ -4,7 +4,7 @@ return PlaceObj('ModDef', {
 	'id', 'eZCrq6v',
 	'author', 'mk-fg',
 	'version', 3,
-	'lua_revision', LuaRevision,
+	'lua_revision', 245618,
 	'code', {'Code/cheaper-consumer-items.lua'},
 	'saved', 1521874258,
 	-- 'image', 'thumb.png',

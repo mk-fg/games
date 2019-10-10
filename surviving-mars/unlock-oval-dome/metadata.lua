@@ -4,7 +4,7 @@ return PlaceObj('ModDef', {
 	'id', 'mk-fg/unlock-oval-dome',
 	'author', 'mk-fg',
 	'version', 1,
-	'lua_revision', LuaRevision,
+	'lua_revision', 245618,
 	'code', {'Code/unlock-oval-dome.lua'},
 	'saved', 1539294646,
 	-- 'image', 'thumb.png',

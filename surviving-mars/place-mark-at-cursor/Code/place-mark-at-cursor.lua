@@ -34,6 +34,7 @@ local function toggle_cursor_tile_color(hex_color)
 	else
 		local x, y = HexToWorld(q, r)
 		local tile = PlaceObject('mkfg_tile')
+		tile:ClearEnumFlags(const.efSelectable)
 		tile:SetPos(point(x, y):SetStepZ():AddZ(100))
 		tile:SetColorModifier(hex_color - 0xffffff)
 		g_mkfg_color_marks[key] = tile

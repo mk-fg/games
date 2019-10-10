@@ -4,7 +4,7 @@ return PlaceObj('ModDef', {
 	'id', 'mk-fg/lua-console',
 	'author', 'mk-fg',
 	'version', 1,
-	'lua_revision', LuaRevision,
+	'lua_revision', 245618,
 	'code', {'Code/console.lua'},
 	'saved', 1539337856,
 	-- 'image', 'thumb.png',

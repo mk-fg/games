@@ -5,7 +5,7 @@ return PlaceObj('ModDef', {
 	'id', "mk-fg/quick-cash-refund",
 	'author', "mk-fg",
 	'version', 1,
-	'lua_revision', LuaRevision,
+	'lua_revision', 245618,
 	'code', {"Code/quick-cash-refund.lua"},
 	'saved', 1541143189,
 })
