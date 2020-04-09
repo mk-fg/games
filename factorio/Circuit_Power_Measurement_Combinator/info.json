@@ -1,8 +1,8 @@
 {
 	"name": "Circuit_Power_Measurement_Combinator",
-	"version": "0.0.1",
-	"factorio_version": "0.17",
-	"dependencies": ["base >= 0.17.0"],
+	"version": "0.0.2",
+	"factorio_version": "0.18",
+	"dependencies": ["base >= 0.18.0"],
 	"title": "Circuit Power Measurement Combinator",
 	"author": "mk-fg",
 	"description": "Adds Power Meter Combinator that transmits power production info for electric grid connected to closest electric pole to a circuit network."
