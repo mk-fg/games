@@ -1,6 +1,6 @@
 {
 	"name": "Circuit_Power_Measurement_Combinator",
-	"version": "0.0.2",
+	"version": "0.0.3",
 	"factorio_version": "0.18",
 	"dependencies": ["base >= 0.18.0"],
 	"title": "Circuit Power Measurement Combinator",
