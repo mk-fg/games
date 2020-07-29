@@ -149,10 +149,11 @@ script.on_nth_tick(conf.ticks_between_updates, function(ev)
 			not Ticks.meter_check or Ticks.meter_check < ev.tick ) then
 		local meter_uns = {}
 		for n = 1, MeterSet.n do meter_uns[MeterSet[n].unit_number] = true end
-		for _, e in ipairs(game.surfaces.nauvis.find_entities_filtered{
-				type='constant-combinator', name='power-meter-combinator' }) do
-			if not meter_uns[e.unit_number] then meter_init(e) end
-		end
+		for _, s in ipairs(game.surfaces) do
+			for _, e in ipairs(s.find_entities_filtered{
+					type='constant-combinator', name='power-meter-combinator' }) do
+				if not meter_uns[e.unit_number] then meter_init(e) end
+		end end
 		Ticks.meter_check = ev.tick + (conf.ticks_between_rescan or 0)
 	end
 
@@ -168,7 +169,7 @@ script.on_nth_tick(conf.ticks_between_updates, function(ev)
 
 		if not m.p or not m.p.valid then
 			local ps, pd, pd_new
-			ps, m.p = game.surfaces.nauvis.find_entities_filtered{
+			ps, m.p = m.e.surface.find_entities_filtered{
 				position=m.e.position, radius=conf.pole_radius,
 				force=m.e.force, type='electric-pole' }
 			for _, p in ipairs(ps) do
