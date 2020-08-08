@@ -415,7 +415,7 @@ Misc Scripts
 
 Helper scripts not related to specific games.
 
-- gog-unpack.sh
+- `gog-unpack.sh <gog-unpack.sh>`_
 
   Script to unpack GoG (gog.com) linux archives without running makeself and
   mojosetup.
@@ -428,3 +428,29 @@ Helper scripts not related to specific games.
 
   Note that zip can have configuration and post-install instructions for
   mojosetup in it (under "scripts/"), plus misc assets like icons and such.
+
+- `faketimectl <faketimectl>`_
+
+  Trivial Py3/Gtk3 app to control libfaketime_ rate via global hotkeys
+  (using libkeybinder3_) and display it.
+
+  Idea is to run a game with e.g.::
+
+    LD_PRELOAD=/usr/lib/faketime/libfaketime.so.1 FAKETIME_CACHE_DURATION=3 \
+    FAKETIME_XRESET=1 FAKETIME_TIMESTAMP_FILE=/tmp/faketime.rc ./game/start.sh
+
+  And have this script adjust its running speed via these keys, kinda like
+  `Cheat Engine`_ "speedhack" tool does on Windows, allowing to play
+  fast games at a more chill pace easily.
+
+  Run script with -h/--help option to get a list of default hotkeys and other
+  options/usage info.
+
+  Rate adjustments are picked-up after FAKETIME_CACHE_DURATION seconds,
+  when libfaketime re-reads that file.
+  FAKETIME_NO_CACHE can be used to remove that delay entirely, at the cost of
+  extra file read/parsing on every time-related call - probably not ideal.
+
+.. _libfaketime: https://github.com/wolfcw/libfaketime
+.. _libkeybinder3: https://github.com/engla/keybinder/tree/keybinder-3.0
+.. _Cheat Engine: https://www.cheatengine.org/

@@ -1,0 +1,133 @@
+#!/usr/bin/env python3
+
+import os, sys, pathlib as pl
+
+import gi
+gi.require_version('Gtk', '3.0')
+gi.require_version('Gdk', '3.0')
+gi.require_version('Keybinder', '3.0')
+from gi.repository import Gtk, Gdk
+from gi.repository import Keybinder # comes with libkeybinder3 package
+
+
+hotkeys_default = '''
+<Super>KP_Divide 0.2
+<Super>KP_Multiply 0.4
+<Super>KP_Subtract 0.6
+<Super>KP_Add 0.8
+<Super>KP_Enter 1.0
+'''
+
+class FaketimeControl:
+
+	css = 'label { font-size: 30px; }'
+
+	def __init__(self, rc_file, keys, keys_print=False):
+		self.rc_file, self.keys, self.keys_print = rc_file, keys, keys_print
+		self.app = Gtk.Application.new('org.jncDdHBql.K9LwUiqXJ.faketimectl', 0)
+		self.app.connect('activate', self.app_init)
+
+	def rc_file_read(self):
+		self.rc_file.seek(0)
+		return self.rc_file.read().decode().strip()
+
+	def rc_file_write_rate(self, rate):
+		# Should be fairly atomic with a single write operation
+		# Extra spaces are to make sure that previous value is overwritten
+		self.rc_file.seek(0)
+		self.rc_file.write(f'+0 x{rate:.2f}    \n'.encode())
+		self.rc_file.flush()
+
+	def print_window_key(self, w, ev, _masks=dict()):
+		if not _masks:
+			_mod_dict = dict(control='ctrl', mod1='alt', mod4='')
+			for st, mod in Gdk.ModifierType.__flags_values__.items():
+				if ( len(mod.value_names) != 1
+					or not mod.first_value_nick.endswith('-mask') ): continue
+				assert st not in _masks, [mod.first_value_nick, _masks[st]]
+				mod = mod.first_value_nick[:-5]
+				mod = _mod_dict.get(mod, mod).title()
+				if mod.startswith('modifier-reserved-'): mod = 'res-{}'.format(mod[18:])
+				_masks[st] = mod
+		chk, keyval = ev.get_keyval()
+		if not chk: return
+		key_sum, key_name = list(), Gdk.keyval_name(keyval)
+		for st, mod in _masks.items():
+			if ev.state & st == st and mod: key_sum.append(f'<{mod}>')
+		key_sum = ' '.join(sorted(key_sum) + [key_name])
+		print(f'Window key pressed: {key_sum!r}')
+
+	def update(self, key, rate):
+		self.rc_file_write_rate(rate)
+		self.label.set_text(f'rate: {rate:.2f}')
+
+	def app_init(self, app):
+		css = Gtk.CssProvider()
+		css.load_from_data(self.css.encode())
+		Gtk.StyleContext.add_provider_for_screen(
+			Gdk.Screen.get_default(), css,
+			Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION )
+
+		self.w = win = Gtk.ApplicationWindow.new(self.app)
+		win.set_default_size(200, 100)
+		win.set_title('faketimectl')
+		win.connect('destroy', lambda a: self.app.quit())
+
+		self.label = Gtk.Label()
+		self.label.set_text(f'Init: {self.rc_file_read()}')
+		win.add(self.label)
+
+		Keybinder.init()
+		if Keybinder.supported():
+			for line in self.keys.strip().splitlines():
+				key, rate = line.split()
+				Keybinder.bind(key, self.update, float(rate))
+
+		if self.keys_print:
+			win.connect('key-press-event', self.print_window_key)
+
+		win.show_all()
+
+	def run(self): self.app.run()
+
+
+def main(args=None):
+	import argparse, textwrap
+	dd = lambda text: (textwrap.dedent(text).strip('\n') + '\n').replace('\t', '  ')
+	fill = lambda s,w=90,ind='',ind_next='  ',**k: textwrap.fill(
+		s, w, initial_indent=ind, subsequent_indent=ind if ind_next is None else ind_next, **k )
+	hotkeys_indented = ''.join(f'\t\t\t\t{line}\n' for line in hotkeys_default.splitlines())
+	parser = argparse.ArgumentParser(
+		formatter_class=argparse.RawTextHelpFormatter,
+		description=dd(f'''
+			Libfaketime control keybindings script.
+			Changes x<rate> value in specified -f/--file when pressing hotkeys.
+
+			Example game command:
+				setxkbmap us -variant intl &&
+					LD_PRELOAD=/usr/lib/faketime/libfaketime.so.1
+					FAKETIME_XRESET=1 FAKETIME_TIMESTAMP_FILE=/tmp/faketime.rc ./game/start.sh
+			See https://github.com/wolfcw/libfaketime for more details.
+
+			Default hotkeys: {hotkeys_indented}
+			Key names are used according to Gdk.keyval_name() translation or -p/--print-keys option.
+			See https://github.com/GNOME/gtk/blob/e735da3/gdk/keynames.txt for name list.'''))
+	parser.add_argument('-f', '--file',
+		metavar='path', default='/tmp/faketime.rc',
+		help='File to control rate values in. Default: %(default)s')
+	parser.add_argument('-k', '--hotkeys-file', metavar='path',
+		help='File with "<hotkey combo> <rate>" lines, to use instead of default ones above.')
+	parser.add_argument('-p', '--print-keys', action='store_true',
+		help='Prints Gtk3 names of all keys pressed with this window active to stdout.')
+	opts = parser.parse_args(sys.argv[1:] if args is None else args)
+
+	faketime_rc, keys = pl.Path(opts.file), hotkeys_default
+	if opts.hotkeys_file: keys = pl.Path(opts.hotkeys_file).read_text()
+	if not faketime_rc.exists(): faketime_rc.touch()
+	with open(faketime_rc, 'r+b') as rc_file:
+		FaketimeControl(rc_file, keys, keys_print=opts.print_keys).run()
+
+if __name__ == '__main__':
+	import signal
+	signal.signal(signal.SIGINT, signal.SIG_DFL) # allow gtk to die quietly
+	sys.exit(main())
