@@ -35,8 +35,12 @@ local function gui_update(player, event)
 			cc_state_apply(player)
 		end
 	end
-	cruise.caption = CCState[player.index] == 'cruise' and 'Stop' or 'Cruise'
-	brake.caption = CCState[player.index] == 'brake' and 'Disengage' or 'Brake'
+	if CCState[player.index] == 'cruise'
+		then cruise.caption, cruise.style = 'Cruising', 'vcc-cruise-enabled'
+		else cruise.caption, cruise.style = 'Cruise', 'button' end
+	if CCState[player.index] == 'brake'
+		then brake.caption, brake.style = 'Braking', 'vcc-brake-enabled'
+		else brake.caption, brake.style = 'Brake', 'button' end
 end
 
 local function gui_create(player)

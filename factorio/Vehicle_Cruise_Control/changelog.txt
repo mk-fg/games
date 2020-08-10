@@ -1,4 +1,10 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.0.5
+Date: 10. 08. 2020
+  Changes:
+    - Updated metadata for Factorio 0.18.x compatibility.
+    - Cruise/Brake buttons use green/red background when enabled.
+---------------------------------------------------------------------------------------------------
 Version: 0.0.4
 Date: 13. 04. 2019
   Changes:
