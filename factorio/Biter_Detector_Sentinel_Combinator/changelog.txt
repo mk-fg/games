@@ -1,0 +1,6 @@
+---------------------------------------------------------------------------------------------------
+Version: 0.0.1
+Date: 11. 08. 2020
+  Features:
+    - Initial release, based on Circuit Power Measurement Combinator code.
+    - Only basic "does not immediately crash" testing, still need to play with it myself.
