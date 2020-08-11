@@ -14,6 +14,7 @@ conf.ticks_update_steps = 10
 conf.ticks_between_rescan = nil
 
 -- Radius in which to locate closest radar.
+-- Can be set to <= 0 to not require radar to be present.
 conf.radar_radius = 8
 
 -- Radius in which to scan for biters by default.
@@ -29,11 +30,12 @@ conf.sig_range = 'virtual.signal-R'
 
 -- Enable this for various utils.log() messages from code to
 --  go to factorio logging (stdout by default) instead of nowhere.
-conf.debug_log = true
+-- conf.debug_log = true
 
 function conf.update_from_settings()
 	conf.ticks_between_updates = settings.startup['signal-update-interval'].value
 	conf.ticks_update_steps = settings.startup['signal-update-steps'].value
+	if not settings.startup['require-radar'].value then conf.radar_radius = 0 end
 end
 
 return conf

@@ -109,7 +109,7 @@ local function update_sentinel_signal(sentinel)
 		else
 			sig = ('%s.%s'):format(p.signal.type, p.signal.name)
 			if biter_signals[sig] then ps_stat[sig] = {n, p.index} else ps[sig] = p end
-			if k == conf.sig_range then range = p.count or 0 end -- R set on detector itself
+			if sig == conf.sig_range then range = p.count or 0 end -- R set on detector itself
 		end
 	end
 	local signals = sentinel.e.get_merged_signals()
@@ -176,17 +176,20 @@ script.on_nth_tick(conf.ticks_between_updates, function(ev)
 		end
 		utils.log('--- sentinel', n)
 
+		if conf.radar_radius > 0 and s.p == s.e then s.p = nil end -- for settings change
 		if not s.p or not s.p.valid then
-			local ps, pd, pd_new
-			ps, s.p = s.e.surface.find_entities_filtered{
-				position=s.e.position, radius=conf.radar_radius,
-				force=s.e.force, type='radar' }
-			for _, p in ipairs(ps) do
-				pd_new = utils.distance(s.e.position, p.position)
-				if not pd or pd > pd_new then pd, s.p = pd_new, p end
-			end
+			if conf.radar_radius > 0 then
+				local ps, pd, pd_new
+				ps, s.p = s.e.surface.find_entities_filtered{
+					position=s.e.position, radius=conf.radar_radius,
+					force=s.e.force, type='radar' }
+				for _, p in ipairs(ps) do
+					pd_new = utils.distance(s.e.position, p.position)
+					if not pd or pd > pd_new then pd, s.p = pd_new, p end
+				end
+			elseif s.e.valid then s.p = s.e end -- radar requirement disabled
 		end
-		if not s.p or s.p.energy <= 0 then goto skip end -- checks if radar is working
+		if not s.p or (conf.radar_radius > 0 and s.p.energy <= 0) then goto skip end -- check if radar is working
 
 		update_sentinel_signal(s)
 

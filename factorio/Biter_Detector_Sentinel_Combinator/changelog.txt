@@ -1,4 +1,13 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.0.2
+Date: 11. 08. 2020
+  Features:
+    - Add "Require Radar" option to make detectors more compact and suitable as triggers.
+  Fixes:
+    - Fix internal R range signal not being read properly.
+    - Disable debug logging in config.lua.
+
+---------------------------------------------------------------------------------------------------
 Version: 0.0.1
 Date: 11. 08. 2020
   Features:
