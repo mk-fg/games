@@ -162,6 +162,11 @@ Easy to fix with mods though, which are one of the best parts of the game.
   Power grid production/consumption measuring mods, outputting signals to
   circuit network, which were curiously absent until now.
 
+- `Biter Detector Sentinel Combinator
+  <https://mods.factorio.com/mod/Biter_Detector_Sentinel_Combinator>`_
+
+  Detector/counter for biter enemies within range.
+
 - ReducedResearchX
 
   Local mod to reduce all research costs by somewhat complicated formula,
