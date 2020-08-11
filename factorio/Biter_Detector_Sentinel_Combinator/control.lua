@@ -18,11 +18,8 @@ local utils = {
 
 	distance = function(p1, p2)
 		return ((p1.x - p2.x)^2 + (p1.y - p2.y)^2)^0.5 end,
-
-	round = function(num, dec_places)
-		local mult = 10^(dec_places or 0)
-		return math.floor(num * mult + 0.5) / mult
-	end,
+	area = function(p, r)
+		return {{p.x - r, p.y - r}, {p.x + r, p.y + r}} end,
 
 	t = function(s, value)
 		-- Makes padded table from other table keys or a string of keys
@@ -115,15 +112,15 @@ local function update_sentinel_signal(sentinel)
 	local signals = sentinel.e.get_merged_signals()
 	if signals then for _, p in ipairs(signals) do
 		sig = ('%s.%s'):format(p.signal.type, p.signal.name)
-		if sig == conf.sig_range then range = (range or 0) + p.count end
+		if sig == conf.sig_range then range = p.count end
 	end end
 	if not range then range = conf.default_scan_range end -- not set via any signals
 	if range < 1 then return end -- R<=0 - can be disabled from circuit network that way
 
 	-- Run surface scan and count known/other biter entities (force=enemy)
 	local stats, total = {}, 0
-	local biters = sentinel.p.surface.find_entities_filtered{
-		force='enemy', position=sentinel.p.position, radius=range }
+	local biters = sentinel.p.surface.find_units{
+		area=utils.area(sentinel.p.position, range), force='enemy', condition='all' }
 	for _, e in ipairs(biters) do
 		if not e.valid then goto skip end
 		sig = ('virtual.%s'):format('signal-bds-'..e.name)

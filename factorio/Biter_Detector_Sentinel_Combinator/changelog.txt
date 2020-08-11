@@ -1,4 +1,12 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.0.3
+Date: 11. 08. 2020
+  Changes:
+    - Use surface.find_units() which only detects mobile units, for better performance and less noise.
+  Fixes:
+    - Fix range being doubled when connected to a circuit network.
+
+---------------------------------------------------------------------------------------------------
 Version: 0.0.2
 Date: 11. 08. 2020
   Features:

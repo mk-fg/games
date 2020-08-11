@@ -10,8 +10,8 @@ Detection radius (in tiles, default=32) can be set by R signal right on the comb
 Negative value can be sent to disable scanning (same as shutting down combinator or connected radar), or 0 to use default range.
 Note that even with extremely high range set, detection should only work for map chunks that factorio simulates at the moment.
 
-All units in "enemy" default force are detected, which should be biters, but not players or modded non-biter entities.
-Each default mobile biter/spitter type emit their own signal, while any other entity within range is counted into "Other Alien Entities Count" signal, and "Total Alien Entities Count" counts them all.
+All mobile units in "enemy" default force are detected, which should be biters/spitters, including modded biters, but not nests/worms, players or non-biter entities on other forces.
+Each default biter/spitter type emit their own signal, while any other unit within range is counted into "Other Aliens" signal, and "Total Alien Units" counts them all.
 Any other signals can be set on the combinator freely as well, it shouldn't touch them.
 
 Mod settings allow to change update intervals and some workload parameters.
