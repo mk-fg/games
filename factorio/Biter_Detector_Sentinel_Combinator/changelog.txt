@@ -1,4 +1,19 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.0.6
+Date: 12. 08. 2020
+  Features:
+    - Add Sentinel Alarm tower for simpler "enemy approaching" detection signals.
+  Changes:
+    - Made sentinel-combinator a 3-component recipe (constant one + cable + circuit).
+    - Removed "Require Radar" option - Sentinel Alarms should cover that use-case.
+
+---------------------------------------------------------------------------------------------------
+Version: 0.0.5
+Date: 11. 08. 2020
+  Fixes:
+    - Fix force check condition in surface.find_units().
+
+---------------------------------------------------------------------------------------------------
 Version: 0.0.4
 Date: 11. 08. 2020
   Changes:

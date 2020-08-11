@@ -30,10 +30,11 @@ local utils = {
 		return t
 	end,
 
-	log = function(src, val, data)
+	log = function(src, val, data, print_data)
 		if not conf.debug_log then return end
-		if data then print(('--- '..src):format(val, serpent.block(data)))
-		else print(('--- %s: %s'):format(src, serpent.block(val))) end
+		if data or print_data then
+			print(('--- '..src):format(val, serpent.line(data)))
+		else print(('--- %s: %s'):format(src, serpent.line(val))) end
 	end,
 
 }
@@ -65,8 +66,10 @@ end
 local function init_recipes(with_reset)
 	for _, force in pairs(game.forces) do
 		if with_reset then force.reset_recipes() end
-		if force.technologies['circuit-network'].researched
-			then force.recipes['sentinel-combinator'].enabled = true end
+		if force.technologies['circuit-network'].researched then
+			force.recipes['sentinel-alarm'].enabled = true
+			force.recipes['sentinel-combinator'].enabled = true
+		end
 	end
 end
 
@@ -79,37 +82,60 @@ script.on_configuration_changed(function(data)
 end)
 
 
+local function sentinel_check(e)
+	return e.type == 'constant-combinator'
+		and ( e.name == 'sentinel-combinator' or e.name == 'sentinel-alarm' )
+end
+
 local function sentinel_init(e)
-	if e.name ~= 'sentinel-combinator'
-		or e.type ~= 'constant-combinator' then return end
-	local sentinel_info = {e=e}
+	if not sentinel_check(e) then return end
+	local sentinel_info = {e=e, alarm=e.name == 'sentinel-alarm'}
 	SentinelSet[SentinelSet.n+1], SentinelSet.n = sentinel_info, SentinelSet.n+1
 	return sentinel_info
 end
 
 local function on_built(ev) sentinel_init(ev.created_entity) end
 
-script.on_event( defines.events.on_built_entity, on_built,
-	{{filter='type', type='constant-combinator'}, {filter='name', name='sentinel-combinator'}} )
-script.on_event( defines.events.on_robot_built_entity, on_built,
-	{{filter='type', type='constant-combinator'}, {filter='name', name='sentinel-combinator'}} )
+script.on_event(defines.events.on_built_entity, on_built, {{filter='type', type='constant-combinator'}})
+script.on_event(defines.events.on_robot_built_entity, on_built, {{filter='type', type='constant-combinator'}})
 
 
-local function update_sentinel_signal(sentinel)
-	local ecc = sentinel.e.get_control_behavior()
-	if not (ecc and ecc.enabled) then return end
+local function update_sentinel_radar(s)
+	s.p = nil
+
+	if conf.radar_radius <= 0 then -- radar requirement disabled
+		if s.e.valid then s.p = s.e end
+		return
+	end
+
+	local ps, pd, pd_new
+	ps, s.p = s.e.surface.find_entities_filtered{
+		position=s.e.position, radius=conf.radar_radius,
+		force=s.e.force, type='radar' }
+	for _, p in ipairs(ps) do
+		pd_new = utils.distance(s.e.position, p.position)
+		if not pd or pd > pd_new then pd, s.p = pd_new, p end
+	end
+end
+
+
+local function update_sentinel_signal(s)
+	local ecc = s.e.get_control_behavior()
+	if not (ecc and (ecc.enabled or s.alarm)) then return end
 
 	-- Find slots to replace/fill-in, as well as range (R) signal
-	local ps, ps_stat, ps_free, sig, range = {}, {}, {}
+	local ps, ps_stat, ps_free, sig, range, alarm_test = {}, {}, {}
 	for n, p in ipairs(ecc.parameters.parameters) do
 		if not p.signal.name then table.insert(ps_free, {n, p.index})
 		else
 			sig = ('%s.%s'):format(p.signal.type, p.signal.name)
 			if biter_signals[sig] then ps_stat[sig] = {n, p.index} else ps[sig] = p end
 			if sig == conf.sig_range then range = p.count or 0 end -- R set on detector itself
+			if s.alarm and sig == conf.sig_alarm_test then
+				alarm_test = true end
 		end
 	end
-	local signals = sentinel.e.get_merged_signals()
+	local signals = s.e.get_merged_signals()
 	if signals then for _, p in ipairs(signals) do
 		sig = ('%s.%s'):format(p.signal.type, p.signal.name)
 		if sig == conf.sig_range then range = p.count end
@@ -117,10 +143,29 @@ local function update_sentinel_signal(sentinel)
 	if not range then range = conf.default_scan_range end -- not set via any signals
 	if range < 1 then return end -- R<=0 - can be disabled from circuit network that way
 
+	-- Simplier enable/disable operation for Sentinel Alarm
+
+	if s.alarm then
+		local alarm
+		if not alarm_test then alarm = s.e.surface
+			.find_nearest_enemy{position=s.e.position, max_distance=range} and true
+		else
+			for _, p in ipairs(game.connected_players) do
+				alarm = utils.distance(p.position, s.e.position) <= range
+				if alarm then break end
+			end
+		end
+		utils.log('- alarm state (range=%s): %s', range, alarm, true)
+		ecc.enabled = alarm
+		return
+	end
+
+	-- Full scan/count operation for Sentinel Combinator
+
 	-- Run surface scan and count known/other biter entities (force=enemy)
 	local stats, total = {}, 0
-	local biters = sentinel.p.surface.find_units{
-		area=utils.area(sentinel.p.position, range), force='enemy', condition='all' }
+	local biters = s.p.surface.find_units{
+		area=utils.area(s.p.position, range), force='enemy', condition='same' }
 	for _, e in ipairs(biters) do
 		if not e.valid then goto skip end
 		sig = ('virtual.%s'):format('signal-bds-'..e.name)
@@ -155,9 +200,8 @@ script.on_nth_tick(conf.ticks_between_updates, function(ev)
 		local sentinel_uns = {}
 		for n = 1, SentinelSet.n do sentinel_uns[SentinelSet[n].unit_number] = true end
 		for _, s in ipairs(game.surfaces) do
-			for _, e in ipairs(s.find_entities_filtered{
-					type='constant-combinator', name='sentinel-combinator' }) do
-				if not sentinel_uns[e.unit_number] then sentinel_init(e) end
+			for _, e in ipairs(s.find_entities_filtered{type='constant-combinator'}) do
+				if sentinel_check(e) and not sentinel_uns[e.unit_number] then sentinel_init(e) end
 		end end
 		Ticks.sentinel_check = ev.tick + (conf.ticks_between_rescan or 0)
 	end
@@ -171,22 +215,16 @@ script.on_nth_tick(conf.ticks_between_updates, function(ev)
 			set[n], set.n, set[set.n] = set[set.n], set.n-1
 			goto drop
 		end
-		utils.log('--- sentinel', n)
+		utils.log('--- sentinel n=%d alarm=%s', n, s.alarm, true)
 
-		if conf.radar_radius > 0 and s.p == s.e then s.p = nil end -- for settings change
-		if not s.p or not s.p.valid then
-			if conf.radar_radius > 0 then
-				local ps, pd, pd_new
-				ps, s.p = s.e.surface.find_entities_filtered{
-					position=s.e.position, radius=conf.radar_radius,
-					force=s.e.force, type='radar' }
-				for _, p in ipairs(ps) do
-					pd_new = utils.distance(s.e.position, p.position)
-					if not pd or pd > pd_new then pd, s.p = pd_new, p end
-				end
-			elseif s.e.valid then s.p = s.e end -- radar requirement disabled
+		if not s.alarm then
+			if conf.radar_radius > 0 and s.p == s.e then s.p = nil end -- for settings change
+			if not s.p or not s.p.valid then
+				update_sentinel_radar(s)
+				if not s.p or not s.p.valid then goto skip end -- no radar in range
+			end
+			if conf.radar_radius > 0 and s.p.energy <= 0 then goto skip end -- radar is not working
 		end
-		if not s.p or (conf.radar_radius > 0 and s.p.energy <= 0) then goto skip end -- check if radar is working
 
 		update_sentinel_signal(s)
 

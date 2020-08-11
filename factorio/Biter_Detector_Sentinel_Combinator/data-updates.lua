@@ -5,4 +5,5 @@ local function add_tech_unlock(tech, recipe)
 	table.insert(tech.effects, {type='unlock-recipe', recipe=recipe})
 end
 
+add_tech_unlock('circuit-network', 'sentinel-alarm')
 add_tech_unlock('circuit-network', 'sentinel-combinator')

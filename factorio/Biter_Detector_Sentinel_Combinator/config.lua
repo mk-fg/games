@@ -27,6 +27,8 @@ conf.sig_biter_other = 'virtual.signal-bds-other'
 
 -- Signal to handle as range setting.
 conf.sig_range = 'virtual.signal-R'
+-- Signal to test alarms
+conf.sig_alarm_test = 'virtual.signal-T'
 
 -- Enable this for various utils.log() messages from code to
 --  go to factorio logging (stdout by default) instead of nowhere.
@@ -35,7 +37,6 @@ conf.sig_range = 'virtual.signal-R'
 function conf.update_from_settings()
 	conf.ticks_between_updates = settings.startup['bds-signal-update-interval'].value
 	conf.ticks_update_steps = settings.startup['bds-signal-update-steps'].value
-	if not settings.startup['bds-require-radar'].value then conf.radar_radius = 0 end
 end
 
 return conf
