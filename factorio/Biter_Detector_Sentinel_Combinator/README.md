@@ -4,18 +4,17 @@ Adds Sentinel Alarm and Sentinel Combinator devices, which can be used to detect
 
 - Sentinel Alarm
 
-    Constant combinator that enables when biter units are detected in a circular area around it.
+    Constant combinator that enables when (any) hostile units are detected in specified circular range.
     Does not enable if no signals are set on it, so don't forget to set it up to actually send something.
-    It activates on all units hostile to player, not necessarily biters.
 
     Test-run mode: T signal can be set on alarm combinator to have it activate on (any) player within range instead.
-    Can be used to test distance and connected systems' reaction by player(s) pretending to be a biter, or maybe to prank them.
+    Can be used to test distance and connected systems' reaction by player(s) pretending to be a biter, or maybe to prank them with a train.
 
 - Sentinel Combinator
 
     Combinator that must be placed near a Radar to count and classify incoming biters.
 
-    Connects to closest radar within short circle (8 tiles) and monitors the area around the radar when it is powered.
+    Connects to closest radar within short range (8 tiles) and monitors the area around the radar when it is powered.
     If radar is destroyed or scrapped, sentinel picks new radar within range, if any.
     When connected and working, it will always set at least "total" signal with 0 value on it, if nothing is within range.
 

@@ -1,12 +1,12 @@
 local conf = {}
 
 -- Ticks between updating *some* combinaror values. 60 will mean 1/s on 1x speed.
--- Note that this value is effectively should be multiplied
+-- Note that this value is effectively should be multiplied.
 --  by ticks_update_steps below for the actual time between *all* combinaror values.
 conf.ticks_between_updates = 12
 
--- How many steps to split each update workload into
--- This is a multiplier for "ticks_between_updates" value
+-- How many steps to split each update workload into.
+-- This is a multiplier for "ticks_between_updates" value.
 conf.ticks_update_steps = 10
 
 -- Ticks between running full-scan of the map for sentinel-combinator entities.
@@ -14,7 +14,6 @@ conf.ticks_update_steps = 10
 conf.ticks_between_rescan = nil
 
 -- Radius in which to locate closest radar.
--- Can be set to <= 0 to not require radar to be present.
 conf.radar_radius = 8
 
 -- Radius in which to scan for biters by default.
@@ -27,7 +26,7 @@ conf.sig_biter_other = 'virtual.signal-bds-other'
 
 -- Signal to handle as range setting.
 conf.sig_range = 'virtual.signal-R'
--- Signal to test alarms
+-- Signal to test alarms.
 conf.sig_alarm_test = 'virtual.signal-T'
 
 -- Enable this for various utils.log() messages from code to

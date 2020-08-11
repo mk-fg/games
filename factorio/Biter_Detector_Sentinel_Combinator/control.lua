@@ -102,12 +102,6 @@ script.on_event(defines.events.on_robot_built_entity, on_built, {{filter='type',
 
 local function update_sentinel_radar(s)
 	s.p = nil
-
-	if conf.radar_radius <= 0 then -- radar requirement disabled
-		if s.e.valid then s.p = s.e end
-		return
-	end
-
 	local ps, pd, pd_new
 	ps, s.p = s.e.surface.find_entities_filtered{
 		position=s.e.position, radius=conf.radar_radius,
@@ -218,12 +212,11 @@ script.on_nth_tick(conf.ticks_between_updates, function(ev)
 		utils.log('--- sentinel n=%d alarm=%s', n, s.alarm, true)
 
 		if not s.alarm then
-			if conf.radar_radius > 0 and s.p == s.e then s.p = nil end -- for settings change
 			if not s.p or not s.p.valid then
 				update_sentinel_radar(s)
 				if not s.p or not s.p.valid then goto skip end -- no radar in range
 			end
-			if conf.radar_radius > 0 and s.p.energy <= 0 then goto skip end -- radar is not working
+			if s.p.energy <= 0 then goto skip end -- radar is not working
 		end
 
 		update_sentinel_signal(s)
