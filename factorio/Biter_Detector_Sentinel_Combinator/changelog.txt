@@ -1,4 +1,10 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.0.4
+Date: 11. 08. 2020
+  Changes:
+    - Namespaced settings knobs' names, to avoid potential conflicts. This will reset mod settings!
+
+---------------------------------------------------------------------------------------------------
 Version: 0.0.3
 Date: 11. 08. 2020
   Changes:

@@ -33,9 +33,9 @@ conf.sig_range = 'virtual.signal-R'
 -- conf.debug_log = true
 
 function conf.update_from_settings()
-	conf.ticks_between_updates = settings.startup['signal-update-interval'].value
-	conf.ticks_update_steps = settings.startup['signal-update-steps'].value
-	if not settings.startup['require-radar'].value then conf.radar_radius = 0 end
+	conf.ticks_between_updates = settings.startup['bds-signal-update-interval'].value
+	conf.ticks_update_steps = settings.startup['bds-signal-update-steps'].value
+	if not settings.startup['bds-require-radar'].value then conf.radar_radius = 0 end
 end
 
 return conf
