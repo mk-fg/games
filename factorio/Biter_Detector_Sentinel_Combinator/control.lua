@@ -81,8 +81,7 @@ local function init_recipes(with_reset)
 		if force.technologies['circuit-network'].researched then
 			force.recipes['sentinel-alarm'].enabled = true
 			force.recipes['sentinel-combinator'].enabled = true
-		end
-	end
+	end end
 end
 
 script.on_init(function() init_globals(); init_refs() end)
@@ -143,8 +142,7 @@ local function update_sentinel_signal(s)
 			if BiterSignals[sig] then ps_stat[sig] = {n, p.index} else ps[sig] = p end
 			if sig == conf.sig_range then range = p.count or 0 end
 			if sig == conf.sig_alarm_test then alarm_test = p.count ~= 0 end
-		end
-	end
+	end end
 	-- Connected circuit network signals
 	n = s.e.get_merged_signal(SigRange)
 	if n ~= 0 then range = n end
@@ -164,8 +162,7 @@ local function update_sentinel_signal(s)
 			for _, p in ipairs(game.connected_players) do
 				alarm = utils.distance(p.position, s.e.position) <= range
 				if alarm then break end
-			end
-		end
+		end end
 		utils.log('- alarm state (range=%s): %s', range, alarm, true)
 		ecc.enabled = alarm
 		return
