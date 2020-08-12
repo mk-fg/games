@@ -39,15 +39,27 @@ local utils = {
 
 }
 
--- These biter signals will be set/reset after each scan
-local biter_signals = {}
-for _, t in ipairs{'biter', 'spitter'} do
-	for _, sz in ipairs{'small', 'medium', 'big', 'behemoth'} do
-		biter_signals['virtual.signal-bds-'..sz..'-'..t] = true
-end end
-biter_signals[conf.sig_biter_total] = true
-biter_signals[conf.sig_biter_other] = true
 
+-- Signal structs/maps for various checks
+
+local BiterSignals, SigRange, SigAlarmTest = {}
+do
+	for _, t in ipairs{'biter', 'spitter'} do
+		for _, sz in ipairs{'small', 'medium', 'big', 'behemoth'} do
+			BiterSignals['virtual.signal-bds-'..sz..'-'..t] = true
+	end end
+	BiterSignals[conf.sig_biter_total] = true
+	BiterSignals[conf.sig_biter_other] = true
+
+	local t, name
+	t, name = conf.sig_range:match('^([^.]+).(.+)$')
+	SigRange = {type=t, name=name}
+	t, name = conf.sig_alarm_test:match('^([^.]+).(.+)$')
+	SigAlarmTest = {type=t, name=name}
+end
+
+
+-- Mod Init Process
 
 local function init_globals()
 	local sets = utils.t('sentinel_info')
@@ -82,6 +94,8 @@ script.on_configuration_changed(function(data)
 end)
 
 
+-- New entity hooks
+
 local function sentinel_check(e)
 	return e.type == 'constant-combinator'
 		and ( e.name == 'sentinel-combinator' or e.name == 'sentinel-alarm' )
@@ -100,7 +114,9 @@ script.on_event(defines.events.on_built_entity, on_built, {{filter='type', type=
 script.on_event(defines.events.on_robot_built_entity, on_built, {{filter='type', type='constant-combinator'}})
 
 
-local function update_sentinel_radar(s)
+-- On-nth-tick updates
+
+local function find_sentinel_radar(s)
 	s.p = nil
 	local ps, pd, pd_new
 	ps, s.p = s.e.surface.find_entities_filtered{
@@ -117,24 +133,25 @@ local function update_sentinel_signal(s)
 	local ecc = s.e.get_control_behavior()
 	if not (ecc and (ecc.enabled or s.alarm)) then return end
 
-	-- Find slots to replace/fill-in, as well as range (R) signal
-	local ps, ps_stat, ps_free, sig, range, alarm_test = {}, {}, {}
+	-- Find slots to replace/fill-in, as well as special control signals
+	local ps, ps_stat, ps_free, sig, range, alarm_test, n = {}, {}, {}
+	-- Internal slots on combinator itself
 	for n, p in ipairs(ecc.parameters.parameters) do
 		if not p.signal.name then table.insert(ps_free, {n, p.index})
 		else
 			sig = ('%s.%s'):format(p.signal.type, p.signal.name)
-			if biter_signals[sig] then ps_stat[sig] = {n, p.index} else ps[sig] = p end
-			if sig == conf.sig_range then range = p.count or 0 end -- R set on detector itself
-			if s.alarm and sig == conf.sig_alarm_test then
-				alarm_test = true end
+			if BiterSignals[sig] then ps_stat[sig] = {n, p.index} else ps[sig] = p end
+			if sig == conf.sig_range then range = p.count or 0 end
+			if sig == conf.sig_alarm_test then alarm_test = p.count ~= 0 end
 		end
 	end
-	local signals = s.e.get_merged_signals()
-	if signals then for _, p in ipairs(signals) do
-		sig = ('%s.%s'):format(p.signal.type, p.signal.name)
-		if sig == conf.sig_range then range = p.count end
-	end end
-	if not range then range = conf.default_scan_range end -- not set via any signals
+	-- Connected circuit network signals
+	n = s.e.get_merged_signal(SigRange)
+	if n ~= 0 then range = n end
+	n = s.e.get_merged_signal(SigAlarmTest)
+	if n ~= 0 then alarm_test = true end
+	-- Checks, defaults, fallbacks
+	if range or 0 == 0 then range = conf.default_scan_range end -- not set via any signals
 	if range < 1 then return end -- R<=0 - can be disabled from circuit network that way
 
 	-- Simplier enable/disable operation for Sentinel Alarm
@@ -163,7 +180,7 @@ local function update_sentinel_signal(s)
 	for _, e in ipairs(biters) do
 		if not e.valid then goto skip end
 		sig = ('virtual.%s'):format('signal-bds-'..e.name)
-		if not biter_signals[sig] then sig = conf.sig_biter_other end
+		if not BiterSignals[sig] then sig = conf.sig_biter_other end
 		stats[sig] = (stats[sig] or 0) + 1
 		total = total + 1
 	::skip:: end
@@ -189,7 +206,7 @@ end
 
 
 script.on_nth_tick(conf.ticks_between_updates, function(ev)
-	if conf.ticks_between_rescan and (
+	if conf.ticks_between_rescan and ( -- periodic map scans, default-disabled
 			not Ticks.sentinel_check or Ticks.sentinel_check < ev.tick ) then
 		local sentinel_uns = {}
 		for n = 1, SentinelSet.n do sentinel_uns[SentinelSet[n].unit_number] = true end
@@ -213,7 +230,7 @@ script.on_nth_tick(conf.ticks_between_updates, function(ev)
 
 		if not s.alarm then
 			if not s.p or not s.p.valid then
-				update_sentinel_radar(s)
+				find_sentinel_radar(s)
 				if not s.p or not s.p.valid then goto skip end -- no radar in range
 			end
 			if s.p.energy <= 0 then goto skip end -- radar is not working

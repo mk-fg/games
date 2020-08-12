@@ -7,7 +7,7 @@ Adds Sentinel Alarm and Sentinel Combinator devices, which can be used to detect
     Constant combinator that enables when (any) hostile units are detected in specified circular range.
     Does not enable if no signals are set on it, so don't forget to set it up to actually send something.
 
-    Test-run mode: T signal can be set on alarm combinator to have it activate on (any) player within range instead.
+    Test-run mode: T signal can be set (non-zero) on alarm combinator to have it activate on (any) player within range instead.
     Can be used to test distance and connected systems' reaction by player(s) pretending to be a biter, or maybe to prank them with a train.
 
 - Sentinel Combinator
@@ -54,7 +54,11 @@ Having too many and/or too long-range detectors might impact performance on scan
 
 - [Command & Conquer ☭ Red Alert Sounds](https://mods.factorio.com/mod/Command_and_Conquer_RedAlert_Sounds)
 
-    To have alerts on speakers be a bit more dramatic.
+    To have voiced "Enemy Approaching" or "Base Under Attack" alerts on speakers.
+
+- [Soundpack: Alerts and Sirens](https://mods.factorio.com/mod/Soundpack-alerts-and-sirens)
+
+    Includes a lot of alert, siren and bell sounds for an easy alarm variety.
 
 
 [[github link](https://github.com/mk-fg/games/tree/master/factorio/Biter_Detector_Sentinel_Combinator)]

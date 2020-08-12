@@ -1,11 +1,17 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.0.7
+Date: 12. 08. 2020
+  Internals:
+    - Cleanup, use get_merged_signal() instead of iteration, as latter is not needed there.
+
+---------------------------------------------------------------------------------------------------
 Version: 0.0.6
 Date: 12. 08. 2020
   Features:
     - Add Sentinel Alarm tower for simplier "enemy approaching" detection signals.
   Changes:
     - Made sentinel-combinator a 3-component recipe (constant one + cable + circuit).
-    - Removed "Require Radar" option - Sentinel Alarms should cover that use-case.
+    - Remove "Require Radar" option - Sentinel Alarms should cover that use-case.
 
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.5
@@ -17,7 +23,7 @@ Date: 11. 08. 2020
 Version: 0.0.4
 Date: 11. 08. 2020
   Changes:
-    - Namespaced settings knobs' names, to avoid potential conflicts. This will reset mod settings!
+    - Namespace settings knobs' names, to avoid potential conflicts. This will reset mod settings!
 
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.3
