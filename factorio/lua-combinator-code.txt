@@ -1,4 +1,18 @@
 
+alarm-interval:
+
+-- repeats incoming signal as pulse with specified interval, for e.g. speakers
+
+local net, sig = rednet, 'kr-attention_1'
+local t_check, t_pulse = 180, 300
+if (output[sig] or 0) == 0 then
+	if (net[sig] or 0) > 0
+		then delay, output[sig] = 1, net[sig] -- start pulse
+		else delay, output[sig] = t_check end
+else delay, output[sig] = t_pulse end -- end pulse
+
+
+
 count-shortage-pulse:
 
 -- checks sig_check count (red) for < sig_thresh every t_check ticks

@@ -60,5 +60,9 @@ Having too many and/or too long-range detectors might impact performance on scan
 
     Includes a lot of alert, siren and bell sounds for an easy alarm variety.
 
+- [Armoured Biters](https://mods.factorio.com/mod/ArmouredBiters)
+
+    Nice additional biter types for that "other aliens" category.
+
 
 [[github link](https://github.com/mk-fg/games/tree/master/factorio/Biter_Detector_Sentinel_Combinator)]
