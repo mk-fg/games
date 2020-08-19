@@ -42,21 +42,13 @@ local utils = {
 
 -- Signal structs/maps for various checks
 
-local BiterSignals, SigRange, SigAlarmTest = {}
-do
-	for _, t in ipairs{'biter', 'spitter'} do
-		for _, sz in ipairs{'small', 'medium', 'big', 'behemoth'} do
-			BiterSignals['virtual.signal-bds-'..sz..'-'..t] = true
-	end end
-	BiterSignals[conf.sig_biter_total] = true
-	BiterSignals[conf.sig_biter_other] = true
-
-	local t, name
-	t, name = conf.sig_range:match('^([^.]+).(.+)$')
-	SigRange = {type=t, name=name}
-	t, name = conf.sig_alarm_test:match('^([^.]+).(.+)$')
-	SigAlarmTest = {type=t, name=name}
-end
+local BiterSignals = {}
+for _, t in ipairs{'biter', 'spitter'} do
+	for _, sz in ipairs{'small', 'medium', 'big', 'behemoth'} do
+		BiterSignals['virtual.signal-bds-'..sz..'-'..t] = true
+end end
+BiterSignals[conf.sig_biter_total] = true
+BiterSignals[conf.sig_biter_other] = true
 
 
 -- Mod Init Process
@@ -133,7 +125,7 @@ local function update_sentinel_signal(s)
 	if not (ecc and (ecc.enabled or s.alarm)) then return end
 
 	-- Find slots to replace/fill-in, as well as special control signals
-	local ps, ps_stat, ps_free, sig, range, alarm_test, n = {}, {}, {}
+	local ps, ps_stat, ps_free, sig, range, alarm_test = {}, {}, {}
 	-- Internal slots on combinator itself
 	for n, p in ipairs(ecc.parameters.parameters) do
 		if not p.signal.name then table.insert(ps_free, {n, p.index})
@@ -144,12 +136,19 @@ local function update_sentinel_signal(s)
 			if sig == conf.sig_alarm_test then alarm_test = p.count ~= 0 end
 	end end
 	-- Connected circuit network signals
-	n = s.e.get_merged_signal(SigRange)
-	if n ~= 0 then range = n end
-	n = s.e.get_merged_signal(SigAlarmTest)
-	if n ~= 0 then alarm_test = true end
+	-- get_merged_signal() is not used because it returns 0 when combinator is disabled,
+	--  which is esp. relevant for alarms, as they are supposed to be disabled unless triggered.
+	local signals = s.e.get_merged_signals()
+	if signals then for _, p in ipairs(signals) do
+		sig = ('%s.%s'):format(p.signal.type, p.signal.name)
+		if sig == conf.sig_range then
+			if ecc.enabled then range = p.count -- it's already a sum when enabled
+				else range = p.count + (range or 0) end
+		end
+		if sig == conf.sig_alarm_test and p.count ~= 0 then alarm_test = true end
+	end end
 	-- Checks, defaults, fallbacks
-	if range or 0 == 0 then range = conf.default_scan_range end -- not set via any signals
+	if (range or 0) == 0 then range = conf.default_scan_range end -- not set via any signals
 	if range < 1 then return end -- R<=0 - can be disabled from circuit network that way
 
 	-- Simplier enable/disable operation for Sentinel Alarm

@@ -12,7 +12,6 @@ if (output[sig] or 0) == 0 then
 else delay, output[sig] = t_pulse end -- end pulse
 
 
-
 count-shortage-pulse:
 
 -- checks sig_check count (red) for < sig_thresh every t_check ticks

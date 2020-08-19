@@ -1,6 +1,6 @@
 {
 	"name": "Biter_Detector_Sentinel_Combinator",
-	"version": "0.0.8",
+	"version": "0.0.9",
 	"factorio_version": "1.0",
 	"dependencies": ["base >= 0.18.0"],
 	"title": "Biter Detector Sentinel Combinator",

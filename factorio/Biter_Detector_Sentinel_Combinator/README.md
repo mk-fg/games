@@ -37,7 +37,11 @@ Mod settings allow to change update intervals and some workload parameters.
 
 These combinators can be used to power defenses when biters are detected in the area, potentially in tiers, e.g. only enabling most expensive ones upon detecting high numbers or heavier critters.
 
-When connected to a Programmable Speaker, can be used to broadcast an alert before buildings start getting wrecked, as biter hordes can be surprisingly sneaky in vanilla factorio :)
+When connected to a Programmable Speaker, can be used to broadcast an alert before buildings start getting wrecked, as biter hordes can be surprisingly sneaky.
+
+With Speakers, it can also be useful to add interval between alarm pulses, so that they aren't too annoying due to repetition.
+It's easy to do by adding arithmetic combinator with "memory" in-between alarm/speaker, like in [this attached image](https://mods-data.factorio.com/assets/cde0b568fcc6907bf7da9172bfea58b2258fe3ca.png).
+(use any power-of-two-minus-one numbers for delays with bitwise AND operation there and/or larger signal increment values to get any kind of interval)
 
 Having too many and/or too long-range detectors might impact performance on scans, but didn't test by how much. Alarms use simplier find_nearest_enemy() scans. If you are concerned about this when using many detectors, check "show-time-usage" in Shift-F4 debug menu and numbers under "Script Update" there.
 
