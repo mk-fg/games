@@ -1,8 +1,10 @@
 {
 	"name": "Will-o-the-Wisps_updated",
-	"version": "0.1.14",
-	"factorio_version": "0.17",
-	"dependencies": ["base >= 0.17.0"],
+	"version": "0.1.15",
+	"factorio_version": "1.0",
+	"dependencies": [
+		"base >= 1.0",
+		"! Will-o-the-Wisps_updated-2" ],
 	"title": "Will-o'-the-Wisps updated",
 	"author": "mk-fg, Betep3akata",
 	"description": "A glowing enigmatic life form was found to inhabit alien forests at night. Based on the original mod by Betep3akata."

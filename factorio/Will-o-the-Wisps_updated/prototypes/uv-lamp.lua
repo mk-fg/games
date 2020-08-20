@@ -1,3 +1,5 @@
+local sounds = require('__base__/prototypes/entity/demo-sounds')
+
 -- Regular lamp: light={ intensity=0.9 size=40 } colored={ intensity=1 size=6 }
 local uv_light = {intensity=0.3, size=5, color={r=0.8, g=0.1, b=0.9, a=0.2}}
 local function shift(dx, dy) return {dx / 64, dy / 64} end
@@ -14,7 +16,7 @@ data:extend{{
 	corpse = 'small-remnants',
 	collision_box = {{-0.15, -0.15}, {0.15, 0.15}},
 	selection_box = {{-0.5, -0.5}, {0.5, 0.5}},
-	vehicle_impact_sound = {filename='__base__/sound/car-metal-impact.ogg', volume=0.65},
+	vehicle_impact_sound = sounds.generic_impact,
 
 	energy_usage_per_tick = '160kW', -- lamp = 5kW
 	energy_source = {

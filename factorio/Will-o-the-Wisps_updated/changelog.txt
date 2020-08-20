@@ -1,78 +1,121 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.3.1
+Date: 2020-08-21
+  Info:
+    - Merged all changes from Pi-C fork of the mod here ("Will-o'-the-Wisps updated (2)"), designated 0.2.x below.
+
+---------------------------------------------------------------------------------------------------
+Version: 0.2.4
+Date: 2020-06-10
+  Bugfixes:
+    - Fixed crash when newly created wisps became invalid immediately, e.g. in big forest fires. (https://mods.factorio.com/mod/Will-o-the-Wisps_updated-2/discussion/5eafe41bc6e911000cf3439c)
+
+---------------------------------------------------------------------------------------------------
+Version: 0.2.3
+Date: 2020-05-02
+  Changes:
+    - Raised dependency on Factorio to 0.18.2, and changed vehicle impact sound of UV-lamps to take advantage of the sound changes made there.
+
+---------------------------------------------------------------------------------------------------
+Version: 0.2.2
+Date: 2020-03-17
+  Changes:
+    - Ooops, forgot to update the locales! Moved them over from "Inlaid UV-lamp", which already included localizations for "Will-o-the-Wisps_updated". They really belong here!
+
+  Locale:
+    - Added German localization.
+    - Fixed English localization.
+
+---------------------------------------------------------------------------------------------------
+Version: 0.2.1
+Date: 2020-03-17
+  Info:
+    - The previous owner of "Will-o'-the-Wisps updated" (mk-fg, who has retired from Factorio and modding for now) suggested that somebody should release an update for this mod. As I've already updated it for my own use, and because I also have made a mod that is useless without this one, I'll upload my local version. (https://mods.factorio.com/mod/Will-o-the-Wisps_updated/discussion/5e4921a23c3040000ea61c4b)
+
+    - Please note: I don't really have the time and energy to maintain this. It's intended as a one-shot upload, just so this great mod will be kept alive for Factorio 0.18. If RocketManChronicles (the current owner of "Will-o'-the-Wisps updated") ever updates the original version, I'll deprecate this again.
+
+    - If you have the time, will, and ability to maintain this, please contact me! I'll be happy to transfer ownership to you in this case.
+
+  Changes:
+    - Updated for Factorio 0.18.
+    - Added "icon_mipmaps = 1" to icon definitions in order to prevent logfile spamming.
+    - Adjusted path names.
+
+---------------------------------------------------------------------------------------------------
 Version: 0.1.14
-Date: 25. 09. 2019
+Date: 2019-09-25
   Changes:
     - Minor english localization fixes/tweaks, as suggested by Pi-C.
 ---------------------------------------------------------------------------------------------------
 Version: 0.1.13
-Date: 06. 06. 2019
+Date: 2019-06-06
   Bugfixes:
     - Fix crash when event handlers are fired before on_init or such.
 ---------------------------------------------------------------------------------------------------
 Version: 0.1.12
-Date: 03. 06. 2019
+Date: 2019-06-03
   Bugfixes:
     - Fix one more leftover potential mp-desync issue from local var use.
 ---------------------------------------------------------------------------------------------------
 Version: 0.1.11
-Date: 13. 05. 2019
+Date: 2019-05-13
   Bugfixes:
     - Fix applying "no damage from purple wisps" settings after save/load, yet another mp-bad local.
 ---------------------------------------------------------------------------------------------------
 Version: 0.1.10
-Date: 12. 05. 2019
+Date: 2019-05-12
   Bugfixes:
     - Fix crash in recongregate routine, introduced by accidental-global cleanup in 0.1.9.
 ---------------------------------------------------------------------------------------------------
 Version: 0.1.9
-Date: 11. 05. 2019
+Date: 2019-05-11
   Features:
     - Print force ceasefire states and purple wisp info in "/wisp stats" output.
   Bugfixes:
     - Fix one more potential mp bug, multiple issues when using Mod Settings.
 ---------------------------------------------------------------------------------------------------
 Version: 0.1.8
-Date: 10. 05. 2019
+Date: 2019-05-10
   Bugfixes:
     - Fix updating settings via on_runtime_mod_setting_changed event, also broken by init code rewrite in 0.1.5-0.1.7.
 ---------------------------------------------------------------------------------------------------
 Version: 0.1.7
-Date: 05. 05. 2019
+Date: 2019-05-05
   Changes:
     - Fix one more known potential multiplayer desync issue source.
 ---------------------------------------------------------------------------------------------------
 Version: 0.1.6
-Date: 04. 05. 2019
+Date: 2019-05-04
   Bugfixes:
     - Fix crash in on_load due to previous mod init sequence changes, some other init changes.
 ---------------------------------------------------------------------------------------------------
 Version: 0.1.5
-Date: 03. 05. 2019
+Date: 2019-05-03
   Changes:
     - Fix all multiplayer desync code issues that are well-documented. Unlikely to be all of them.
 ---------------------------------------------------------------------------------------------------
 Version: 0.1.4
-Date: 27. 04. 2019
+Date: 2019-04-27
   Features:
     - Add mod option to disable wisps becoming aggressive due to non-player actions.
 ---------------------------------------------------------------------------------------------------
 Version: 0.1.3
-Date: 14. 04. 2019
+Date: 2019-04-14
   Bugfixes:
     - Fix wisp force aggression options init for loading games without mod.
 ---------------------------------------------------------------------------------------------------
 Version: 0.1.2
-Date: 14. 04. 2019
+Date: 2019-04-14
   Bugfixes:
     - Fix crash on loading games without mod due to delayed player creation.
 ---------------------------------------------------------------------------------------------------
 Version: 0.1.1
-Date: 12. 04. 2019
+Date: 2019-04-12
   Bugfixes:
     - Fix wisp force aggression options initialization due to delayed player creation.
 ---------------------------------------------------------------------------------------------------
 Version: 0.1.0
-Date: 12. 04. 2019
+Date: 2019-04-12
   Changes:
     - Update mod for Factorio-0.17.x compatibility, dropping 0.16.x (use 0.0.x releases there).
   Features:
@@ -81,7 +124,7 @@ Date: 12. 04. 2019
     - Fix wisp drone death animation.
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.53
-Date: 10. 11. 2018
+Date: 2018-11-10
   Bugfixes:
     - Fix some issues with spawn zones tracking in presence of map-changing mods.
   Changes:
@@ -90,12 +133,12 @@ Date: 10. 11. 2018
     - Make wisp spawn zone maintenance routines less frequent.
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.52
-Date: 02. 10. 2018
+Date: 2018-10-02
   Features:
     - Add option for wisps and biters to attack each other.
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.51
-Date: 02. 10. 2018
+Date: 2018-10-02
   Changes:
     - Allow setting R range signal on the wisp detector itself.
     - Do not override or shuffle non-wisp signals that are set on detectors, only add/update.
@@ -103,55 +146,55 @@ Date: 02. 10. 2018
     - Don't update detector signals when they are switched off.
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.50
-Date: 21. 08. 2018
+Date: 2018-08-21
   Changes:
     - Add "wisp aggression factor" option (default=0) for a more challenging game mode.
     - Add "/wisp radicalize" command to simulate random aggression in one place.
     - Add "/wisp incidents" command and logging to display last aggression spots on the map.
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.49
-Date: 07. 07. 2018
+Date: 2018-07-07
   Bugfixes:
     - Fix removing trigger-created entities that are not red wisps.
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.48
-Date: 02. 07. 2018
+Date: 2018-07-02
   Bugfixes:
     - Fix cache invalidation error which can randomly happen when players cut forests fast.
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.47
-Date: 01. 07. 2018
+Date: 2018-07-01
   Bugfixes:
     - Fix lua error when wisp detector finds all 4 kinds of wisps (due to item_slot_count=3).
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.46
-Date: 28. 06. 2018
+Date: 2018-06-28
   Changes:
     - Improve wisp-congregation target finding algo a bit.
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.45
-Date: 28. 06. 2018
+Date: 2018-06-28
   Bugfixes:
     - Fix lua error when green wisp group fails to find chunk with player structures.
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.44
-Date: 26. 06. 2018
+Date: 2018-06-26
   Bugfixes:
     - Fix control network enabled/disabled state check on UV lamps - again!
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.43
-Date: 26. 06. 2018
+Date: 2018-06-26
   Bugfixes:
     - Fix control network enabled/disabled state check on UV lamps.
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.42
-Date: 23. 06. 2018
+Date: 2018-06-23
   Features:
     - Add harmless green wisps to safely explore players stuff without attacking anything.
     - Enable green wisp groups to spawn and roam around player's stuff.
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.41
-Date: 18. 06. 2018
+Date: 2018-06-18
   Features:
     - Implement wisp groups exploring player's base, but not enabled yet due to what looks like a bug.
     - Add "/wisp congregate" console command.
@@ -159,42 +202,42 @@ Date: 18. 06. 2018
     - Fix "/wisp zone labels" positioning - were offset to left-top by a chunk or so.
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.40
-Date: 17. 06. 2018
+Date: 2018-06-17
   Changes:
     - Use one /wisp command-prefix for all mod commands, to avoid polluting /h too much.
   Features:
     - Add "zone labels" console command to add map labels for all scanned spawn zones.
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.39
-Date: 16. 06. 2018
+Date: 2018-06-16
   Bugfixes:
     - Fix minor bug with attacking wisps not being tracked correctly.
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.38
-Date: 16. 06. 2018
+Date: 2018-06-16
   Features:
     - Make yellow/red wisps flee from UV lamps, not just die to them.
     - Add /wisp-stats command to print counts of wisps on the map.
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.37
-Date: 15. 06. 2018
+Date: 2018-06-15
   Features:
     - Add /wisp-attack and /wisp-peace commands to set current wisp aggression.
   Changes:
     - Increase lantern drone light radius 60 -> 100.
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.36
-Date: 15. 06. 2018
+Date: 2018-06-15
   Bugfixes:
     - Fix wisp group tactics, was disabled after latest changes.
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.35
-Date: 14. 06. 2018
+Date: 2018-06-14
   Bugfixes:
     - Fix surface.find_entities_filtered() not working with arrays on stable factorio versions yet.
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.34
-Date: 14. 06. 2018
+Date: 2018-06-14
   Features:
     - Wisps are now split into two factions - peaceful and aggressive one.
     - All wisps start as peaceful, and only move to aggressive faction when provoked.
@@ -202,7 +245,7 @@ Date: 14. 06. 2018
     - Add "Wisp retaliation radius" mod option, with 0 value there for old all-for-one behavior.
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.33
-Date: 14. 06. 2018
+Date: 2018-06-14
   Changes:
     - Break/re-establish turret/player cease-fire wrt wisps when their aggression state changes.
     - Turrets no longer shoot wisps by default, unless changed in mod options.
@@ -211,28 +254,28 @@ Date: 14. 06. 2018
     - Consider all players' forces when changing aggression stuff, not just game.forces.player.
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.32
-Date: 14. 06. 2018
+Date: 2018-06-14
   Changes:
     - Make purple wisps damage refineries and centrifuges, usually concentrated, instead of tanks.
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.31
-Date: 13. 06. 2018
+Date: 2018-06-13
   Changes:
     - Make purple wisps less of a nuisance by not targeting power poles of any kind.
     - Bump UV lamp energy use 80 -> 160kW, as there should be less things to surround now.
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.30
-Date: 13. 06. 2018
+Date: 2018-06-13
   Bugfixes:
     - Fix lua error on forest scans for replaced chunks that are already in ChunkSpreadQueue.
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.29
-Date: 13. 06. 2018
+Date: 2018-06-13
   Bugfixes:
     - Fix item name missing for Will-o-Wisp Lantern due to incorrect section.
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.28
-Date: 13. 06. 2018
+Date: 2018-06-13
   Features:
     - Add "Forest pollution factor" mod option to tweak how pollution affects wispy areas.
     - Add /wisp-zone-update, /wisp-zone-stats and /wisp-zone-spawn admin console commands.
@@ -243,17 +286,17 @@ Date: 13. 06. 2018
     - Minor fixes in wisp spawn zones load distribution algos.
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.27
-Date: 12. 06. 2018
+Date: 2018-06-12
   Changes:
     - Bunch of minor tweaks to lantern drone sprite.
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.26
-Date: 12. 06. 2018
+Date: 2018-06-12
   Changes:
     - Change color of lantern drone from violet to blue - looks too much like purple wisps otherwise.
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.25
-Date: 12. 06. 2018
+Date: 2018-06-12
   Features:
     - Add personal companion wisp lantern (alien-bio + combat-robotics research).
     - Make max wisp spawn count configurable via mod options.
@@ -263,12 +306,12 @@ Date: 12. 06. 2018
     - Disable wild red/yellow/purple recipies, not sure why they were in the mod at all.
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.24
-Date: 11. 06. 2018
+Date: 2018-06-11
   Bugfixes:
     - Fix UV lamp damage to wisps, including killing spores.
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.23
-Date: 11. 06. 2018
+Date: 2018-06-11
   Changes:
     - Change UV lamp sprite and lighing to a "black uv" sprite from old Color Coding mod version.
     - Add light around wisp detectors.
@@ -276,34 +319,34 @@ Date: 11. 06. 2018
     - Fix new purple wisps corroding stuff after save load, when it's disabled in mod opts.
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.22
-Date: 10. 06. 2018
+Date: 2018-06-10
   Bugfixes:
     - Fix wisp detector icon to be in line with last sprite update.
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.21
-Date: 10. 06. 2018
+Date: 2018-06-10
   Changes:
     - Catch and put baby red wisp on top of wisp detector sprite.
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.20
-Date: 10. 06. 2018
+Date: 2018-06-10
   Changes:
     - Recolor wisp detectors blue and rebase on factorio 0.16.x sprites.
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.19
-Date: 10. 06. 2018
+Date: 2018-06-10
   Bugfixes:
     - Fix lua error with unconnected wisp detectors.
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.18
-Date: 10. 06. 2018
+Date: 2018-06-10
   Features:
     - Make wisp type spawn chances (when spawned in random forests) controllable via mod options.
   Bugfixes:
     - Fix wisp spawning zones' pollution tracking being reset after mod updates.
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.17
-Date: 10. 06. 2018
+Date: 2018-06-10
   Changes:
     - Update wisp daylight expire algo to only take darkness changes into account, not ticks.
   Bugfixes:
@@ -311,17 +354,17 @@ Date: 10. 06. 2018
     - Fix wisps never switching to back to peaceful mode during day.
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.16
-Date: 09. 06. 2018
+Date: 2018-06-09
   Bugfixes:
     - Fix migration for saves from pre-0.0.3 versions.
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.15
-Date: 08. 06. 2018
+Date: 2018-06-08
   Changes:
     - Add range and signal info to wisp detector description, shorten most of them.
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.14
-Date: 08. 06. 2018
+Date: 2018-06-08
   Changes:
     - Disable debug logging module by default.
     - Add readme/license files to archive.
@@ -329,7 +372,7 @@ Date: 08. 06. 2018
     - Fix regression in .13 causing lua error when enabling mod in a new game.
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.13
-Date: 08. 06. 2018
+Date: 2018-06-08
   Changes:
     - Spawning system rewrite, wisps should start appearing in forests at night in a day or few.
     - Slightly brighter/larger lights for some wisps.
@@ -337,20 +380,20 @@ Date: 08. 06. 2018
     - Remove attached wisp and sabotage stuff for now - needs some fixes and testing.
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.12
-Date: 07. 06. 2018
+Date: 2018-06-07
   Changes:
     - Purple wisps don't spawn from killed ones during full day.
   Bugfixes:
     - Fix lifespan of red wisps.
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.11
-Date: 06. 06. 2018
+Date: 2018-06-06
   Bugfixes:
     - Fix skipped entity updates in several tasks due to iteration bugs with table.remove.
     - Fix technology requirements for lamps/detectors, which were likely broken since 0.0.10.
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.10
-Date: 06. 06. 2018
+Date: 2018-06-06
   Changes:
     - Smooth-out wisp expiration probabilities a bit.
     - Make on_tick scheduling never miss workloads, keeping backlog of these instead.
@@ -359,44 +402,44 @@ Date: 06. 06. 2018
     - Fix runtime options not being applied on savegame load.
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.9
-Date: 04. 06. 2018
+Date: 2018-06-04
   Changes:
     - Add ingame changelog file (this one).
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.8
-Date: 04. 06. 2018
+Date: 2018-06-04
   Changes:
     - Pacify in-combat wisps when disabling aggressiveness via menu.
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.7
-Date: 03. 06. 2018
+Date: 2018-06-03
   Features:
     - Add colored/flickering lighting mod option, off by default.
   Changes:
     - Remove "fake day" mode - not sure how it works, and needs testing.
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.6
-Date: 03. 06. 2018
+Date: 2018-06-03
   Changes:
     - Add mod options for disabling wisp/turret aggression and spore corrosion damage.
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.5
-Date: 03. 06. 2018
+Date: 2018-06-03
   Bugfixes:
     - Fix memory leak on game/mod changes due to chunk info duplication in save files.
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.4
-Date: 02. 06. 2018
+Date: 2018-06-02
   Changes:
     - Lower red wisps health significantly (180 -> 30).
     - Purple wisps do more damage to boilers/reactors in addition to solar panels.
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.2
-Date: 02. 06. 2018
+Date: 2018-06-02
   Changes:
     - Adjust UV lamps' electricity usage down 400kW -> 80kW.
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.1
-Date: 02. 06. 2018
+Date: 2018-06-02
   Features:
     - 0.16.x compatibility update and related fixes (events, entity names, etc).

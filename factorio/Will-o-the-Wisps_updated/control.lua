@@ -279,6 +279,8 @@ local function wisp_find_player_target_pos(surface, area, entity_name, force)
 end
 
 local function wisp_init(entity, ttl, n)
+	-- Enforce limit to prevent e.g. red wisps from spawning endlessly
+	if Wisps.n > conf.wisp_max_count then return entity.destroy() end
 	if not ttl then
 		ttl = conf.wisp_ttl[entity.name]
 		if not ttl then return end -- not a wisp entity
@@ -305,7 +307,7 @@ local function wisp_create_at_random(name, near_entity)
 	if not ( e and e.valid
 		and conf_base.wisp_chance_func(e.surface.darkness) ) then return end
 	e = wisp_create(name, e.surface, e.position)
-	if e and not wisp_spore_proto_check(name) then
+	if e and e.valid and not wisp_spore_proto_check(name) then
 		e.set_command{
 			type=defines.command.wander,
 			distraction=defines.distraction.by_damage }
