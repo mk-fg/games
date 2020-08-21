@@ -715,6 +715,11 @@ local function on_mined_entity(event)
 	if entity_is_rock(event.entity) then wisp_create_at_random('wisp-red', event.entity) end
 end
 
+local on_built_entity_filter = {
+	{filter='name', name='UV-lamp'}, {filter='name', name='wisp-detector'} }
+for name, ttl in pairs(conf_base.wisp_ttl) -- add all wisp entities
+	do table.insert(on_built_entity_filter, {filter='name', name=name}) end
+
 local function on_built_entity(event)
 	if not (InitState and InitState.configured) then return end
 	local e = event.created_entity
@@ -738,8 +743,7 @@ local function on_trigger_created(event)
 	-- Limit red wisps' replication via trigger_created_entity to specific percentage
 	if event.entity.name ~= 'wisp-red' then return end
 	if utils.pick_chance(conf.wisp_red_damage_replication_chance)
-	then wisp_init(event.entity)
-	else event.entity.destroy() end
+		then wisp_init(event.entity) else event.entity.destroy() end
 end
 
 local function on_drone_placed(event)
@@ -970,6 +974,11 @@ function Init.state_reset()
 end
 
 function Init.state_tick()
+	-- Correct mod init process can be a bit difficult, as illustrated here:
+	--   https://forums.factorio.com/viewtopic.php?f=7&t=70952&p=430652
+	-- This function is made to make it simpler, but more risky
+	-- It's supposed to run on first tick or some event when game is fully ready
+	-- Risk is multiplayer desyncs - any mismatching state change here is a desync
 	utils.log('Init: state')
 	InitState.surface = game.surfaces[conf.surface_name]
 	Init.settings()
@@ -1067,8 +1076,8 @@ end
 script.on_event(defines.events.on_entity_died, on_death)
 script.on_event(defines.events.on_pre_player_mined_item, on_mined_entity)
 script.on_event(defines.events.on_robot_pre_mined, on_mined_entity)
-script.on_event(defines.events.on_built_entity, on_built_entity)
-script.on_event(defines.events.on_robot_built_entity, on_built_entity)
+script.on_event(defines.events.on_built_entity, on_built_entity, on_built_entity_filter)
+script.on_event(defines.events.on_robot_built_entity, on_built_entity, on_built_entity_filter)
 script.on_event(defines.events.on_chunk_generated, on_chunk_generated)
 script.on_event(defines.events.on_trigger_created_entity, on_trigger_created)
 script.on_event(defines.events.on_player_used_capsule, on_drone_placed)
