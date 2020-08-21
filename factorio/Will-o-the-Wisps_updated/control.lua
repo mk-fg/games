@@ -20,8 +20,51 @@ local Wisps, WispDrones, WispCongregations, UVLights, Detectors -- sets
 local WispAttackEntities -- temporary set of aggressive wisp entities
 local MapStats, WorkSteps, WorkSets, WorkChecks
 
--- Not sure how UVLightEnergyLimit value is calculated, so re-adjusted if ever seen higher
-local UVLightEnergyLimit = 2844.45
+
+
+------------------------------------------------------------
+-- Mechanics formulas from global.conf
+------------------------------------------------------------
+-- These are no longer allowed in globals as of 0.18.x,
+--  so moved here, despite being full of various parameters.
+
+local function uv_lamp_damage_func(energy_percent)
+	return math.floor(energy_percent * (10 * (1 + math.random(-5, 5)/10))) end
+
+-- See also: chart in doc/uv-lamp-spore-kill-chart.html
+local function uv_lamp_spore_kill_chance_func(energy_percent)
+	return math.random() < energy_percent * 0.15 end
+
+-- XXX: hard to make this work without seq scans, but maybe possible
+-- local function uv_lamp_ttl_change_func(energy_percent, wisp)
+-- 	if math.random() < (energy_percent + 0.01)  * 0.15
+-- 		then wisp.ttl = wisp.ttl / 3 end end
+
+local function wisp_chance_func(darkness, wisp)
+	-- Used to roll whether new wisp should be spawned,
+	--  and to have existing wisps' ttl not decrease on expire-check (see intervals below).
+	return darkness > conf.min_darkness
+		and math.random() < darkness - 0.40 end
+
+-- All wisp_uv_* chances only work with conf.wisp_uv_expire_step value
+local function wisp_uv_expire_exp(uv) return math.pow(1.3, 1 + uv * 0.08) - 1.3 end
+local wisp_uv_expire_exp_bp = wisp_uv_expire_exp(6)
+local function wisp_uv_expire_chance_func(darkness, uv, wisp)
+	-- When returns true, wisp's ttl will drop to 0 on expire_uv.
+	-- Check is made per wisp each time when
+	--  darkness drops by conf.wisp_daytime_expire_step
+	--  or on every interval*step when <min_darkness.
+	local chance
+	if uv < 6 then chance = wisp_uv_expire_exp(uv)
+	else chance = wisp_uv_expire_exp_bp + uv * 0.01 end
+	return math.random() < chance
+end
+
+-- Applies to all wisps, runs on global uv level changes, not per-wisp
+local function wisp_uv_peace_chance_func(darkness, uv)
+	return math.random() < (uv / 10) * 0.3
+end
+
 
 
 ------------------------------------------------------------
@@ -305,7 +348,7 @@ local function wisp_create_at_random(name, near_entity)
 	-- Create wisp based on wisp_chance_func()
 	local e = near_entity
 	if not ( e and e.valid
-		and conf_base.wisp_chance_func(e.surface.darkness) ) then return end
+		and wisp_chance_func(e.surface.darkness) ) then return end
 	e = wisp_create(name, e.surface, e.position)
 	if e and e.valid and not wisp_spore_proto_check(name) then
 		e.set_command{
@@ -365,7 +408,7 @@ local tasks_monolithic = {
 	pacify = function(surface)
 		local uv = math.floor((1 - surface.darkness) / conf.wisp_uv_expire_step)
 		if (surface.darkness <= conf.min_darkness or uv > (MapStats.uv_level or 0))
-				and conf_base.wisp_uv_peace_chance_func(surface.darkness, uv)
+				and wisp_uv_peace_chance_func(surface.darkness, uv)
 			then wisp_aggression_set(surface, false) end
 		MapStats.uv_level = uv
 		return 1
@@ -464,7 +507,7 @@ local tasks_entities = {
 		-- wisp_chance_func is rolled to not decrease ttl at night, to spread-out ttls.
 		-- e.destroy() works one cycle after expire, so that light will be disabled first.
 		if wisp.ttl  <= 0 then return e.destroy() end
-		if not conf_base.wisp_chance_func(s.darkness, wisp)
+		if not wisp_chance_func(s.darkness, wisp)
 			then wisp.ttl = wisp.ttl - conf.intervals.expire_ttl * conf.work_steps.expire_ttl end
 	end},
 
@@ -475,7 +518,7 @@ local tasks_entities = {
 		if wisp.ttl <= 0 then return end
 		local uv = math.floor((1 - s.darkness) / conf.wisp_uv_expire_step)
 		if (s.darkness <= conf.min_darkness or uv > wisp.uv_level)
-				and conf_base.wisp_uv_expire_chance_func(s.darkness, uv, wisp) then
+				and wisp_uv_expire_chance_func(s.darkness, uv, wisp) then
 			wisp.ttl = math.min(wisp.ttl, utils.pick_jitter(conf.wisp_uv_expire_jitter, true))
 		end
 		wisp.uv_level = uv
@@ -485,14 +528,14 @@ local tasks_entities = {
 		local control  = e.get_control_behavior()
 		if control and control.valid and control.disabled then return end
 
-		if e.energy > UVLightEnergyLimit then UVLightEnergyLimit = e.energy end
-		local energy_percent = e.energy / UVLightEnergyLimit
+		if e.energy > conf.uv_lamp_energy_limit then conf.uv_lamp_energy_limit = e.energy end
+		local energy_percent = e.energy / conf.uv_lamp_energy_limit
 		if energy_percent < conf.uv_lamp_energy_min then return end
 
 		-- Effects on unit-type wisps - reds and yellows
 		local wisps, wisp = wisp_find_units(s, e.position, conf.uv_lamp_range)
 		if next(wisps) then
-			local damage = conf_base.uv_lamp_damage_func(energy_percent)
+			local damage = uv_lamp_damage_func(energy_percent)
 			for _, entity in ipairs(wisps) do
 				entity.set_command{ type=defines.command.flee,
 					from=e, distraction=defines.distraction.none }
@@ -504,7 +547,7 @@ local tasks_entities = {
 		wisps = s.find_entities_filtered{
 			name=wisp_spore_proto_name(), area=utils.get_area(conf.uv_lamp_range, e.position) }
 		if next(wisps) then for _, entity in ipairs(wisps) do
-			if conf_base.uv_lamp_spore_kill_chance_func(energy_percent) then entity.destroy() end
+			if uv_lamp_spore_kill_chance_func(energy_percent) then entity.destroy() end
 		end end
 	end},
 

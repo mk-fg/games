@@ -4,6 +4,12 @@ Date: 2020-08-21
   Info:
     - Merged all changes from Pi-C fork of the mod here ("Will-o'-the-Wisps updated (2)"), designated 0.2.x below.
 
+  Bugfixes:
+    - Removed UVLightEnergyLimit mutable-local, another potential source of desyncs, should've been gone long ago.
+
+  Changes:
+    - Moved some formula-functions out of global config, so that they won't spam messages on save.
+
 ---------------------------------------------------------------------------------------------------
 Version: 0.2.4
 Date: 2020-06-10

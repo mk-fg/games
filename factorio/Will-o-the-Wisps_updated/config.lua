@@ -36,20 +36,16 @@ conf.wisp_biter_aggression = false
 conf.wisp_aggro_on_player_only = false
 
 -- UV lamps
+-- "limit" value is auto-adjusted from lamp entities, if ever seen higher,
+--  not sure how to get it right from the start - how is it calculated? pls fix if you know how
+conf.uv_lamp_energy_limit = 2844.45
 conf.uv_lamp_energy_min = 0.2
 conf.uv_lamp_range = 12
 
-conf.uv_lamp_damage_func = function(energy_percent)
-	return math.floor(energy_percent * (10 * (1 + math.random(-5, 5)/10))) end
-
--- See also: chart in doc/uv-lamp-spore-kill-chart.html
-conf.uv_lamp_spore_kill_chance_func = function(energy_percent)
-	return math.random() < energy_percent * 0.15 end
-
--- XXX: hard to make this work without seq scans, but maybe possible
--- conf.uv_lamp_ttl_change_func = function(energy_percent, wisp)
--- 	if math.random() < (energy_percent + 0.01)  * 0.15
--- 		then wisp.ttl = wisp.ttl / 3 end end
+-- See also in control.lua for other parameters:
+--  - uv_lamp_damage_func
+--  - uv_lamp_spore_kill_chance_func
+--  - uv_lamp_ttl_change_func
 
 -- Detectors
 conf.detection_range_default = 16
@@ -79,35 +75,16 @@ conf.wisp_drone_ttl = 3 * 3600 * ticks_sec -- 3 hours
 conf.min_darkness = 0.05
 conf.min_darkness_to_emit_light = 0.10
 
-conf.wisp_chance_func = function(darkness, wisp)
-	-- Used to roll whether new wisp should be spawned,
-	--  and to have existing wisps' ttl not decrease on expire-check (see intervals below).
-	return darkness > conf.min_darkness
-		and math.random() < darkness - 0.40 end
+-- See also in control.lua for other parameters: wisp_chance_func
 
 -- Darkness drop step to +1 uv level and run wisp_uv_expire_chance.
 -- See also: chart in doc/darkness-wisp-expire-chart.html file
 conf.wisp_uv_expire_step = 0.10
 conf.wisp_uv_expire_jitter = 20 * ticks_sec -- instead of ttl=0
 
--- All wisp_uv_* chances only work with wisp_uv_expire_step value above
-local wisp_uv_expire_exp = function(uv) return math.pow(1.3, 1 + uv * 0.08) - 1.3 end
-local wisp_uv_expire_exp_bp = wisp_uv_expire_exp(6)
-conf.wisp_uv_expire_chance_func = function(darkness, uv, wisp)
-	-- When returns true, wisp's ttl will drop to 0 on expire_uv.
-	-- Check is made per wisp each time when
-	--  darkness drops by conf.wisp_daytime_expire_step
-	--  or on every interval*step when <min_darkness.
-	local chance
-	if uv < 6 then chance = wisp_uv_expire_exp(uv)
-	else chance = wisp_uv_expire_exp_bp + uv * 0.01 end
-	return math.random() < chance
-end
-
--- Applies to all wisps, runs on global uv level changes, not per-wisp
-conf.wisp_uv_peace_chance_func = function(darkness, uv)
-	return math.random() < (uv / 10) * 0.3
-end
+--- See also in control.lua for other parameters:
+--  - wisp_uv_expire_* funcs
+--  - wisp_uv_peace_chance_func
 
 
 -- ---------- Map scanning/spawning parameters
