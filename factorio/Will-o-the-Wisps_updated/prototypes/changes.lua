@@ -25,19 +25,14 @@ function changes.set_corrosion_resistance()
 		if proto.resistances then
 			if preset then table.insert(proto.resistances, preset)
 			else
-				for _, acid_resist in pairs(proto.resistances) do
-					if acid_resist.type == 'acid' then goto acid_resist_found end end
-				acid_resist = nil ::acid_resist_found::
-				if acid_resist then
+				for _, resist in pairs(proto.resistances) do if resist.type == 'acid' then
 					table.insert( proto.resistances,
 						{type='corrosion', decrease=resist.decrease, percent=resist.percent} )
-				end
-			end
-		elseif preset then
-			if proto.max_health and proto.max_health > 0 then
-				proto.resistances = {}
-				table.insert(proto.resistances, preset)
-			end
+					break
+			end end end
+		elseif preset and proto.max_health and proto.max_health > 0 then
+			proto.resistances = {}
+			table.insert(proto.resistances, preset)
 		end
 	end
 

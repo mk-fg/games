@@ -6,6 +6,8 @@ Date: 2020-08-21
 
   Bugfixes:
     - Removed UVLightEnergyLimit mutable-local, another potential source of desyncs, should've been gone long ago.
+    - Fix for potential crash on wisp aggression change from peaceful to not in settings.
+    - Fix a bunch of minor global usage, thanks to "strict mode" hack from Pi-C/eradicator.
 
   Changes:
     - Moved some formula-functions out of global config, so that they won't spam messages on save.

@@ -141,7 +141,7 @@ end
 function zones.get_wisp_trees_anywhere(count, pollution_factor)
 	-- Return up to N random trees from same
 	--  pollution-weighted-random forest_radius area for spawning wisps around.
-	local wisp_trees, n, chunk, area, trees = {}
+	local wisp_trees, n, chunk, area, trees, k = {}
 	while next(ForestArea) do
 		k = utils.pick_weight(get_forest_spawn_chances(pollution_factor))
 		chunk, area = ChunkMap[k], ForestArea[k]

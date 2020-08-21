@@ -15,7 +15,7 @@ local zones = require('libs/zones')
 --  unlike table.insert/table.remove (which are O(n) and are very slow comparatively).
 
 -- local references to globals
-local Init, InitState
+local conf, Init, InitState
 local Wisps, WispDrones, WispCongregations, UVLights, Detectors -- sets
 local WispAttackEntities -- temporary set of aggressive wisp entities
 local MapStats, WorkSteps, WorkSets, WorkChecks
@@ -392,7 +392,7 @@ local tasks_monolithic = {
 
 	spawn_on_map = function(surface)
 		if Wisps.n >= conf.wisp_max_count * conf.wisp_forest_on_map_percent then return end
-		trees = zones.get_wisp_trees_anywhere(conf.wisp_forest_spawn_count)
+		local trees = zones.get_wisp_trees_anywhere(conf.wisp_forest_spawn_count)
 		local wisp_chances, wisp_name = {
 			[wisp_spore_proto_name()]=conf.wisp_forest_spawn_chance_purple,
 			['wisp-yellow']=conf.wisp_forest_spawn_chance_yellow,
@@ -646,7 +646,7 @@ end
 
 local function run_periodic_task(name, target)
 	-- Returns workload value, which is not used
-	local iter_task, steps, res = tasks_entities[name], conf.work_steps[name]
+	local iter_task, steps, n, res = tasks_entities[name], conf.work_steps[name], 1
 	if steps then
 		n = (WorkSteps[name] or 0) + 1
 		if n > steps then n = 1 end
@@ -795,9 +795,10 @@ local function run_wisp_command(cmd)
 			' admin commands. Run without parameters for more info.' end
 	local player = game.players[cmd.player_index]
 	local function usage()
-		player.print('Usage: /wisp [command...]')
+		player.print('--- Usage: /wisp [command...]')
 		player.print('Supported subcommands:')
 		for line in cmd_help:gmatch('%s*%S.-\n') do player.print('  '..line:sub(1, -2)) end
+		player.print('[use /clear command to clear long message outputs like above]')
 	end
 	if not cmd.parameter or cmd.parameter == '' then return usage() end
 	if not player.admin then
@@ -861,8 +862,8 @@ function Init.settings(event)
 
 	knob = key_update('wisps-can-attack', 'peaceful_wisps', true)
 	if knob then
+		local wa = game.forces.wisp_attack
 		if conf.peaceful_wisps then
-			local wa = game.forces.wisp_attack
 			for _, force in ipairs(get_player_forces()) do wa.set_cease_fire(force, true) end
 			wisp_aggression_stop(InitState.surface)
 		else

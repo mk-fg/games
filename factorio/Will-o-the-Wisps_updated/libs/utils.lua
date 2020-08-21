@@ -53,7 +53,7 @@ end
 function utils.log(msg, ...)
 	if not conf.debug_log then return end
 	local log_func = conf.debug_log_direct and print or log
-	log_func(utils.fmt_ticks(game and game.tick)..' :: '..utils.fmt(msg, ...))
+	log_func(utils.fmt_ticks(game and game.ticks_played)..' :: '..utils.fmt(msg, ...))
 end
 
 function utils.error(msg, ...) error(utils.fmt(msg, ...)) end
