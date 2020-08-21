@@ -1,18 +1,6 @@
 -- Initial config for the mod
 -- Values here can be overidden via Mod Options menu
 
--- --== "strict mode" hack to find local vars that are used globally, or without initialization ==-- --
--- This will apply to all scripts of the mod, so only need to set these handlers in one of them
--- Suggested by Pi-C, made by eradicator, incredibly useful to detect bugs and desyncs
-setmetatable(_ENV, {
-	__newindex = function(self, key, value)
-		error('\n\n[ENV Error] Forbidden global *write*:\n'
-			..serpent.line{key=key or '<nil>', value=value or '<nil>'}..'\n') end,
-	__index = function(self, key)
-		if key == 'game' then return end -- used in utils.log check
-		error('\n\n[ENV Error] Forbidden global *read*:\n'
-			..serpent.line{key=key or '<nil>'}..'\n') end })
-
 local conf = {}
 
 local ticks_sec = 60

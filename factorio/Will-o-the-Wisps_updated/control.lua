@@ -175,12 +175,10 @@ local function wisp_aggression_stop(surface)
 end
 
 local function wisp_player_aggression_set(player_force)
-	local peace
-	for _, wisps in ipairs{'wisp', 'wisp_attack'} do
-		peace, wisps = not wisps == 'wisp_attack', game.forces[wisps]
-		wisps.set_cease_fire(player_force, peace)
-		player_force.set_cease_fire(wisps, peace and conf.peaceful_defences)
-	end
+	game.forces.wisp.set_cease_fire(player_force, true)
+	game.forces.wisp_attack.set_cease_fire(player_force, false)
+	player_force.set_cease_fire(game.forces.wisp, conf.peaceful_defences)
+	player_force.set_cease_fire(game.forces.wisp_attack, false)
 end
 
 local function wisp_biter_aggression_set()
@@ -761,7 +759,8 @@ local function on_drone_placed(event)
 end
 
 local function on_player_change(event)
-	if not (InitState and InitState.configured) then return end
+	if not InitState then return end
+	if not InitState.configured then Init.state_tick() end -- new game cutscene before ticks
 	-- With on_player_changed_force, old force doesn't get any changes
 	wisp_player_aggression_set(game.players[event.player_index].force)
 end
@@ -931,6 +930,19 @@ function Init.globals()
 end
 
 function Init.refs()
+	-- "strict mode" hack to find local vars that are used globally or without initialization
+	-- Enabled here, it should apply to all runtime scripts of the mod, but not to any other mods
+	-- Suggested by Pi-C, made by eradicator, very useful to detect "missing local/var" bugs
+	utils.log('Init: strict mode switch')
+	setmetatable(_ENV, {
+		__newindex = function(self, key, value)
+			error('\n\n[ENV Error] Forbidden global *write*:\n'
+				..serpent.line{key=key or '<nil>', value=value or '<nil>'}..'\n') end,
+		__index = function(self, key)
+			if key == 'game' then return end -- used in utils.log check
+			error('\n\n[ENV Error] Forbidden global *read*:\n'
+				..serpent.line{key=key or '<nil>'}..'\n') end })
+
 	utils.log('Init: refs')
 	conf, InitState = global.conf, global.init_state
 	Wisps, WispDrones = global.wisps, global.wisp_drones
@@ -970,7 +982,7 @@ function Init.state_tick()
 		if InitState.update_versions then
 			local v_old, v_new = table.unpack(InitState.update_versions)
 			local v_old_int = utils.version_to_num(v_old)
-			function version_less_than(ver)
+			local function version_less_than(ver)
 				if v_old_int < utils.version_to_num(ver)
 					then utils.log(' - Applying mod update from pre-'..ver); return true end
 			end
@@ -979,6 +991,9 @@ function Init.state_tick()
 				for _, force in ipairs(get_player_forces()) do wisp_player_aggression_set(force) end
 			end
 			if version_less_than('0.1.6') then wisp_biter_aggression_set() end
+			if version_less_than('0.3.2') then
+				for _, force in ipairs(get_player_forces()) do wisp_player_aggression_set(force) end
+			end
 		end
 
 		for _, force in pairs(game.forces) do

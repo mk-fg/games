@@ -1,4 +1,12 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.3.2
+Date: 2020-08-21
+  Bugfixes:
+    - Merge wisp aggression bugfix from The Night Has A Thousand Eyes fork.
+    - Disable lua errors triggering on global _ENV access from other mods on factorio init.
+    - Fix a couple more of accidental lua _ENV references.
+
+---------------------------------------------------------------------------------------------------
 Version: 0.3.1
 Date: 2020-08-21
   Info:
