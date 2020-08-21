@@ -6,11 +6,15 @@ I try to fix known causes of this, and feel free to report any, but never play m
 so don't test changes there or know much about how it works beyond other people's reports.
 
 
+--------------------
+
 ## Description
 
 Adds enigmatic Will-o'-the-Wisps to the game, which can be seen around forests at night.
 
-One current goal of the mod is to add some visible consequences to destroying alien forests or dumping pollution into them, but not necessarily damaging ones (see mod options).
+One current goal of the mod is to add some visible consequences to destroying alien forests or
+dumping pollution into them, but not necessarily damaging ones (see mod options).
+
 Another one is making alien nature look more alive and mysterious, as nights in particular can look a bit dull there.
 Third optional one is to add some light wisp-deterrent base-planning element, though still not sure how much.
 
@@ -35,6 +39,8 @@ Technologies:
 - Pet Will-o'-Wisp Lantern (combat robots) - lasting UV-resistant wisp drone to use as a personal lantern.
 
 
+--------------------
+
 ## Hints
 
 - Avoid burning forests at night.
@@ -54,25 +60,35 @@ Technologies:
 - See [forum thread](https://forums.factorio.com/viewtopic.php?f=190&t=60876&p=366660#p366660) for more technical info and debug commands.
 
 
-## Changes from the original mod
+--------------------
 
-- Compatibility update, various bugfixes.
-- Mod Options menu settings for wisps/turrets aggression and spawning.
-- Different spawning algorithm based on pollution.
-- Rebalanced stats, resistances, costs of technologies.
-- Some new technologies, visual tweaks.
-- Ingame changelog with full list of features, fixes and tweaks for each version.
+## Links
 
-See [original Will-o'-the-wisps mod](https://mods.factorio.com/mod/Will-o-the-wisps) and its [forum thread](https://forums.factorio.com/viewtopic.php?f=93&t=41514) for more information.
-
-
-## Cosmetic Compatibility Mod(s)
+### Cosmetic Compatibility Mod(s)
 
 - [Inlaid UV-lamp](https://mods.factorio.com/mod/InlaidUVLamp) -  makes UV lamps look like ones in [Schall Lamp Contrast](https://mods.factorio.com/mod/SchallLampContrast) and [Inlaid Lamps Extended](https://mods.factorio.com/mod/InlaidLampsExtended) mods.
 
 
-## Mod Suggestions
+### Mod Suggestions
 
-- [Longer Days and Nights](https://mods.factorio.com/mod/Longer_Days_and_Nights) - more nights, more shinies!
+- [Clockwork](https://mods.factorio.com/mod/Clockwork) - extends nights, and longer nights = more shinies!
 - [Time Tools](https://mods.factorio.com/mods/binbinhfr/TimeTools) - UI clock and speed settings plus time/darkness-tracking combinators.
 - [Diplomacy](https://mods.factorio.com/mod/diplomacy) and [Rampant](https://mods.factorio.com/mod/Rampant) - for [emergent game faction dynamics and challenge](https://forums.factorio.com/viewtopic.php?p=377032#p377032).
+
+
+### Mod Alternatives / Forks
+
+Note that multiple versions of these should not be used at the same time.
+
+- [Will-o'-the-Wisps updated (2)](https://mods.factorio.com/mod/Will-o-the-Wisps_updated-2) - improved version between 0.17-1.0 factorio releases by Pi-C.
+
+    All changes from there up to and including 0.18.4 are merged here as 0.2.x versions, see changelog for details.
+
+- [The Night Has A Thousand Eyes](https://mods.factorio.com/mod/The_Night_Has_A_Thousand_Eyes) - seem to be a local fork for a specific multiplayer server/game.
+
+    Not recommended for general use by the author (as of 0.1.1 / 2020-08-21), except for reference and merging fixes/changes.
+    Like the name a lot, way more imaginative than "wisps updated" here :)
+
+- Original [Will-o'-the-wisps](https://mods.factorio.com/mod/Will-o-the-wisps) mod and its [forum thread](https://forums.factorio.com/viewtopic.php?f=93&t=41514).
+
+    Was only maintained up to 0.14.x-0.15.x factorio releases by Betep3akata.
