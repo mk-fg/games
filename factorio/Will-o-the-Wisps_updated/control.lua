@@ -101,7 +101,7 @@ end
 local function wisp_incident_log(t, area, count)
 	-- Tracks last incidents in a round-robin queue
 	if not MapStats.incidents then MapStats.incidents = {a=1, b=1} end
-	local q, q_max, ts = MapStats.incidents, conf.incident_track_max, game.tick
+	local q, q_max, ts, tags = MapStats.incidents, conf.incident_track_max, game.tick
 	if q[q.b] then
 		q.b = q.b % q_max + 1
 		if q[q.b] then
