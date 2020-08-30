@@ -3,6 +3,9 @@ Version: 0.3.4
 Date: 2020-08-30
   Bugfixes:
     - Merge script_raised_* event handling and some other tweaks from Will-o-the-Wisps_updated-2 0.18.6.
+  Changes:
+    - Better handling of Red Wisp replication via on_entity_damaged hook and event filters.
+    - More event filters for various hooks that support them.
 
 ---------------------------------------------------------------------------------------------------
 Version: 0.3.3

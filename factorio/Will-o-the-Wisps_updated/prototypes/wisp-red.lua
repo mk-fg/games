@@ -65,23 +65,6 @@ data:extend{{
 		}
 	},
 
-	attack_reaction = {
-		{ range = 40,
-			damage_type = 'physical',
-			reaction_modifier = 0.1,
-			action = {
-				type = 'direct',
-				action_delivery = {
-					type = 'instant',
-					source_effects = {
-						type = 'create-entity',
-						entity_name = 'wisp-red',
-						trigger_created_entity = 'true' },
-					target_effects = {
-						type = 'create-entity',
-						entity_name = 'wisp-flash-attack' } } } },
-	},
-
 	run_animation = {
 		layers = {
 			{ filename = '__Will-o-the-Wisps_updated__/graphics/entity/wisps/wisp-red.png',

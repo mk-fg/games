@@ -264,6 +264,19 @@ end
 -- Entities
 ------------------------------------------------------------
 
+local entity_filter_buildings = {
+	{filter='name', name='UV-lamp'}, {filter='name', name='wisp-detector'} }
+
+local entity_filter_wisp_units = {}
+do for name, ttl in pairs(conf_base.wisp_ttl) do
+	table.insert(entity_filter_wisp_units, {filter='name', name=name})
+end end
+
+local entity_filter_wisp_drones = {{filter='name', name='wisp-drone-blue'}}
+
+local entity_filter_map_features = {
+	{filter='type', type='tree'}, {filter='type', type='simple-entity'} }
+
 -- XXX: Can use count_as_rock_for_filtered_deconstruction check for rocks, but needs testing
 local function entity_is_tree(e) return e.type == 'tree' end
 local function entity_is_rock(e) return utils.match_word(e.name, 'rock') end
@@ -691,6 +704,9 @@ local function on_nth_tick(event)
 	run_periodic_task(ev_name, ev_set)
 end
 
+local on_death_filter = utils.tc{
+	entity_filter_map_features, entity_filter_wisp_units, entity_filter_wisp_drones }
+
 local function on_death(event)
 	if not (InitState and InitState.configured) then return end
 	local e = event.entity
@@ -711,8 +727,7 @@ local function on_death(event)
 end
 
 -- Rocks are type=simple-entity
-local on_mined_entity_filter = {
-	{filter='type', type='tree'}, {filter='type', type='simple-entity'} }
+local on_mined_entity_filter = entity_filter_map_features
 
 local function on_mined_entity(event)
 	if not (InitState and InitState.configured) then return end
@@ -720,10 +735,8 @@ local function on_mined_entity(event)
 	elseif entity_is_rock(event.entity) then wisp_create_at_random('wisp-red', event.entity) end
 end
 
-local on_built_entity_filter = {
-	{filter='name', name='UV-lamp'}, {filter='name', name='wisp-detector'} }
-for name, ttl in pairs(conf_base.wisp_ttl) -- add all wisp entities
-	do table.insert(on_built_entity_filter, {filter='name', name=name}) end
+local on_built_entity_filter = utils.tc{
+	entity_filter_buildings, entity_filter_wisp_units }
 
 local function on_built_entity(event)
 	if not (InitState and InitState.configured) then return end
@@ -737,18 +750,22 @@ local function on_built_entity(event)
 	else wisp_init(e) end
 end
 
+local on_red_wisp_damaged_filter = {{filter='name', name='wisp-red'}}
+
+local function on_red_wisp_damaged(event)
+	if not (InitState and InitState.configured) then return end
+	if not ( event.damage_type.name == 'physical'
+			and event.final_damage_amount > 0
+			and event.entity.valid
+			and utils.pick_chance(conf.wisp_red_damage_replication_chance) )
+		then return end
+	wisp_create('wisp-red', event.entity.surface, event.entity.position)
+end
+
 local function on_chunk_generated(event)
 	if not (InitState and InitState.configured) then return end
 	if event.surface.index ~= InitState.surface.index then return end
 	zones.reset_chunk_area(event.surface, event.area)
-end
-
-local function on_trigger_created(event)
-	if not (InitState and InitState.configured) then return end
-	-- Limit red wisps' replication via trigger_created_entity to specific percentage
-	if event.entity.name ~= 'wisp-red' then return end
-	if utils.pick_chance(conf.wisp_red_damage_replication_chance)
-		then wisp_init(event.entity) else event.entity.destroy() end
 end
 
 local function on_drone_placed(event)
@@ -1078,7 +1095,7 @@ for ev, tick in pairs(conf_base.intervals) do
 	script.on_nth_tick(tick, on_nth_tick)
 end
 
-script.on_event(defines.events.on_entity_died, on_death)
+script.on_event(defines.events.on_entity_died, on_death, on_death_filter)
 
 script.on_event(defines.events.on_pre_player_mined_item, on_mined_entity, on_mined_entity_filter)
 script.on_event(defines.events.on_robot_pre_mined, on_mined_entity, on_mined_entity_filter)
@@ -1089,8 +1106,9 @@ script.on_event(defines.events.on_robot_built_entity, on_built_entity, on_built_
 script.on_event(defines.events.script_raised_built, on_built_entity, on_built_entity_filter)
 script.on_event(defines.events.script_raised_revive, on_built_entity, on_built_entity_filter)
 
+script.on_event(defines.events.on_entity_damaged, on_red_wisp_damaged, on_red_wisp_damaged_filter)
+
 script.on_event(defines.events.on_chunk_generated, on_chunk_generated)
-script.on_event(defines.events.on_trigger_created_entity, on_trigger_created)
 script.on_event(defines.events.on_player_used_capsule, on_drone_placed)
 script.on_event(defines.events.on_player_created, on_player_change)
 script.on_event(defines.events.on_player_changed_force, on_player_change)
