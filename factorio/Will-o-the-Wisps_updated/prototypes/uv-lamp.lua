@@ -1,3 +1,4 @@
+local hit_effects = require('__base__/prototypes/entity/demo-hit-effects')
 local sounds = require('__base__/prototypes/entity/demo-sounds')
 
 -- Regular lamp: light={ intensity=0.9 size=40 } colored={ intensity=1 size=6 }
@@ -13,10 +14,20 @@ data:extend{{
 	flags = {'placeable-neutral', 'player-creation'},
 	minable = {hardness = 0.2, mining_time = 0.5, result = 'UV-lamp'},
 	max_health = 80,
-	corpse = 'small-remnants',
 	collision_box = {{-0.15, -0.15}, {0.15, 0.15}},
 	selection_box = {{-0.5, -0.5}, {0.5, 0.5}},
+
+	corpse = 'lamp-remnants',
+	dying_explosion = 'lamp-explosion',
+	damaged_trigger_effect = hit_effects.entity(),
 	vehicle_impact_sound = sounds.generic_impact,
+	open_sound = sounds.machine_open,
+	close_sound = sounds.machine_close,
+	working_sound = {
+		sound = {filename = '__base__/sound/lamp-working.ogg', volume = 0.4},
+		max_sounds_per_type = 3,
+		use_doppler_shift = false,
+		audible_distance_modifier = 0.5 },
 
 	energy_usage_per_tick = '160kW', -- lamp = 5kW
 	energy_source = {

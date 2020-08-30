@@ -40,6 +40,13 @@ data:extend{
 		name = 'wisp-aggro-on-player-only',
 		type = 'bool-setting',
 		default_value = conf.wisp_aggro_on_player_only },
+	{ order = '0070',
+		setting_type = 'runtime-global',
+		name = 'wisp-red-replication-factor',
+		type = 'double-setting',
+		minimum_value = 0,
+		maximum_value = 1.0,
+		default_value = conf.wisp_red_damage_replication_factor },
 
 	{ order = '0110',
 		setting_type = 'runtime-global',

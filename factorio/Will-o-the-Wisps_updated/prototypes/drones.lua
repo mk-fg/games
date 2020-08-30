@@ -17,8 +17,8 @@ data:extend{{
 	distance_per_frame = 0.13,
 	time_to_live = conf.wisp_drone_ttl, -- 3 hours
 	follows_player = true,
-	friction = 0.01,
-	range_from_player = 6.0,
+	friction = 0.005,
+	range_from_player = 8.0,
 	speed = 0.01,
 
 	attack_parameters = {

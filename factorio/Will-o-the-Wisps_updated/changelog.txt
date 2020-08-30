@@ -1,11 +1,15 @@
 ---------------------------------------------------------------------------------------------------
 Version: 0.3.4
 Date: 2020-08-30
-  Bugfixes:
-    - Merge script_raised_* event handling and some other tweaks from Will-o-the-Wisps_updated-2 0.18.6.
+  Features:
+    - Add mod option for Red Wisp replication factor.
+
   Changes:
+    - Only one wisp lantern-drone is placed per capsule, not three.
+    - Update combinator and lamp damage and sound effects to match current factorio.
     - Better handling of Red Wisp replication via on_entity_damaged hook and event filters.
     - More event filters for various hooks that support them.
+    - Merge script_raised_* event handling and some other tweaks from Will-o-the-Wisps_updated-2 0.18.6.
 
 ---------------------------------------------------------------------------------------------------
 Version: 0.3.3

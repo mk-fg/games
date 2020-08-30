@@ -122,11 +122,15 @@ end
 
 function utils.tc(opts)
 	-- Copy table, applying any specified updates (tables/keys) to it.
+	-- Concatenates number-indexed tables via
+	--  table.insert instead of using these numbers as keys.
 	-- Usage: tc{table, update1, update2, ..., k1=v1, k2=v2, ...}
 	local t, n = {}, 1
 	while true do
 		if opts[n] then
-			for k,v in pairs(opts[n]) do t[k] = v end
+			for k,v in pairs(opts[n]) do
+				if type(k) == 'number' then table.insert(t, v) else t[k] = v
+			end end
 			opts[n], n = nil, n + 1
 		else break end
 	end

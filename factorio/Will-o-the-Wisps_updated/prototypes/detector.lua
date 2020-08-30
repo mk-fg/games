@@ -1,3 +1,6 @@
+local hit_effects = require('__base__/prototypes/entity/demo-hit-effects')
+local sounds = require('__base__/prototypes/entity/demo-sounds')
+
 data:extend{{
 
 	type = 'constant-combinator',
@@ -7,11 +10,17 @@ data:extend{{
 	flags = {'placeable-neutral', 'player-creation'},
 	minable = {hardness = 0.2, mining_time = 0.5, result = 'wisp-detector'},
 	max_health = 90,
-	corpse = 'small-remnants',
 	collision_box = {{-0.35, -0.35}, {0.35, 0.35}},
 	selection_box = {{-0.5, -0.5}, {0.5, 0.5}},
 	item_slot_count = 18,
-	vehicle_impact_sound = {filename='__base__/sound/car-metal-impact.ogg', volume=0.65},
+
+	corpse = 'constant-combinator-remnants',
+	dying_explosion = 'constant-combinator-explosion',
+
+	damaged_trigger_effect = hit_effects.entity(),
+	vehicle_impact_sound = sounds.generic_impact,
+	open_sound = sounds.machine_open,
+	close_sound = sounds.machine_close,
 
 	sprites = {
 		north = {

@@ -741,8 +741,8 @@ local on_built_entity_filter = utils.tc{
 local function on_built_entity(event)
 	if not (InitState and InitState.configured) then return end
 	local e = event.created_entity or event.entity
-	if e.name == 'UV-lamp' then return uv_light_init(e) end
-	elseif e.name == 'wisp-detector' then return detector_init(e) end
+	if e.name == 'UV-lamp' then return uv_light_init(e)
+	elseif e.name == 'wisp-detector' then return detector_init(e)
 	elseif e.name == 'wisp-purple' then
 		local surface, pos = e.surface, e.position
 		e.destroy()
@@ -754,10 +754,12 @@ local on_red_wisp_damaged_filter = {{filter='name', name='wisp-red'}}
 
 local function on_red_wisp_damaged(event)
 	if not (InitState and InitState.configured) then return end
+	-- This does not seem to trigger on every hit, according to my testing,
+	--  as that should make them unkillable with factor > 0.5, yet it does not.
+	-- Note: event.entity might be dead here already, hence not valid
 	if not ( event.damage_type.name == 'physical'
 			and event.final_damage_amount > 0
-			and event.entity.valid
-			and utils.pick_chance(conf.wisp_red_damage_replication_chance) )
+			and utils.pick_chance(conf.wisp_red_damage_replication_factor) )
 		then return end
 	wisp_create('wisp-red', event.entity.surface, event.entity.position)
 end
@@ -774,10 +776,11 @@ local function on_drone_placed(event)
 	local drones = surface.find_entities_filtered{
 		name='wisp-drone-blue', area=utils.get_area(1, event.position) }
 	if not next(drones) then return end
-	for _, entity in ipairs(drones) do
+	for en, entity in ipairs(drones) do
 		for n = 1, WispDrones.n do
 			if WispDrones[n].entity == entity then entity = nil; break end
 		end
+		if entity and en > 1 then entity.destroy(); goto skip end -- only place one drone
 		if not entity then goto skip end
 		local n = WispDrones.n + 1
 		WispDrones.n, WispDrones[n] = n, init_light{entity=entity}
@@ -874,12 +877,12 @@ function Init.settings(event)
 	local key, knob, v = event and event.setting
 	local function key_update(k, k_conf, v_invert)
 		if key and key ~= k then return end
-		utils.log('  - updating key: %s - %s %s', k, settings.global[k].value, '-')
+		utils.log('  - updating key: %s = %s', k, settings.global[k].value or 'nil')
 		if k_conf then
 			v = settings.global[k].value
 			if v_invert then v = not v end
 			if conf[k_conf] == v then return end
-			utils.log('   - conf key %s: %s -> %s %s', k_conf, conf[k_conf], v, ':')
+			utils.log('   - conf key %s: %s -> %s', k_conf, conf[k_conf], v or 'nil')
 			conf[k_conf] = v
 		end
 		return settings.global[k]
@@ -921,6 +924,7 @@ function Init.settings(event)
 	key_update('wisp-death-retaliation-radius', 'wisp_death_retaliation_radius')
 	key_update('wisp-aggro-on-player-only', 'wisp_aggro_on_player_only')
 	key_update('wisp-aggression-factor', 'wisp_aggression_factor')
+	key_update('wisp-red-replication-factor', 'wisp_red_damage_replication_factor')
 	key_update('wisp-map-spawn-count', 'wisp_max_count')
 	key_update('wisp-map-spawn-pollution-factor', 'wisp_forest_spawn_pollution_factor')
 

@@ -66,7 +66,7 @@ conf.wisp_ttl_jitter = 40 * ticks_sec -- -40s to +40s
 -- Misc other wisp parameters
 conf.wisp_group_radius = {['wisp-yellow']=16, ['wisp-red']=6}
 conf.wisp_group_min_ttl = 100
-conf.wisp_red_damage_replication_chance = 0.2
+conf.wisp_red_damage_replication_factor = 0.2
 conf.wisp_drone_ttl = 3 * 3600 * ticks_sec -- 3 hours
 
 -- Minimal darkness value when the wisps appearing (0-1).
@@ -213,6 +213,8 @@ conf.light_entities = {
 	},
 	['wisp-drone-blue']={
 		{intensity=0.7, size=110, color={r=0, g=1.0, b=0.95, a=0.7}},
+		{intensity=0.6, size=130, color={r=0, g=0.95, b=0.9, a=0.7}},
+		{intensity=0.65, size=100, color={r=0.1, g=0.90, b=0.9, a=0.8}},
 	},
 	['wisp-detector']={
 		{intensity=0.3, size=7, color={r=0.95, g=0.0, b=0.8}},
