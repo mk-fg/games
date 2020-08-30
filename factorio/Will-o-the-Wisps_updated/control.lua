@@ -264,6 +264,7 @@ end
 -- Entities
 ------------------------------------------------------------
 
+-- XXX: Can use count_as_rock_for_filtered_deconstruction check for rocks, but needs testing
 local function entity_is_tree(e) return e.type == 'tree' end
 local function entity_is_rock(e) return utils.match_word(e.name, 'rock') end
 
@@ -709,10 +710,14 @@ local function on_death(event)
 		then e.surface.create_entity{name=e.name..'-death', position=e.position} end
 end
 
+-- Rocks are type=simple-entity
+local on_mined_entity_filter = {
+	{filter='type', type='tree'}, {filter='type', type='simple-entity'} }
+
 local function on_mined_entity(event)
 	if not (InitState and InitState.configured) then return end
-	if entity_is_tree(event.entity) then wisp_create_at_random('wisp-yellow', event.entity) end
-	if entity_is_rock(event.entity) then wisp_create_at_random('wisp-red', event.entity) end
+	if entity_is_tree(event.entity) then wisp_create_at_random('wisp-yellow', event.entity)
+	elseif entity_is_rock(event.entity) then wisp_create_at_random('wisp-red', event.entity) end
 end
 
 local on_built_entity_filter = {
@@ -722,10 +727,10 @@ for name, ttl in pairs(conf_base.wisp_ttl) -- add all wisp entities
 
 local function on_built_entity(event)
 	if not (InitState and InitState.configured) then return end
-	local e = event.created_entity
+	local e = event.created_entity or event.entity
 	if e.name == 'UV-lamp' then return uv_light_init(e) end
-	if e.name == 'wisp-detector' then return detector_init(e) end
-	if e.name == 'wisp-purple' then
+	elseif e.name == 'wisp-detector' then return detector_init(e) end
+	elseif e.name == 'wisp-purple' then
 		local surface, pos = e.surface, e.position
 		e.destroy()
 		local wisp =  wisp_create(wisp_spore_proto_name(), surface, pos)
@@ -1074,10 +1079,16 @@ for ev, tick in pairs(conf_base.intervals) do
 end
 
 script.on_event(defines.events.on_entity_died, on_death)
-script.on_event(defines.events.on_pre_player_mined_item, on_mined_entity)
-script.on_event(defines.events.on_robot_pre_mined, on_mined_entity)
+
+script.on_event(defines.events.on_pre_player_mined_item, on_mined_entity, on_mined_entity_filter)
+script.on_event(defines.events.on_robot_pre_mined, on_mined_entity, on_mined_entity_filter)
+script.on_event(defines.events.script_raised_destroy, on_mined_entity, on_mined_entity_filter)
+
 script.on_event(defines.events.on_built_entity, on_built_entity, on_built_entity_filter)
 script.on_event(defines.events.on_robot_built_entity, on_built_entity, on_built_entity_filter)
+script.on_event(defines.events.script_raised_built, on_built_entity, on_built_entity_filter)
+script.on_event(defines.events.script_raised_revive, on_built_entity, on_built_entity_filter)
+
 script.on_event(defines.events.on_chunk_generated, on_chunk_generated)
 script.on_event(defines.events.on_trigger_created_entity, on_trigger_created)
 script.on_event(defines.events.on_player_used_capsule, on_drone_placed)
