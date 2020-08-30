@@ -1,4 +1,10 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.0.10
+Date: 30. 08. 2020
+  Internals:
+    - Handle script_raised_built/revive events, for compatibility with mods that might create these combinators that way.
+
+---------------------------------------------------------------------------------------------------
 Version: 0.0.9
 Date: 19. 08. 2020
   Fixes:

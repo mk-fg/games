@@ -88,7 +88,7 @@ end)
 -- New entity hooks
 
 local function sentinel_check(e)
-	return e.type == 'constant-combinator'
+	return e.valid and e.type == 'constant-combinator'
 		and ( e.name == 'sentinel-combinator' or e.name == 'sentinel-alarm' )
 end
 
@@ -99,10 +99,12 @@ local function sentinel_init(e)
 	return sentinel_info
 end
 
-local function on_built(ev) sentinel_init(ev.created_entity) end
+local function on_built(ev) sentinel_init(ev.created_entity or ev.entity) end
 
 script.on_event(defines.events.on_built_entity, on_built, {{filter='type', type='constant-combinator'}})
 script.on_event(defines.events.on_robot_built_entity, on_built, {{filter='type', type='constant-combinator'}})
+script.on_event(defines.events.script_raised_built, on_built, {{filter='type', type='constant-combinator'}})
+script.on_event(defines.events.script_raised_revive, on_built, {{filter='type', type='constant-combinator'}})
 
 
 -- On-nth-tick updates
