@@ -7,7 +7,10 @@ data:extend{{
 	icon = '__Will-o-the-Wisps_updated__/graphics/icons/wisp-drone-blue.png',
 	icon_size = 32,
 	flags = {'placeable-player', 'player-creation', 'placeable-off-grid', 'not-on-map', 'not-repairable'},
-	resistances = {{type='corrosion', percent=95}},
+	resistances = {
+		{type='fire', percent=50},
+		{type='acid', percent=90},
+		{type='corrosion', percent=95} },
 	order = 'z[combatrobot]',
 	subgroup='capsule',
 	max_health = 20,

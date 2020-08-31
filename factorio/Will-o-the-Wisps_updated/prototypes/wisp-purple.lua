@@ -25,7 +25,8 @@ local wisp_purple = {
 	duration = conf.wisp_ttl['wisp-purple'] * 12,
 	fade_away_duration = conf.wisp_ttl['wisp-purple'] * 6,
 	spread_duration = 10,
-	color = {r=0.9, g=0.5, b=0.9,a=0.0},
+	color = {r=0.9, g=0.5, b=0.9, a=0.0},
+	map_color = {r=0, g=0, b=0, a=0}, -- less visible on the map, still leaves near-transparent dots
 	action = {
 		type = 'direct',
 		action_delivery = {

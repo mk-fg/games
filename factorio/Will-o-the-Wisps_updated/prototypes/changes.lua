@@ -47,6 +47,30 @@ function changes.set_corrosion_resistance()
 	end end
 end
 
+function changes.set_electric_immunity()
+	-- Set resistance to wisps' electric attacks to rails, so that they'd ignore them
+	local electric_immunity = {type='electric', decrease=0, percent=100}
+	local immune_categories = utils.t('straight-rail curved-rail')
+
+	local function set_electric_immunity(proto)
+		if proto.resistances then
+			for n, resist in pairs(proto.resistances) do
+				if resist.type == 'electric' then
+					table.remove(proto.resistances, n); break
+			end end
+		elseif proto.max_health and proto.max_health > 0 then
+			proto.resistances = {}
+		else goto skip end
+		table.insert(proto.resistances, electric_immunity)
+	::skip:: end
+
+	for cat_name, cat in pairs(data.raw) do
+		if immune_categories[cat_name] then
+			for proto_name, proto in pairs(cat) do
+				set_electric_immunity(proto)
+	end end end
+end
+
 function changes.update_tech_recipes()
 	local function add_tech_unlock(tech, recipe)
 		tech = data.raw.technology[tech]

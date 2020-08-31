@@ -551,7 +551,7 @@ local tasks_entities = {
 			for _, entity in ipairs(wisps) do
 				entity.set_command{ type=defines.command.flee,
 					from=e, distraction=defines.distraction.none }
-				entity.damage(damage, game.forces.wisp, 'fire')
+				entity.damage(damage, game.forces.wisp, 'uv')
 			end
 		end
 
@@ -757,9 +757,14 @@ local function on_red_wisp_damaged(event)
 	-- This does not seem to trigger on every hit, according to my testing,
 	--  as that should make them unkillable with factor > 0.5, yet it does not.
 	-- Note: event.entity might be dead here already, hence not valid
-	if not ( event.damage_type.name == 'physical'
+	local factor = conf.wisp_red_damage_replication_factor
+	-- Lower replication factor on fire to avoid massive replication there
+	-- 0.2/3 works ok, but would work differently with different base factor
+	if event.damage_type.name == 'fire' then factor = factor / 3 end
+	if not (
+			event.damage_type.name ~= 'uv' -- from uv lamps
 			and event.final_damage_amount > 0
-			and utils.pick_chance(conf.wisp_red_damage_replication_factor) )
+			and utils.pick_chance(factor) )
 		then return end
 	wisp_create('wisp-red', event.entity.surface, event.entity.position)
 end

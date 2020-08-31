@@ -10,19 +10,23 @@ data:extend{{
 	alert_when_damaged = false,
 	order='b-b-c',
 	resistances = {
-		{ type = 'physical', decrease = 3 },
-		{ type = 'acid', percent = 100 },
-	},
-	healing_per_tick = 0.01,
+		{type='physical', decrease=3},
+		{type='fire', percent=50},
+		{type='acid', percent=100} },
 	collision_box = {{0, 0}, {0, 0}},
 	selection_box = {{-0.3, -0.3}, {0.3, 0.3}},
 	sticker_box = {{-0.1, -0.1}, {0.1, 0.1}},
+	dying_explosion = 'blood-explosion-small',
+
 	distraction_cooldown = 300,
 	vision_distance = 10,
 	movement_speed = 0.07,
 	distance_per_frame = 0.15,
 	pollution_to_join_attack = 9000,
-	dying_explosion = 'blood-explosion-small',
+	healing_per_tick = 0.01,
+
+	move_while_shooting = true,
+	affected_by_tiles = false,
 	has_belt_immunity = true,
 
 	working_sound = {

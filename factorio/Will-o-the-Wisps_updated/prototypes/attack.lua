@@ -1,7 +1,7 @@
 data:extend{
 
-	{ type = 'damage-type',
-		name = 'corrosion' },
+	{type='damage-type', name='corrosion'},
+	{type='damage-type', name='uv'},
 
 	{ type = 'explosion',
 		name = 'wisp-flash-attack',
@@ -46,7 +46,7 @@ data:extend{
 				type = 'instant',
 				target_effects = {
 					{ type = 'damage',
-						damage = { amount = 6, type = 'electric'} } } } },
+						damage = {amount=6, type = 'electric'} } } } },
 		start = {
 			filename = '__Will-o-the-Wisps_updated__/graphics/entity/wisp-orange-beam/beam-start.png',
 			line_length = 4,
