@@ -333,7 +333,7 @@ local function wisp_find_player_target_pos(surface, area, entity_name, force)
 	::skip:: end
 end
 
-local function wisp_init(entity, ttl, n)
+local function wisp_init(entity, force, ttl, n)
 	-- Enforce limit to prevent e.g. red wisps from spawning endlessly
 	if Wisps.n > conf.wisp_max_count then return entity.destroy() end
 	if not ttl then
@@ -341,31 +341,46 @@ local function wisp_init(entity, ttl, n)
 		if not ttl then return end -- not a wisp entity
 		ttl = ttl + utils.pick_jitter(conf.wisp_ttl_jitter)
 	end
-	entity.force = game.forces.wisp
+	entity.force = force or game.forces.wisp
 	local wisp = init_light{entity=entity, ttl=ttl, uv_level=0}
 	if not n then n = Wisps.n + 1; Wisps.n = n end
 	Wisps[n] = wisp
 end
 
-local function wisp_create(name, surface, position, ttl, n)
-	local pos, wisp = surface.find_non_colliding_position(name, position, 6, 0.3)
+local function wisp_create(name, surface, position, angry, ttl, n)
+	local force, pos, wisp = 'wisp', surface.find_non_colliding_position(name, position, 6, 0.3)
 	if pos then
-		wisp = surface.create_entity{name=name, position=pos, force='wisp'}
-		wisp_init(wisp, ttl, n)
+		if angry then force = 'wisp_attack' end
+		wisp = surface.create_entity{name=name, position=pos, force=force}
+		wisp_init(wisp, force, ttl, n)
 	end
 	return wisp
 end
 
-local function wisp_create_at_random(name, near_entity)
-	-- Create wisp based on wisp_chance_func()
+local function wisp_create_at_random(name, near_entity, angry_chance)
+	-- Create wisp based on wisp_chance_func(), and maybe angry
 	local e = near_entity
 	if not ( e and e.valid
 		and wisp_chance_func(e.surface.darkness) ) then return end
-	e = wisp_create(name, e.surface, e.position)
+	local angry = not conf.peaceful_wisps
+		and angry_chance and utils.pick_chance(angry_chance)
+	e = wisp_create(name, e.surface, e.position, angry)
 	if e and e.valid and not wisp_spore_proto_check(name) then
-		e.set_command{
+		local cmd_wander = {
 			type=defines.command.wander,
+			radius=conf.wisp_disturbed_area_radius,
 			distraction=defines.distraction.by_damage }
+		if not angry then e.set_command(cmd_wander)
+		else
+			cmd_wander.distraction = defines.distraction.by_enemy
+			e.set_command{
+				type=defines.command.compound,
+				structure_type=defines.compound_command.return_last,
+				commands={
+					{ type=defines.command.attack_area,
+						destination=e.position, radius=conf.wisp_disturbed_area_radius },
+					cmd_wander } }
+		end
 	end
 	return e
 end
@@ -636,7 +651,7 @@ local tasks_entities = {
 			structure_type=defines.compound_command.return_last,
 			commands={
 				{type=defines.command.go_to_location, destination=pos},
-				{type=defines.command.wander} } }
+				{type=defines.command.wander, wander_in_group=false} } }
 	end},
 
 }
@@ -710,8 +725,10 @@ local on_death_filter = utils.tc{
 local function on_death(event)
 	if not (InitState and InitState.configured) then return end
 	local e = event.entity
-	if entity_is_tree(e) then wisp_create_at_random('wisp-yellow', e) end
-	if entity_is_rock(e) then wisp_create_at_random('wisp-red', e) end
+	if entity_is_tree(e) then
+		wisp_create_at_random('wisp-yellow', e, conf.wisp_yellow_disturbed_angry_chance) end
+	if entity_is_rock(e) then
+		wisp_create_at_random('wisp-red', e, conf.wisp_red_disturbed_angry_chance) end
 	if wisp_unit_proto_check(e.name) then
 		local aggro, area = true
 		if conf.wisp_death_retaliation_radius > 0
@@ -731,8 +748,10 @@ local on_mined_entity_filter = entity_filter_map_features
 
 local function on_mined_entity(event)
 	if not (InitState and InitState.configured) then return end
-	if entity_is_tree(event.entity) then wisp_create_at_random('wisp-yellow', event.entity)
-	elseif entity_is_rock(event.entity) then wisp_create_at_random('wisp-red', event.entity) end
+	if entity_is_tree(event.entity) then
+		wisp_create_at_random('wisp-yellow', event.entity, conf.wisp_yellow_disturbed_angry_chance)
+	elseif entity_is_rock(event.entity) then
+		wisp_create_at_random('wisp-red', event.entity, conf.wisp_red_disturbed_angry_chance) end
 end
 
 local on_built_entity_filter = utils.tc{
@@ -919,7 +938,7 @@ function Init.settings(event)
 				then goto skip end
 			surface, pos = wisp.entity.surface, wisp.entity.position
 			wisp.entity.destroy()
-			wisp = wisp_create(proto, surface, pos, wisp.ttl, n)
+			wisp = wisp_create(proto, surface, pos, nil, wisp.ttl, n)
 		::skip:: end
 	end
 
@@ -1107,7 +1126,7 @@ end
 script.on_event(defines.events.on_entity_died, on_death, on_death_filter)
 
 script.on_event(defines.events.on_pre_player_mined_item, on_mined_entity, on_mined_entity_filter)
-script.on_event(defines.events.on_robot_pre_mined, on_mined_entity, on_mined_entity_filter)
+script.on_event(defines.events.on_robot_mined_entity, on_mined_entity, on_mined_entity_filter)
 script.on_event(defines.events.script_raised_destroy, on_mined_entity, on_mined_entity_filter)
 
 script.on_event(defines.events.on_built_entity, on_built_entity, on_built_entity_filter)

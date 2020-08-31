@@ -1,12 +1,15 @@
 ---------------------------------------------------------------------------------------------------
 Version: 0.3.5
 Date: 2020-08-31
+  Features:
+    - Very rarely wisps might get angry when disturbed by habitat destruction, if retaliation is enabled.
+
   Changes:
     - Allow wisps to fly over water, attack while moving.
     - Fix purples from leaving red dots on the map by making them much less visible there.
     - All wisps now have 50% fire and high acid resistance.
     - UV lamps now use "uv" damage type instead of "fire".
-    - Make rails immune to wisps' electric attacks, so that they're not affected by train-kills.
+    - Make rails immune to wisps' electric attacks, so that train-kills in the middle of nowhere are never a problem.
 
 ---------------------------------------------------------------------------------------------------
 Version: 0.3.4

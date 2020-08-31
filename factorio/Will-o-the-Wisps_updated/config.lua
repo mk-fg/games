@@ -66,8 +66,12 @@ conf.wisp_ttl_jitter = 40 * ticks_sec -- -40s to +40s
 -- Misc other wisp parameters
 conf.wisp_group_radius = {['wisp-yellow']=16, ['wisp-red']=6}
 conf.wisp_group_min_ttl = 100
-conf.wisp_red_damage_replication_factor = 0.2
 conf.wisp_drone_ttl = 3 * 3600 * ticks_sec -- 3 hours
+conf.wisp_red_damage_replication_factor = 0.2
+
+conf.wisp_disturbed_area_radius = 60 -- wander/attack area radius
+conf.wisp_yellow_disturbed_angry_chance = 0.005 -- 1 in 200
+conf.wisp_red_disturbed_angry_chance = 0.2 -- should be rare to even find them
 
 -- Minimal darkness value when the wisps appearing (0-1).
 -- Full daylight is darkness=0 (wisps at daytime), max ~0.85.
