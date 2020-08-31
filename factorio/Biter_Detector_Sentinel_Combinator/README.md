@@ -48,25 +48,22 @@ Having too many and/or too long-range detectors might impact performance on scan
 
 ## Links
 
-- [Networked Radar](https://mods.factorio.com/mod/folk-radar)
+- Programmable Speakers
 
-    Very similar mod for 0.14 - 0.16. Might also work with modern factorio after minor modification.
+    - [Soundpack: Alerts and Sirens](https://mods.factorio.com/mod/Soundpack-alerts-and-sirens) - a lot of alert, siren and bell sounds for an easy speaker alarm variety.
+    - [Speaker Signals 2](https://mods.factorio.com/mod/speaker-signals-2) - nice alert icons for speakers.
+    - [Command & Conquer ☭ Red Alert Sounds](https://mods.factorio.com/mod/Command_and_Conquer_RedAlert_Sounds) - to have voiced "Enemy Approaching" or "Base Under Attack" alerts on speakers.
+    - [Op2 announcer](https://mods.factorio.com/mod/Op2_announcer) - another great voice-alarm pack.
 
-- [Dragon Industries Factor-I/O](https://mods.factorio.com/mod/FactorIO)
+- Detectable fauna
 
-    Also includes biter count sensor, among many others.
+    - [Armoured Biters](https://mods.factorio.com/mod/ArmouredBiters) - additional biter types for that "other aliens" category.
+    - [Will-o'-the-Wisps updated](https://mods.factorio.com/mod/Will-o-the-Wisps_updated) - hostile ones trigger Alarm towers, but combinator doesn't count them.
 
-- [Command & Conquer ☭ Red Alert Sounds](https://mods.factorio.com/mod/Command_and_Conquer_RedAlert_Sounds)
+- Similar Mods
 
-    To have voiced "Enemy Approaching" or "Base Under Attack" alerts on speakers.
-
-- [Soundpack: Alerts and Sirens](https://mods.factorio.com/mod/Soundpack-alerts-and-sirens)
-
-    Includes a lot of alert, siren and bell sounds for an easy alarm variety.
-
-- [Armoured Biters](https://mods.factorio.com/mod/ArmouredBiters)
-
-    Nice additional biter types for that "other aliens" category.
+    - [Networked Radar](https://mods.factorio.com/mod/folk-radar) - very similar mod for factorio 0.14 - 0.16.
+    - [Dragon Industries Factor-I/O](https://mods.factorio.com/mod/FactorIO) - includes biter count sensor, among many others.
 
 
 [[github link](https://github.com/mk-fg/games/tree/master/factorio/Biter_Detector_Sentinel_Combinator)]
