@@ -167,6 +167,11 @@ Easy to fix with mods though, which are one of the best parts of the game.
 
   Detector/counter for biter enemies within range.
 
+- `Moon Logic <https://mods.factorio.com/mod/Moon_Logic>`_
+
+  Fork of Sandboxed LuaCombinator by IWTDU and LuaCombinator2 by OwnlyMe,
+  allowing to pretty much just script game in Lua from within it.
+
 - ReducedResearchX
 
   Local mod to reduce all research costs by somewhat complicated formula,

@@ -1,0 +1,10 @@
+---------------------------------------------------------------------------------------------------
+Version: 0.0.1
+Date: 2020-08-32
+  Features:
+    - Initial release, based on IWTDU's Sandboxed LuaCombinator mod code (which in turn is based on OwnlyMe's LuaCombinator2), but with less features.
+
+  Changes:
+    - Remove all auto-indentation and syntax highlighting - it's not a substitute for vim/emacs, just paste/tweak code there.
+    - Remove all blueprint serialization code - one of these can easily control everything in the game, use simplier combinators for basic arithmetic.
+    - GUIs have fixed position, not bouncing somewhere around screen center, and are generally fixed-up a bit.
