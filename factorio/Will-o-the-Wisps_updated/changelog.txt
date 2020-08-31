@@ -3,6 +3,7 @@ Version: 0.3.5
 Date: 2020-08-31
   Features:
     - Very rarely wisps might get angry when disturbed by habitat destruction, if retaliation is enabled.
+    - Green wisps can sometimes follow player(s).
 
   Changes:
     - Allow wisps to fly over water, attack while moving.

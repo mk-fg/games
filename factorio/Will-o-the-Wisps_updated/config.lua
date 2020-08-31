@@ -143,6 +143,8 @@ conf.congregate = c
 
 c.entity = 'wisp-green'
 c.chance_factor = 5 -- chance = wisp_forest_spawn_chance_green * chance_factor
+c.chance_player = 0.15 -- chance to go after player instead of infra
+c.chance_player_follow = 0.8 -- chance to repeat go-after-player order
 c.group_size = 16 -- affected by wisp_chance_func
 c.group_size_min_factor = 0.3 -- actual group-size is random(group_size * min_factor, group_size)
 c.source_pollution_factor = 500 -- pollution_factor for spawning visiting group
@@ -151,6 +153,7 @@ c.dst_find_building_radius = 16 -- radius to pick target building in from dst po
 c.dst_arrival_radius = 16 -- when group is that close, assign new dst
 c.dst_arrival_ticks = 3000 -- ticks before assigning new dst
 c.dst_next_building_radius = 128 -- radius to pick target building in from dst pos
+c.dst_wander_radius = {min=8, max=50} -- radius to wander around destination
 
 
 -- ---------- Performance stuff

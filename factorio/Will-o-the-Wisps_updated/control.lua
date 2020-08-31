@@ -323,6 +323,7 @@ local function wisp_find_units(surface, pos, radius)
 end
 
 local function wisp_find_player_target_pos(surface, area, entity_name, force)
+	-- Finds player-owned target within specified area
 	local forces, targets = force and {force} or utils.map(game.connected_players, 'force')
 	for _, force in ipairs(forces) do
 		targets = surface.find_entities_filtered{area=area, force=force}
@@ -372,7 +373,7 @@ local function wisp_create_at_random(name, near_entity, angry_chance)
 			distraction=defines.distraction.by_damage }
 		if not angry then e.set_command(cmd_wander)
 		else
-			cmd_wander.distraction = defines.distraction.by_enemy
+			cmd_wander.distraction = defines.distraction.by_anything
 			e.set_command{
 				type=defines.command.compound,
 				structure_type=defines.compound_command.return_last,
@@ -493,20 +494,41 @@ local tasks_monolithic = {
 		local group = surface.create_unit_group{position=wisp.position, force='wisp'}
 		for _, e in ipairs(wisps) do group.add_member(e) end
 
-		-- Find nearby high-pollution chunk, pick random player thing there as target
-		local pos_chunk = zones.find_industrial_pos(surface, wisp.position, c.dst_chunk_radius)
-		local pos, force_name = wisp_find_player_target_pos(
-			surface, utils.get_area(c.dst_find_building_radius, pos_chunk), wisp.name )
-		if not pos then pos = pos_chunk end
+		local pos_player, pos, cmd, force_name = utils.pick_chance(c.chance_player)
 
-		-- Send group to target, registering it in WispCongregations for target updates
+		if pos_player then
+			-- Pick some player to swarm
+			local players, p = game.connected_players
+			for _ = 1, #players do
+				pos_player = math.random(1, #players)
+				p = players[pos_player].character
+				if p then break end
+			end
+			if not (p and p.valid) then pos_player = nil end
+			if pos_player then
+				pos, force_name, cmd = p.position, p.force.name,
+					{type=defines.command.go_to_location, destination_entity=p}
+		end end
+
+		if not pos then
+			-- Find nearby high-pollution chunk, pick random player thing there as target
+			local pos_chunk = zones.find_industrial_pos(surface, wisp.position, c.dst_chunk_radius)
+			pos, force_name = wisp_find_player_target_pos(
+				surface, utils.get_area(c.dst_find_building_radius, pos_chunk), wisp.name )
+			if not pos then pos = pos_chunk end
+			-- Send group to target, registering it in WispCongregations for target updates
+			cmd = {type=defines.command.go_to_location, destination=pos}
+		end
+
 		group.set_command{
 			type=defines.command.compound,
 			structure_type=defines.compound_command.return_last,
-			commands={
-				{type=defines.command.go_to_location, destination=pos},
-				{type=defines.command.wander, wander_in_group=false} } }
-		local cg = {dst=pos, dst_ts=game.tick, force_name=force_name, entity=group}
+			commands={ cmd,
+				{ type=defines.command.wander, wander_in_group=false,
+					radius=math.random(c.dst_wander_radius.min, c.dst_wander_radius.max) } } }
+
+		local cg = { dst=pos, dst_player=pos_player,
+			dst_ts=game.tick, force_name=force_name, entity=group }
 		local set = WispCongregations
 		set[set.n+1], set.n = cg, set.n+1
 		return 100
@@ -641,17 +663,31 @@ local tasks_entities = {
 		if dst_dist > c.dst_arrival_radius
 				and (tick - cg.dst_ts) < c.dst_arrival_ticks
 			then return end
-		local pos = wisp_find_player_target_pos( s,
-			utils.get_area(c.dst_next_building_radius, cg.dst),
-			c.entity, cg.force_name )
+
+		local pos, cmd
+
+		if cg.dst_player
+				and utils.pick_chance(c.chance_player_follow) then
+			local p = game.players[cg.dst_player].character -- follow same player
+			if p and p.valid then pos, cmd = p.position,
+				{type=defines.command.go_to_location, destination_entity=p} end
+		end
+
+		if not pos then -- find new interesting location
+			pos = wisp_find_player_target_pos( s,
+				utils.get_area(c.dst_next_building_radius, cg.dst),
+				c.entity, cg.force_name )
+			if pos then cmd = {type=defines.command.go_to_location, destination=pos} end
+		end
+
 		if not pos then cg.dst, cg.dst_ts = nil; return end
 		cg.dst, cg.dst_ts = pos, tick
 		group.set_command{
 			type=defines.command.compound,
 			structure_type=defines.compound_command.return_last,
-			commands={
-				{type=defines.command.go_to_location, destination=pos},
-				{type=defines.command.wander, wander_in_group=false} } }
+			commands={ cmd,
+				{ type=defines.command.wander, wander_in_group=false,
+					radius=math.random(c.dst_wander_radius.min, c.dst_wander_radius.max) } } }
 	end},
 
 }
