@@ -1,6 +1,9 @@
 **Important:** this is an early release of this mod, so expect more than the usual amount bugs crawling in here!
 (and please report any crashes with lua backtrace from factorio log or just a screenshot of it, thanks)
 
+**Will very likely cause desyncs in multiplayer games**
+Mod code uses things which are likely cause mp desyncs, and I don't test it with mp games at all - unlikely that it'd "just work" there.
+
 
 --------------------
 
@@ -24,7 +27,6 @@ Fixing/maintaining these is much easier without few thousand lines of extra comp
 
 ## Known Issues
 
-- Usual Esc hotkey doesn't close the code window, but probably should.
 - There's "Additional Output" entity, looking exactly like constant combinator, should probably be removed or at least repainted and documented.
 - No in-game description for combinators on the build grid tooltip, should be added to locale text.
 - There really should be the usual Ok / Apply / Cancel button triplet in the UI there, not just Apply masquerading as Ok.

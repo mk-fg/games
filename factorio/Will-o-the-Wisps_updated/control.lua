@@ -1027,11 +1027,11 @@ function Init.refs()
 	setmetatable(_ENV, {
 		__newindex = function(self, key, value)
 			error('\n\n[ENV Error] Forbidden global *write*:\n'
-				..serpent.line{key=key or '<nil>', value=value or '<nil>'}..'\n') end,
+				..serpent.line{key=key or '<nil>', value=value or '<nil>'}..'\n', 2) end,
 		__index = function(self, key)
 			if key == 'game' then return end -- used in utils.log check
 			error('\n\n[ENV Error] Forbidden global *read*:\n'
-				..serpent.line{key=key or '<nil>'}..'\n') end })
+				..serpent.line{key=key or '<nil>'}..'\n', 2) end })
 
 	utils.log('Init: refs')
 	conf, InitState = global.conf, global.init_state

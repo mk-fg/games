@@ -1,10 +1,16 @@
-gui_manager = {}
-comb_gui_class = {}
+local gui_manager = {}
+local comb_gui_class = {}
 
 
-local preset_help_tooltip = '[ left-click to save script here, right-click to clear ]'
+local function preset_help_tooltip(code)
+	if not code
+		then code = '[ left-click to save script here ]'
+		else code = code:match('^%s*(.-)%s*$')..
+			'\n-- [ left-click - load, right-click - clear ] --' end
+	return code
+end
 
-function find_eid_for_gui_element(v)
+local function find_eid_for_gui_element(v)
 	-- Returns eid of the gui table for the clicked element,
 	--  along with local name of the button in data table and index of preset-btn
 	for eid, e_g_els in pairs(global.guis) do
@@ -17,12 +23,12 @@ function find_eid_for_gui_element(v)
 			elseif vv == v then return eid, elname end
 		end
 	::skip:: end
-	log(('BUG: GUI element not found: %s [gui dump follows]'):format(v.name))
+	log(('BUG: GUI element not found: %s [gui dump follows]'):format(v and v.name or '???'))
 	log(serpent.line(v))
 	log(serpent.block(global.guis))
 end
 
-function help_window_toggle(pn)
+local function help_window_toggle(pn)
 	local player = game.players[pn]
 	if player.gui.screen['mlc_helper_'..pn] then
 		player.gui.screen['mlc_helper_'..pn].destroy()
@@ -32,26 +38,52 @@ function help_window_toggle(pn)
 		name='mlc_helper_'..pn, caption='Moon Logic Combinator Info', direction='vertical' }
 	gui.location = {math.max(50, player.display_resolution.width - 800), 150}
 	local lines = {
-		'Special variables available in Lua environment:',
-		'  combinator = the entity the script is running on',
-		'  rednet [] = signals in the red network (read only) (Signal-name -> Value)',
-		'  greennet [] = same for the green network',
-		'  output [] = a table with all the signals you are sending to the networks,',
-		'    they are permanent so to remove a signal you need to set its entry to nil,',
-		'    or flush all signals by entering output = {, (creates a fresh table) (Signal-name -> Value)',
-		'  var [] = a table to store all your variables between the ticks',
-		'  delay = delay in ticks until next update (saves ups), needs to be set on each update',
+		'Special variables available/handled in Lua environment:',
+		'  uid (int) -- globally-unique number of this combinator.',
+		'  red {signal-name=value, ...} -- signals in the red network (read only).',
+		'  green {signal-name=value, ...} -- same for the green network.',
+		'  out {signal-name=value, ...} -- a table with all signals sent to networks,',
+		'    they are permanent, so to remove a signal you need to set its entry to nil/0,',
+		'    or flush all signals by entering "output = {}" (creates a fresh table).',
+		'  var {} -- a table to easily store values between code runs (per-mlc globals work too).',
+		'  delay (number) -- delay in ticks until next run (saves ups), has to be set on each run!',
+		'  debug (bool) -- set to true to print debug info about next code run.',
 		' ',
-		'To learn signal names, connect constant combinator to this one,',
-		'  set them there, and their names will be printed as inputs on the right.',
+		'Factorio APIs available, aside from general Lua stuff:',
+		'  game.tick -- read-only int for factorio game tick, to measure time intervals.',
+		'  game.print(...) -- prints string as in-game console output.',
+		'  game.log(...) -- prints to factorio log.',
+		' ',
+		'To learn signal names, connect anything with signals to this combinator,',
+		'  and their names will be printed as colored inputs on the right of the code window.',
 		' ',
 		'Presets (buttons with numbers):',
-		'  Save & Load with left-click',
-		'  Delete with right-click',
-		 ' ' }
+		'  Save and Load - left-click, Delete - right-click, Overwrite - right then left.',
+		' ' }
 	for n, line in ipairs(lines) do gui.add{
 		type='label', name='line_'..n, direction='horizontal', caption=line } end
 	gui.add{type='button', name='mlc_help_x', caption='Got it'}
+end
+
+local function insert_error_icon(text, errorline)
+	-- XXX: seem to be misaligned
+	text = string.gsub(text, '%[img=mlc_bug%]','')
+	if errorline then
+		errorline = tonumber(errorline)
+		local _, linecount = text:gsub('([^\n]*)\n?','')
+		local lines = linecount
+		if string.sub(text, -1) == '\n' then lines = linecount + 1 end
+		local i, result = 0, ''
+		for line in text:gmatch('([^\n]*)\n?') do
+			i = i + 1
+			if i < lines then
+				if i == errorline then line = '[img=mlc_bug]'..line end
+				if i > 1 then line = '\n'..line end
+				result = result..line
+			end
+		end
+		return result
+	else return text end
 end
 
 
@@ -84,7 +116,7 @@ function gui_manager:create_gui(player, entity)
 	gui.location = {100, 150}
 	this_gui_data.gui = gui
 		gui.caption = ( 'Moon Logic [%s] -'..
-			' rednet[], greennet[], var[], output[], delay' ):format(eid)
+			' red {}, green {}, out {}, var {}, delay (int)' ):format(eid)
 		gui.style.top_padding = 1
 		gui.style.right_padding = 4
 		gui.style.bottom_padding = 4
@@ -148,8 +180,8 @@ function gui_manager:create_gui(player, entity)
 			elem.style.bottom_padding=0
 			elem.style.left_padding=0
 			elem.style.right_padding=0
-		if not global.presets[n+1] then elem.style, elem.tooltip = 'button', preset_help_tooltip
-		else elem.style, elem.tooltip = 'green_button', global.presets[n+1] end
+		if not global.presets[n+1] then elem.style, elem.tooltip = 'button', preset_help_tooltip()
+		else elem.style, elem.tooltip = 'green_button', preset_help_tooltip(global.presets[n+1]) end
 	end
 	this_gui_data.preset_btns = preset_btns
 	elem = gui.add{type = 'table', column_count=2, name = 'main_table', direction = 'vertical'}
@@ -171,13 +203,14 @@ function gui_manager:create_gui(player, entity)
 		--elem.style.vertically_squashable = false
 		elem.style.width = 800
 		elem.style.minimal_height = 100
-		elem.text = global.combinators[eid].code
-		if global.combinators[eid].errors and global.combinators[eid].errors ~= '' then
-			local test = string.gsub(global.combinators[eid].errors,'.+:(%d+):.+', '%1')
-			elem.text = insert_error_icon(elem.text,test)
-		else
-			elem.text = insert_error_icon(elem.text)
-		end
+		elem.text = global.combinators[eid].code or ''
+		-- XXX: "bug" icon on script line
+		-- if global.combinators[eid].errors and global.combinators[eid].errors ~= '' then
+		-- 	local test = string.gsub(global.combinators[eid].errors,'.+:(%d+):.+', '%1')
+		-- 	elem.text = insert_error_icon(elem.text, test)
+		-- else
+		-- 	elem.text = insert_error_icon(elem.text)
+		-- end
 		global.textboxes[gui.name] = elem.text
 		if not global.history[gui.name] then
 			global.history[gui.name] = {elem.text}
@@ -186,9 +219,9 @@ function gui_manager:create_gui(player, entity)
 	elem = gui.main_table.add{type='scroll-pane',name='flow',direction='vertical'}
 		elem.style.maximal_height = 700
 	gui.main_table.left_table.add{type = 'table', column_count=2, name = 'under_text', direction = 'vertical'}
-		gui.main_table.left_table.under_text.style.width=800
+		gui.main_table.left_table.under_text.style.width = 800
 	gui.main_table.left_table.under_text.add{type = 'label', name = 'errors', direction = 'horizontal'}
-		gui.main_table.left_table.under_text.errors.style.width=760
+		gui.main_table.left_table.under_text.errors.style.width = 760
 	elem =gui.main_table.left_table.under_text.add{type = 'button', name = 'mlc_ok_'..eid, direction = 'horizontal',caption='ok'}
 	this_gui_data.ok_btn = elem
 		elem.style.width=35
@@ -211,10 +244,46 @@ function gui_manager:create_gui(player, entity)
 		gui.flow.mlc_forward.ignored_by_interaction = true
 	end
 	return this_gui_data
-	-- global.guis[eid]=this_gui_data
-	-- player.opened=gui
 end
 
+
+function comb_gui_class:insert_history(gui, code)
+	local gui_name = gui
+	if type(gui) ~= 'string' then gui_name = gui.name end
+	local n = global.historystate[gui_name]
+	if #global.history[gui_name] == global.historystate[gui_name] then
+		n = n + 1
+		table.insert(global.history[gui_name], code)
+		global.historystate[gui_name] = n
+	else
+		n = n + 1
+		global.history[gui_name][n] = code
+		global.historystate[gui_name] = n
+		for a = n + 1, #global.history[gui_name]
+			do global.history[gui_name][a] = nil end
+	end
+	if n > 500 then
+		n = n + 1
+		table.remove(global.history[gui_name],1)
+		global.historystate[gui_name] = n
+	end
+	if type(gui) ~= 'string' then
+		if global.history[gui_name][n-1] then
+			gui.flow.mlc_back.sprite = 'mlc_back_enabled'
+			gui.flow.mlc_back.ignored_by_interaction = false
+		else
+			gui.flow.mlc_back.sprite = 'mlc_back'
+			gui.flow.mlc_back.ignored_by_interaction = true
+		end
+		if global.history[gui_name][n+1] then
+			gui.flow.mlc_forward.sprite = 'mlc_forward_enabled'
+			gui.flow.mlc_forward.ignored_by_interaction = false
+		else
+			gui.flow.mlc_forward.sprite = 'mlc_forward'
+			gui.flow.mlc_forward.ignored_by_interaction = true
+		end
+	end
+end
 
 function comb_gui_class:on_gui_click(eid, elname, preset_n, ev)
 
@@ -222,15 +291,7 @@ function comb_gui_class:on_gui_click(eid, elname, preset_n, ev)
 	local gui = gui_t.gui
 
 	if elname == 'ok_btn' then
-		local code = gui_t.code_tb.text
-		load_code(code, eid)
-		if global.combinators[eid].errors and global.combinators[eid].errors ~= '' then
-			local test = string.gsub(global.combinators[eid].errors,'.+:(%d+):.+', '%1')
-			gui_t.code_tb.text = insert_error_icon(code,test)
-		else
-			gui_t.code_tb.text = insert_error_icon(code)
-			combinator_tick(eid)
-		end
+		load_code_from_gui(gui_t.code_tb.text, eid)
 	elseif elname == 'x_btn' then
 		gui.destroy()
 		global.guis[eid] = nil
@@ -250,18 +311,16 @@ function comb_gui_class:on_gui_click(eid, elname, preset_n, ev)
 				if not global.history[gui.name] then
 					global.history[gui.name] = {code_textbox.text}
 					global.historystate[gui.name] = 1
-				else
-					insert_history(gui, code_textbox.text)
-				end
+				else self:insert_history(gui, code_textbox.text) end
 			else
 				global.presets[id] = code_textbox.text
 				ev.element.style = 'green_button'
-				ev.element.tooltip = global.presets[id]..'\n-- [ left-click - load, right-click - remove ] --'
+				ev.element.tooltip = preset_help_tooltip(global.presets[id])
 			end
 		elseif ev.button == defines.mouse_button_type.right then
 			global.presets[id] = nil
 			ev.element.style = 'button'
-			ev.element.tooltip = preset_help_tooltip
+			ev.element.tooltip = preset_help_tooltip()
 		end
 
 	elseif elname == 'bw_btn' then
@@ -286,9 +345,7 @@ function comb_gui_class:on_gui_text_changed(eid, ev)
 	if not global.history[gui.name] then
 		global.history[gui.name] = {ev.element.text}
 		global.historystate[gui.name] = 1
-	else
-		insert_history(gui, ev.element.text)
-	end
+	else self:insert_history(gui, ev.element.text) end
 	global.textboxes[gui.name] = ev.element.text
 end
 
@@ -317,74 +374,4 @@ function comb_gui_class:history(gui, interval)
 end
 
 
-function insert_history(gui, code)
-	local gui_name = gui
-	if type(gui) ~= 'string' then gui_name=gui.name end
-	local n = global.historystate[gui_name]
-	if #global.history[gui_name] == global.historystate[gui_name] then
-		n = n + 1
-		table.insert(global.history[gui_name], code)
-		global.historystate[gui_name] = n
-	else
-		n = n + 1
-		global.history[gui_name][i] = code
-		global.historystate[gui_name] = n
-		for a=n + 1, #global.history[gui_name] do
-			global.history[gui_name][a] = nil
-		end
-	end
-	if n > 500 then
-		n = n + 1
-		table.remove(global.history[gui_name],1)
-		global.historystate[gui_name] = n
-	end
-	if type(gui) ~= 'string' then
-		if global.history[gui_name][n-1] then
-			gui.flow.mlc_back.sprite = 'mlc_back_enabled'
-			gui.flow.mlc_back.ignored_by_interaction = false
-		else
-			gui.flow.mlc_back.sprite = 'mlc_back'
-			gui.flow.mlc_back.ignored_by_interaction = true
-		end
-		if global.history[gui_name][n+1] then
-			gui.flow.mlc_forward.sprite = 'mlc_forward_enabled'
-			gui.flow.mlc_forward.ignored_by_interaction = false
-		else
-			gui.flow.mlc_forward.sprite = 'mlc_forward'
-			gui.flow.mlc_forward.ignored_by_interaction = true
-		end
-	end
-end
-
-
-function insert_error_icon(text, errorline)
-	text = string.gsub(text,'%[img=mlc_bug%]','')
-	if errorline then
-		errorline=tonumber(errorline)
-		local _,linecount = text:gsub('([^\n]*)\n?','')
-		local lines = linecount
-		if string.sub(text,-1) == '\n' then
-			lines=linecount+1
-		end
-		local i=0
-		local result = ''
-		for line in text:gmatch('([^\n]*)\n?') do
-			i=i+1
-			if i<lines then
-				if i == errorline then
-					line = '[img=mlc_bug]'..line
-				end
-				if i>1 then
-					line = '\n'..line
-				end
-				result = result..line
-			end
-		end
-		return result
-	else
-		return text
-	end
-end
-
-
-return gui_manager
+return {gui_manager, comb_gui_class}

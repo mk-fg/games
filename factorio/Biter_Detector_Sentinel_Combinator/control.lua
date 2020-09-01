@@ -13,6 +13,8 @@ local SentinelSet, Ticks
 -- Order of elements is not important there, while add/removal is O(1),
 --  unlike table.insert/table.remove (which are O(n) and are very slow comparatively).
 
+-- XXX: add strict-mode errors here
+
 
 local utils = {
 
