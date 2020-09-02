@@ -1,4 +1,12 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.0.3
+Date: 2020-09-02
+  Bugfixes:
+    - Fix on_pre_player_mined_item error when removing combinator.
+    - Fix error line highlight in code on opening combinators.
+    - Help text window fixes.
+
+---------------------------------------------------------------------------------------------------
 Version: 0.0.2
 Date: 2020-09-02
   Features:

@@ -30,7 +30,6 @@ Fixing/maintaining these is much easier without few thousand lines of extra comp
 - There really should be the usual Ok / Apply / Cancel button triplet in the UI there, not just Apply masquerading as Ok.
 - Some editing hotkeys would be nice: ctrl+s (save), ctrl+z (undo), ctrl+y/ctrl+shift+z (redo), ctrl+enter (save/close).
 - "Clear script" button would be useful.
-- Highlighting error line needs some fixes.
 - Needs some code examples and screenshots here.
 
 

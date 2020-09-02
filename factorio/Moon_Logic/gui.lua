@@ -4,7 +4,7 @@ local comb_gui_class = {}
 
 local function preset_help_tooltip(code)
 	if not code
-		then code = '[ left-click to save script here ]'
+		then code = '-- [ left-click to save script here ] --'
 		else code = code:match('^%s*(.-)%s*$')..
 			'\n-- [ left-click - load, right-click - clear ] --' end
 	return code
@@ -41,12 +41,12 @@ local function help_window_toggle(pn)
 		'  uid (int) -- globally-unique number of this combinator.',
 		'  red {signal-name=value, ...} -- signals in the red network (read only).',
 		'  green {signal-name=value, ...} -- same for the green network.',
-		'  out {signal-name=value, ...} -- a table with all signals sent to networks,',
-		'    they are permanent, so to remove a signal you need to set its entry to nil/0,',
-		'    or flush all signals by entering "output = {}" (creates a fresh table).',
+		'  out {signal-name=value, ...} -- a table with all signals sent to networks.',
+		'    They are permanent, so to remove a signal you need to set its entry',
+		'     to nil or 0, or flush all signals by entering "out = {}" (creates a fresh table).',
 		'  var {} -- a table to easily store values between code runs (per-mlc globals work too).',
 		'  delay (number) -- delay in ticks until next run (saves ups), has to be set on each run!',
-		'  debug (bool) -- set to true to print debug info about next code run.',
+		'  debug (bool) -- set to true to print debug info about next code run to factorio log.',
 		' ',
 		'Factorio APIs available, aside from general Lua stuff:',
 		'  game.tick -- read-only int for factorio game tick, to measure time intervals.',
@@ -64,25 +64,26 @@ local function help_window_toggle(pn)
 	gui.add{type='button', name='mlc_help_x', caption='Got it'}
 end
 
-local function insert_error_icon(text, errorline)
-	-- XXX: seem to be misaligned
-	text = string.gsub(text, '%[img=mlc_bug%]','')
-	if errorline then
-		errorline = tonumber(errorline)
-		local _, linecount = text:gsub('([^\n]*)\n?','')
-		local lines = linecount
-		if string.sub(text, -1) == '\n' then lines = linecount + 1 end
-		local i, result = 0, ''
-		for line in text:gmatch('([^\n]*)\n?') do
-			i = i + 1
-			if i < lines then
-				if i == errorline then line = '[img=mlc_bug]'..line end
-				if i > 1 then line = '\n'..line end
-				result = result..line
-			end
-		end
-		return result
-	else return text end
+local err_icon_sub_add = '[color=#c02a2a]%1[/color]'
+local err_icon_sub_clear = '%[color=#c02a2a%]([^\n]+)%[/color%]'
+local function code_error_highlight(text, line_err)
+	-- Add/strip rich error highlight tags
+	text = text:gsub(err_icon_sub_clear, '%1')
+	line_err = tonumber(line_err)
+	if not line_err then return text end
+	local _, line_count = text:gsub('([^\n]*)\n?','')
+	if string.sub(text, -1) == '\n'
+		then line_count = line_count + 1 end
+	local n, result = 0, ''
+	for line in text:gmatch('([^\n]*)\n?') do
+		n = n + 1
+		if n < line_count then
+			if n == line_err
+				then line = line:gsub('^(.+)$', err_icon_sub_add) end
+			if n > 1 then line = '\n'..line end
+			result = result..line
+	end end
+	return result
 end
 
 
@@ -202,14 +203,13 @@ function gui_manager:create_gui(player, entity)
 		--elem.style.vertically_squashable = false
 		elem.style.width = 800
 		elem.style.minimal_height = 100
-		elem.text = global.combinators[eid].code or ''
-		-- XXX: "bug" icon on script line
-		-- if global.combinators[eid].errors and global.combinators[eid].errors ~= '' then
-		-- 	local test = string.gsub(global.combinators[eid].errors,'.+:(%d+):.+', '%1')
-		-- 	elem.text = insert_error_icon(elem.text, test)
-		-- else
-		-- 	elem.text = insert_error_icon(elem.text)
-		-- end
+		local mlc = global.combinators[eid]
+		elem.text = mlc.code or ''
+		local mlc_err = mlc.err_parse or mlc.err_run
+		if mlc_err then
+			local err_line = string.gsub(mlc_err,'.+:(%d+):.+', '%1')
+			elem.text = code_error_highlight(elem.text, err_line)
+		else elem.text = code_error_highlight(elem.text) end
 		global.textboxes[gui.name] = elem.text
 		if not global.history[gui.name] then
 			global.history[gui.name] = {elem.text}
@@ -290,7 +290,9 @@ function comb_gui_class:on_gui_click(eid, elname, preset_n, ev)
 	local gui = gui_t.gui
 
 	if elname == 'ok_btn' then
-		load_code_from_gui(gui_t.code_tb.text, eid)
+		local clean_code = code_error_highlight(gui_t.code_tb.text)
+		load_code_from_gui(clean_code, eid)
+		gui_t.code_tb.text = clean_code
 	elseif elname == 'x_btn' then
 		gui.destroy()
 		global.guis[eid] = nil

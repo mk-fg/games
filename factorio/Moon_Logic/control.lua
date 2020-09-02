@@ -210,7 +210,7 @@ end
 local mlc_filter = {{filter='name', name='mlc'}}
 
 local function on_destroyed(ev)
-	if e.name == 'mlc' then mlc_remove(ev.entity.unit_number) end
+	if ev.entity.name == 'mlc' then mlc_remove(ev.entity.unit_number) end
 end
 
 script.on_event(defines.events.on_pre_player_mined_item, on_destroyed, mlc_filter)
@@ -266,21 +266,19 @@ local function format_mlc_err_msg(mlc)
 end
 
 local function update_signals_in_guis()
-	for uid, gui_t in pairs(global.guis) do
-		local gui = gui_t.gui
-		if Combinators[uid] and not Combinators[uid]._e.valid then
-			mlc_remove(uid)
-			goto skip
-		end
-		if gui.main_table.flow then gui.main_table.flow.clear() end
-		local e, cap = Combinators[uid]._e
+	local gui, gui_flow, e, cap
+	for uid, gui in pairs(global.guis) do
+		gui, e = gui.gui, Combinators[uid] and Combinators[uid]._e
+		if e and not e.valid then mlc_remove(uid); goto skip end
+		gui_flow = gui.main_table.flow
+		if gui_flow then gui_flow.clear() end
 		for k, color in pairs{red={r=1,g=0.3,b=0.3}, green={r=0.3,g=1,b=0.3}} do
 			for sig, v in pairs(cn_wire_signals(e, defines.wire_type[k])) do
-				cap = gui.main_table.flow.add{type='label', name=k..'_'..sig, caption=sig..'= '..v}
+				cap = gui_flow.add{type='label', name=k..'_'..sig, caption=sig..'= '..v}
 				cap.style.font_color = color
 		end end
-		gui.main_table.left_table.under_text.errors
-			.caption = format_mlc_err_msg(global.combinators[uid]) or ''
+		cap = format_mlc_err_msg(global.combinators[uid]) or ''
+		gui.main_table.left_table.under_text.errors.caption = cap
 	::skip:: end
 end
 
