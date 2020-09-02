@@ -23,9 +23,8 @@ local function find_eid_for_gui_element(v)
 			elseif vv == v then return eid, elname end
 		end
 	::skip:: end
-	log(('BUG: GUI element not found: %s [gui dump follows]'):format(v and v.name or '???'))
-	log(serpent.line(v))
-	log(serpent.block(global.guis))
+	-- log(('BUG: GUI element not found: %s [gui dump follows]'):format(v and v.name or '???'))
+	-- log(serpent.block(global.guis))
 end
 
 local function help_window_toggle(pn)

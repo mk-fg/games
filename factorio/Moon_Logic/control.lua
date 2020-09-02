@@ -47,15 +47,20 @@ end
 
 -- ----- Sandboxing and control network inputs code -----
 
+local sandbox_env_pairs_mt_iter = {}
+function sandbox_env_pairs(tbl) -- allows to iterate over red/green ro-tables
+	local mt = getmetatable(tbl)
+	if mt and sandbox_env_pairs_mt_iter[mt.__index] then tbl = tbl._iter(tbl) end
+	return pairs(tbl)
+end
+
 -- This env gets modified on ticks, which might cause mp desyncs
 local sandbox_env_base = {
 	_init = false,
 
-	 -- XXX: pairs/ipairs/next can be called on red/green metatables, need to be patched for those
-	--   https://stackoverflow.com/questions/47956954/read-only-iterable-table-in-lua/47957202#47957202
+	pairs = sandbox_env_pairs,
 	ipairs = ipairs,
 	next = next,
-	pairs = pairs,
 	pcall = pcall,
 	tonumber = tonumber,
 	tostring = tostring,
@@ -102,33 +107,29 @@ local function cn_wire_signals(e, wire_type, output)
 	return res
 end
 
-local function cn_input_signal(wenv, k, wire_type)
+local function cn_input_signal(wenv, wire_type, k)
 	if wenv._cache_tick == game.tick then return wenv._cache[k] end
 	local signals = cn_wire_signals(wenv._e, wire_type, wenv._out)
 	wenv._cache, wenv._cache_tick = signals, game.tick
-	return signals[k]
+	if k then signals = signals[k] end
+	return signals
 end
 
-local function cn_input_signal_red(wenv, k)
-	local v = cn_input_signal(wenv, k, defines.wire_type.red) or 0
-	if wenv._debug then wenv._debug['red['..k..']'] = v end
+local function cn_input_signal_get(wenv, k)
+	local v = cn_input_signal(wenv, defines.wire_type[wenv._wire], k) or 0
+	if wenv._debug then wenv._debug[wenv._wire..'['..k..']'] = v end
 	return v
 end
-local function cn_input_signal_green(wenv, k)
-	local v = cn_input_signal(wenv, k, defines.wire_type.green) or 0
-	if wenv._debug then wenv._debug['green['..k..']'] = v end
-	return v
+local function cn_input_signal_set(wenv, k, v)
+	error(( 'Attempt to set value on'..
+		' input: %s[%s] = %s' ):format(wenv._wire, k, v), 2)
 end
 
-local function cn_input_signal_red_set(wenv, k, v)
-	error(('Attempt to set value on input: red[%s] = %s'):format(k, v), 2)
-end
-local function cn_input_signal_green_set(wenv, k, v)
-	error(('Attempt to set value on input: green[%s] = %s'):format(k, v), 2)
+local function cn_input_signal_iter(wenv)
+	return cn_input_signal(wenv, defines.wire_type[wenv._wire])
 end
 
 local function cn_output_table_value(out, k) return rawget(out, k) or 0 end
-
 local function cn_output_table_update(out, update)
 	-- Note: validation for sig_names/values is done when output table is used later
 	for sig_name, v in pairs(update) do out[sig_name] = v end
@@ -156,24 +157,28 @@ local function mlc_init(e)
 
 	if not sandbox_env_base._init then
 		-- This gotta cause mp desyncs, +1 metatable layer should probably be used instead
-		sandbox_env_base.game = {tick=game.tick, print=game.print, log=print}
+		sandbox_env_base.game = {
+			tick=game.tick, print=game.print, log=conf.debug_print }
+		sandbox_env_pairs_mt_iter[cn_input_signal_get] = true
 		sandbox_env_base._init = nil
 	end
 
 	mlc.output, mlc.vars = mlc.output or {}, mlc.vars or {}
 	mlc_env._e, mlc_env._uid, mlc_env._out = e, uid, mlc.output
 
-	local env_wire_red = { _e=mlc_env._e,
-		_debug=false, _out=mlc_env._out, _cache={}, _cache_tick=-1 }
+	local env_wire_red = {
+		_e=mlc_env._e, _wire='red', _debug=false, _out=mlc_env._out,
+		_iter=cn_input_signal_iter, _cache={}, _cache_tick=-1 }
 	local env_wire_green = tc(env_wire_red)
+	env_wire_green._wire = 'green'
 
 	local env_ro = setmetatable({ -- sandbox_env_base + mlc_env proxies
 		uid = mlc_env._uid,
 		out = setmetatable(mlc_env._out, {__index=cn_output_table_value}),
 		red = setmetatable(env_wire_red, {
-			__index=cn_input_signal_red, __newindex=cn_input_signal_red_set }),
+			__index=cn_input_signal_get, __newindex=cn_input_signal_set }),
 		green = setmetatable(env_wire_green, {
-			__index=cn_input_signal_green, __newindex=cn_input_signal_green_set }),
+			__index=cn_input_signal_get, __newindex=cn_input_signal_set }),
 	}, {__index=sandbox_env_base})
 
 	if not mlc.vars.var then mlc.vars.var = {} end

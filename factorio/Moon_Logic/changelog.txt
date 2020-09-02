@@ -2,12 +2,12 @@
 Version: 0.0.2
 Date: 2020-09-02
   Features:
-    - Remov separate input/output things and 2x1 combinator variant, not sure what's a good use-case for these.
+    - Remove separate input/output things and 2x1 combinator variant, not sure what's a good use-case for these.
     - Add "debug" flag to dump combinator code inputs/outputs to factorio log.
     - Misfeature: multiplayer is probably broken, not sure if worked before, with a bunch of local state assigned on ticks.
 
   Bugfixes:
-    - Fixed closing GUI by the Esc key.
+    - Fixed closing GUI on Esc key.
 
   Changes:
     - Major control code rewrite, ~600 less lines of stuff, but likely with a lot of new bugs, unfortunately.
