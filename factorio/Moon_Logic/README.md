@@ -25,6 +25,17 @@ Fixing/maintaining these is much easier without few thousand lines of extra comp
 
 --------------------
 
+## Mod Options
+
+- Red Wire Label - Lua environment name for in-game "red" circuit network values. Changes all labels in the GUIs as well.
+- Green Wire Label - same as Red Wire Label, but for Green wire.
+
+These can be useful when playing with other mods that change colors, for labels to match those.
+Note that red/green input tables are always available in the environment too, for better code/snippet compability.
+
+
+--------------------
+
 ## Known Issues
 
 - There really should be the usual Ok / Apply / Cancel button triplet in the UI there, not just Apply masquerading as Ok.

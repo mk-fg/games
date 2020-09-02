@@ -57,11 +57,11 @@ local function help_window_toggle(pn)
 		'  game.print(...) -- prints string as in-game console output.',
 		'  game.log(...) -- prints to factorio log.',
 		' ',
-		'To learn signal names, connect anything with signals to this combinator,',
-		'  and their names will be printed as colored inputs on the right of the code window.',
-		' ',
 		'Presets (buttons with numbers):',
 		'  Save and Load - left-click, Delete - right-click, Overwrite - right then left.',
+		' ',
+		'To learn signal names, connect anything with signals to this combinator,',
+		'and their names will be printed as colored inputs on the right of the code window.',
 		' ' }
 	for n, line in ipairs(lines) do gui.add{
 		type='label', name='line_'..n, direction='horizontal', caption=line } end

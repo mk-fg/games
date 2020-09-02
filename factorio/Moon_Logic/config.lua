@@ -5,6 +5,7 @@ local conf = {}
 -- This changes descriptions in the guis as well.
 conf.red_wire_name = 'red'
 conf.green_wire_name = 'green'
+function conf.get_wire_label(k) return conf[k..'_wire_name'] end
 
 -- Interval between raising global alerts on lua errors, in ticks
 conf.logic_alert_interval = 10 * 60

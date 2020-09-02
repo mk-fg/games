@@ -115,12 +115,12 @@ end
 
 local function cn_input_signal_get(wenv, k)
 	local v = cn_input_signal(wenv, defines.wire_type[wenv._wire], k) or 0
-	if wenv._debug then wenv._debug[wenv._wire..'['..k..']'] = v end
+	if wenv._debug then wenv._debug[conf.get_wire_label(wenv._wire)..'['..k..']'] = v end
 	return v
 end
 local function cn_input_signal_set(wenv, k, v)
 	error(( 'Attempt to set value on'..
-		' input: %s[%s] = %s' ):format(wenv._wire, k, v), 2)
+		' input: %s[%s] = %s' ):format(conf.get_wire_label(wenv._wire), k, v), 2)
 end
 
 local function cn_input_signal_iter(wenv)
@@ -275,7 +275,7 @@ local function update_signals_in_guis()
 		for k, color in pairs{red={r=1,g=0.3,b=0.3}, green={r=0.3,g=1,b=0.3}} do
 			for sig, v in pairs(cn_wire_signals(e, defines.wire_type[k])) do
 				cap = gui_flow.add{ type='label', name=k..'_'..sig,
-					caption=('[%s] %s = %s'):format(conf[k..'_wire_name'], sig, v) }
+					caption=('[%s] %s = %s'):format(conf.get_wire_label(k), sig, v) }
 				cap.style.font_color = color
 		end end
 		cap = format_mlc_err_msg(global.combinators[uid]) or ''
