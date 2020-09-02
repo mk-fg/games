@@ -1,20 +1,29 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.0.5
+Date: 2020-09-02
+  Changes:
+    - Add handling for script_raised_built/revive events from other mods.
+
+---------------------------------------------------------------------------------------------------
 Version: 0.0.4
-Date: 19. 08. 2020
+Date: 2020-08-19
   Changes:
     - Bump compatibility info to Factorio 1.0.
+
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.3
-Date: 30. 07. 2020
+Date: 2020-07-30
   Features:
     - Fix working with mods that use multiple surfaces (e.g. Space Exploration).
+
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.2
-Date: 09. 04. 2020
+Date: 2020-04-09
   Features:
     - Blind-update info.json for 0.18, without any kind of testing.
+
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.1
-Date: 29. 04. 2018
+Date: 2018-04-29
   Features:
     - Initial release, based on Circuit Power Measurement Pole 0.0.5 code with minor changes.

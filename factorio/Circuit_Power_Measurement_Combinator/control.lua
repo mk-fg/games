@@ -80,10 +80,14 @@ local function meter_init(e)
 	return meter_info
 end
 
-local function on_built(ev) meter_init(ev.created_entity) end
 
-script.on_event(defines.events.on_built_entity, on_built)
-script.on_event(defines.events.on_robot_built_entity, on_built)
+local on_built_filter = {{filter='name', name='power-meter-combinator'}}
+local function on_built(ev) meter_init(ev.created_entity or ev.entity) end
+
+script.on_event(defines.events.on_built_entity, on_built, on_built_filter)
+script.on_event(defines.events.on_robot_built_entity, on_built, on_built_filter)
+script.on_event(defines.events.script_raised_built, on_built, on_built_filter)
+script.on_event(defines.events.script_raised_revive, on_built, on_built_filter)
 
 
 local function update_meter_signal(meter)

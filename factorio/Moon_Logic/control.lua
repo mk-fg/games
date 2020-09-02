@@ -218,7 +218,6 @@ script.on_event(defines.events.on_robot_pre_mined, on_destroyed, mlc_filter)
 script.on_event(defines.events.on_entity_died, on_destroyed, mlc_filter)
 script.on_event(defines.events.script_raised_destroy, on_destroyed, mlc_filter)
 
-
 local function on_built(ev)
 	local e = ev.created_entity or ev.entity -- latter for revive event
 	if not e.valid then return end
@@ -229,7 +228,6 @@ script.on_event(defines.events.on_built_entity, on_built, mlc_filter)
 script.on_event(defines.events.on_robot_built_entity, on_built, mlc_filter)
 script.on_event(defines.events.script_raised_built, on_built, mlc_filter)
 script.on_event(defines.events.script_raised_revive, on_built, mlc_filter)
-
 
 local function on_entity_settings_pasted(ev)
 	if not (ev.source.name == 'mlc' and ev.destination.name == 'mlc') then return end
