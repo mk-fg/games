@@ -48,6 +48,14 @@ Having too many and/or too long-range detectors might impact performance on scan
 
 ## Links
 
+
+- Similar Mods
+
+    - [Networked Radar](https://mods.factorio.com/mod/folk-radar) - very similar mod for factorio 0.14 - 0.16.
+    - [Radar signals](https://mods.factorio.com/mod/radar-signals) - more up-to-date fork of Networked Radar, somehow missed it before.
+    - [Dragon Industries Factor-I/O](https://mods.factorio.com/mod/FactorIO) - includes biter count sensor, among many others.
+
+
 - Programmable Speakers
 
     - [Soundpack: Alerts and Sirens](https://mods.factorio.com/mod/Soundpack-alerts-and-sirens) - a lot of alert, siren and bell sounds for an easy speaker alarm variety.
@@ -55,15 +63,10 @@ Having too many and/or too long-range detectors might impact performance on scan
     - [Command & Conquer ☭ Red Alert Sounds](https://mods.factorio.com/mod/Command_and_Conquer_RedAlert_Sounds) - to have voiced "Enemy Approaching" or "Base Under Attack" alerts on speakers.
     - [Op2 announcer](https://mods.factorio.com/mod/Op2_announcer) - another great voice-alarm pack.
 
+
 - Detectable fauna
 
     - [Armoured Biters](https://mods.factorio.com/mod/ArmouredBiters) - additional biter types for that "other aliens" category.
     - [Will-o'-the-Wisps updated](https://mods.factorio.com/mod/Will-o-the-Wisps_updated) - hostile ones trigger Alarm towers, but combinator doesn't count them.
 
-- Similar Mods
-
-    - [Networked Radar](https://mods.factorio.com/mod/folk-radar) - very similar mod for factorio 0.14 - 0.16.
-    - [Dragon Industries Factor-I/O](https://mods.factorio.com/mod/FactorIO) - includes biter count sensor, among many others.
-
-
-[[github link](https://github.com/mk-fg/games/tree/master/factorio/Biter_Detector_Sentinel_Combinator)]
+- [Github repository for this mod](https://github.com/mk-fg/games/tree/master/factorio/Biter_Detector_Sentinel_Combinator)

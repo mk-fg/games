@@ -1,9 +1,0 @@
-{
-	"name": "Circuit_Power_Measurement_Pole",
-	"version": "0.0.5",
-	"factorio_version": "0.17",
-	"dependencies": ["base >= 0.17.0"],
-	"title": "Circuit Power Measurement Pole",
-	"author": "mk-fg",
-	"description": "Adds Small 'Smart Meter' Electric Pole that transmits electrical network power production info to any constant combinator within its range."
-}

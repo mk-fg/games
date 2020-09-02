@@ -1,8 +1,8 @@
 **Important:** this is an early release of this mod, so expect more than the usual amount bugs crawling in here!
 (and please report any crashes with lua backtrace from factorio log or just a screenshot of it, thanks)
 
-**Will very likely cause desyncs in multiplayer games**
-Mod code uses things which are likely to cause mp desyncs, and I don't test it with mp games at all - unlikely that it'd "just work" there.
+**This mod should probably cause desyncs in multiplayer games**
+Mod code uses things which are likely to desync mp games, and I only test singleplayer, so it's highly unlikely that it will "just work" in mp.
 
 
 --------------------
@@ -43,8 +43,7 @@ Fixing/maintaining these is much easier without few thousand lines of extra comp
 
     - [Sandboxed LuaCombinator](https://mods.factorio.com/mod/SandboxedLuaCombinator) by [IWTDU](https://mods.factorio.com/user/IWTDU)
 
-        Mod that this code is initially copied from. See changelog for an up-to-date list of differences.
-        Seem to be abandoned atm (2020-08-31).
+        Mod that this code was initially from. See changelog for an up-to-date list of differences. Seem to be abandoned atm (2020-08-31).
 
     - [LuaCombinator 2](https://mods.factorio.com/mod/LuaCombinator2) by [OwnlyMe](https://mods.factorio.com/user/OwnlyMe)
 

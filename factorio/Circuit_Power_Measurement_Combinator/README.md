@@ -35,10 +35,12 @@ Comparing such high-watermark value against measured output can be used to get g
 
 ## Links
 
-- [Circuit Power Measurement Pole](https://mods.factorio.com/mod/Circuit_Power_Measurement_Pole).
+- [Power Combinator](https://mods.factorio.com/mod/power-combinator) - kinda similar, but checks pole(s) connected by circuit wire.
 
-    Alternative earlier version of this mod, which uses vanilla constant combinators but special electric poles.
-    Left there mostly to avoid breaking how stuff works for any existing users.
+- [Power+: Power Meter](https://mods.factorio.com/mod/PowerPlusPowerMeter) - for power utilization percentage instead of raw production numbers.
 
+- [Dragon Industries Factor-I/O](https://mods.factorio.com/mod/FactorIO) - includes power measuring combinators too.
 
-[[github link](https://github.com/mk-fg/games/tree/master/factorio/Circuit_Power_Measurement_Combinator)]
+- [Circuit Power Measurement Pole](https://mods.factorio.com/mod/Circuit_Power_Measurement_Pole) - earlier version of this mod.
+
+- [This mod's github repository](https://github.com/mk-fg/games/tree/master/factorio/Circuit_Power_Measurement_Combinator)
