@@ -30,7 +30,8 @@ end
 
 local function chunk_key(cx, cy)
 	-- Returns 52-bit int key with chunk y in higher 26 bits, x in lower
-	-- Not sure why math seem to break down when going for full 64-bit ints
+	-- Going beyond 52 bits breaks down math,
+	--  likely because numbers are stored as C doubles with 52-bit precision.
 	return bit32.band(cx, 0x3ffffff) -- cx & (2**26-1)
 		+ bit32.band(cy, 0x3ffffff) * 0x4000000 -- * 2**26
 end
