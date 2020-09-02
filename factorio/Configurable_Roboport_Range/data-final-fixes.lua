@@ -31,26 +31,36 @@ local robots_cons = get_entities('construction-robot')
 -- Value multipliers
 if conf.range_multiplier ~= 1.0 then
 	for _, p in pairs(roboports) do
-		p.logistics_radius = round(p.logistics_radius * conf.range_multiplier)
-		p.construction_radius = round(p.construction_radius * conf.range_multiplier)
+		if p.logistics_radius >= conf.range_min_to_affect
+			then p.logistics_radius = round(p.logistics_radius * conf.range_multiplier) end
+		if p.construction_radius >= conf.range_min_to_affect
+			then p.construction_radius = round(p.construction_radius * conf.range_multiplier) end
 	end
 end
 
 -- Static values
-if conf.range_logistics >= 0
-	then for _, p in pairs(roboports)
-		do p.logistics_radius = round(conf.range_logistics) end end
-if conf.range_construction >= 0
-	then for _, p in pairs(roboports)
-		do p.construction_radius = round(conf.range_construction) end end
+if conf.range_logistics >= 0 then
+	for _, p in pairs(roboports) do
+		if p.logistics_radius >= conf.range_min_to_affect then
+			p.logistics_radius = round(conf.range_logistics)
+end end end
+if conf.range_construction >= 0 then
+	for _, p in pairs(roboports) do
+		if p.construction_radius >= conf.range_min_to_affect then
+			p.construction_radius = round(conf.range_construction)
+end end end
 
 -- Copy values
-if conf.range_logistics == -2
-	then for _, p in pairs(roboports)
-		do p.logistics_radius = p.construction_radius end end
-if conf.range_construction == -2
-	then for _, p in pairs(roboports)
-		do p.construction_radius = p.logistics_radius end end
+if conf.range_logistics == -2 then
+	for _, p in pairs(roboports) do
+		if p.logistics_radius >= conf.range_min_to_affect then
+			p.logistics_radius = p.construction_radius
+end end end
+if conf.range_construction == -2 then
+	for _, p in pairs(roboports) do
+		if p.construction_radius >= conf.range_min_to_affect then
+			p.construction_radius = p.logistics_radius
+end end end
 
 -- Robot energy multiplier
 if conf.robot_energy_multiplier ~= 1.0 then

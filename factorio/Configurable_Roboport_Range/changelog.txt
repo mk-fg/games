@@ -1,25 +1,35 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.0.6
+Date: 2020-09-02
+  Changes:
+    - Add "Min Range to affect it" option to exclude modded roboports that are not supposed to have specific ranges.
+
+---------------------------------------------------------------------------------------------------
 Version: 0.0.5
-Date: 19. 08. 2020
+Date: 2020-08-19
   Changes:
     - Bump compatibility info to Factorio 1.0.
+
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.4
-Date: 17. 03. 2020
+Date: 2020-03-17
   Features:
     - Updated info.json to support 0.18 without any kind of local testing.
+
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.3
-Date: 23. 06. 2019
+Date: 2019-06-23
   Features:
     - Add option to disable this mod affecting roboports/robots added by other mods.
+
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.2
-Date: 20. 04. 2019
+Date: 2019-04-20
   Features:
     - Add Robot Energy Multiplier value.
+
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.1
-Date: 20. 04. 2019
+Date: 2019-04-20
   Features:
     - Intial release.
