@@ -11,7 +11,7 @@ Mod code uses things which are likely to desync mp games, and I only test single
 
 Adds Moon Logic Combinator that runs Lua code that can read red/green wire signal inputs and set outputs.
 
-Based on other LuaCombinator mods, but instead of adding more complexity and features, removes them to keep it simple and clean.
+Based on other LuaCombinator mods, but instead of adding more complexity and features, mostly removes them to keep it simple and clean.
 I.e. no syntax highlighting, code formatting, binding to factorio events, blueprints, etc.
 
 General principle is that it's not a replacement for Vim/Emacs or some IDE, but just a window where you paste some Lua code/logic or type/edit a couple of lines.

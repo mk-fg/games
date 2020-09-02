@@ -119,8 +119,8 @@ local function cn_input_signal_get(wenv, k)
 	return v
 end
 local function cn_input_signal_set(wenv, k, v)
-	error(( 'Attempt to set value on'..
-		' input: %s[%s] = %s' ):format(conf.get_wire_label(wenv._wire), k, v), 2)
+	error(( 'Attempt to set value to input wire:'..
+		' %s[%s] = %s' ):format(conf.get_wire_label(wenv._wire), k, v), 2)
 end
 
 local function cn_input_signal_iter(wenv)
@@ -158,7 +158,7 @@ local function mlc_init(e)
 		sandbox_env_base.game = {
 			tick=game.tick, print=game.print, log=conf.debug_print }
 		sandbox_env_pairs_mt_iter[cn_input_signal_get] = true
-		sandbox_env_base._init = nil
+		sandbox_env_base._init = true
 	end
 
 	mlc.output, mlc.vars = mlc.output or {}, mlc.vars or {}
@@ -220,7 +220,7 @@ script.on_event(defines.events.script_raised_destroy, on_destroyed, mlc_filter)
 
 
 local function on_built(ev)
-	local e = ev.created_entity
+	local e = ev.created_entity or ev.entity -- latter for revive event
 	if not e.valid then return end
 	if e.name == 'mlc' then global.combinators[e.unit_number] = {e=e} end
 end

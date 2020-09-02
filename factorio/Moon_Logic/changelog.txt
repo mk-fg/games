@@ -3,6 +3,7 @@ Version: 0.0.5
 Date: 2020-09-02
   Bugfixes:
     - Fix wire labels not being used in debug=true logging output.
+    - Fix crash on script_raised_revive event from other mods like creative-mode.
 
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.4
