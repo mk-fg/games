@@ -32,7 +32,7 @@ mlc.sprites = make_4way_animation_from_spritesheet{
 				shift = util.by_pixel(8.5, 5.5),
 				draw_as_shadow = true } } } }
 
-data:extend({
+data:extend{
   mlc,
   { type = 'item',
 		name = 'mlc',
@@ -43,7 +43,24 @@ data:extend({
 		order = 'c[combinators]-da[mlc]',
 		place_result = 'mlc',
 		stack_size = 50 },
-})
+}
+
+
+data:extend{
+	{ type = 'custom-input',
+		name = 'mlc-code-save',
+		key_sequence = 'CONTROL + S' },
+	{ type = 'custom-input',
+		name = 'mlc-code-undo',
+		key_sequence = 'CONTROL + Z' },
+	{ type = 'custom-input',
+		name = 'mlc-code-redo',
+		key_sequence = 'CONTROL + SHIFT + Z' },
+	{ type = 'custom-input',
+		name = 'mlc-code-commit',
+		key_sequence = 'CONTROL + RETURN' },
+}
+
 
 require('prototypes.recipes')
 require('prototypes.sprites')

@@ -200,7 +200,7 @@ local function mlc_init(e)
 end
 
 local function mlc_remove(uid)
-	if global.guis[uid] then global.guis[uid].destroy() end
+	comb_gui:close(uid)
 	Combinators[uid], CombinatorEnv[uid], global.combinators[uid], global.guis[uid] = nil
 end
 
@@ -426,6 +426,43 @@ script.on_event( defines.events.on_gui_text_changed,
 	function(ev) gui_manager:on_gui_text_changed(ev) end )
 
 
+-- ----- Keyboard editing hotkeys -----
+-- Most editing hotkeys only work if one window is opened,
+--  as I don't know how to check which one is focused otherwise.
+
+local function get_active_gui()
+	local uid, gui_t
+	for uid_chk, gui_t_chk in pairs(global.guis) do
+		if not uid
+			then uid, gui_t = uid_chk, gui_t_chk
+			else uid, gui_t = nil; break end
+	end
+	return uid, gui_t
+end
+
+script.on_event('mlc-code-save', function(ev)
+	local uid, gui_t = get_active_gui()
+	if uid then comb_gui:save_code(uid) end
+end)
+
+script.on_event('mlc-code-undo', function(ev)
+	local uid, gui_t = get_active_gui()
+	if gui_t then comb_gui:history(gui_t.gui, -1) end
+end)
+
+script.on_event('mlc-code-redo', function(ev)
+	local uid, gui_t = get_active_gui()
+	if gui_t then comb_gui:history(gui_t.gui, 1) end
+end)
+
+script.on_event('mlc-code-commit', function(ev)
+	local uid, gui_t = next(global.guis)
+	if not uid then return end
+	comb_gui:save_code(uid)
+	comb_gui:close(uid)
+end)
+
+
 -- ----- Init -----
 
 local strict_mode = false
@@ -490,7 +527,7 @@ script.on_configuration_changed(function(data)
 				uid = e.unit_number
 				if global.combinators[uid] then mlcs[uid] = {e=e, code=global.combinators[uid].code} end
 			end
-			for _, gui in ipairs(global.guis) do gui.destroy() end
+			for uid, gui_t in ipairs(global.guis) do comb_gui:close(uid) end
 			for k, _ in pairs(tt('guis presets history historystate textboxes')) do global[k] = {} end
 			global.combinators = mlcs
 		end

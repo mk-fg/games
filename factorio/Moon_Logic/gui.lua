@@ -59,6 +59,7 @@ local function help_window_toggle(pn)
 		' ',
 		'Presets (buttons with numbers):',
 		'  Save and Load - left-click, Delete - right-click, Overwrite - right then left.',
+		'Hotkeys: ctrl+s - save, ctrl(+shift)+z - undo/redo, ctrl+enter - save and close.',
 		' ',
 		'To learn signal names, connect anything with signals to this combinator,',
 		'and their names will be printed as colored inputs on the right of the code window.',
@@ -289,21 +290,29 @@ function comb_gui_class:insert_history(gui, code)
 	end
 end
 
+function comb_gui_class:close(eid)
+	local gui = global.guis[eid]
+	gui = gui and gui.gui
+	if gui then gui.destroy() end
+	global.guis[eid] = nil
+end
+
+function comb_gui_class:save_code(eid)
+	local gui_t = global.guis[eid]
+	if not gui_t then return end
+	local clean_code = code_error_highlight(gui_t.code_tb.text)
+	load_code_from_gui(clean_code, eid)
+	gui_t.code_tb.text = clean_code
+end
+
 function comb_gui_class:on_gui_click(eid, elname, preset_n, ev)
 
 	local gui_t = global.guis[eid]
 	local gui = gui_t.gui
 
-	if elname == 'ok_btn' then
-		local clean_code = code_error_highlight(gui_t.code_tb.text)
-		load_code_from_gui(clean_code, eid)
-		gui_t.code_tb.text = clean_code
-	elseif elname == 'x_btn' then
-		gui.destroy()
-		global.guis[eid] = nil
-
-	elseif elname == 'help_btn' then
-		help_window_toggle(ev.player_index)
+	if elname == 'ok_btn' then self:save_code(eid)
+	elseif elname == 'x_btn' then self:close(eid)
+	elseif elname == 'help_btn' then help_window_toggle(ev.player_index)
 
 	elseif elname == 'preset_btn' then
 		local subgui = ev.element.parent
