@@ -48,5 +48,13 @@ data:extend{
 		height = 20,
 		flags = {'no-crop', 'icon'},
 		scale = 1 },
+	{ type = 'sprite',
+		name = 'mlc_clear',
+		filename = '__Moon_Logic__/graphics/clear.png',
+		priority = 'extra-high-no-scale',
+		width = 20,
+		height = 20,
+		flags = {'no-crop', 'icon'},
+		scale = 1 },
 
 }

@@ -48,17 +48,21 @@ data:extend{
 
 data:extend{
 	{ type = 'custom-input',
-		name = 'mlc-code-save',
-		key_sequence = 'CONTROL + S' },
-	{ type = 'custom-input',
 		name = 'mlc-code-undo',
-		key_sequence = 'CONTROL + Z' },
+		key_sequence = 'CONTROL + LEFT',
+		order = '01' },
 	{ type = 'custom-input',
 		name = 'mlc-code-redo',
-		key_sequence = 'CONTROL + SHIFT + Z' },
+		key_sequence = 'CONTROL + RIGHT',
+		order = '02' },
+	{ type = 'custom-input',
+		name = 'mlc-code-save',
+		key_sequence = 'CONTROL + S',
+		order = '03' },
 	{ type = 'custom-input',
 		name = 'mlc-code-commit',
-		key_sequence = 'CONTROL + RETURN' },
+		key_sequence = 'CONTROL + RETURN',
+		order = '04' },
 }
 
 

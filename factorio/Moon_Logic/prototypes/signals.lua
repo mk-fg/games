@@ -6,6 +6,6 @@ data:extend{
 		icon = '__Moon_Logic__/graphics/error-icon.png',
 		icon_size = 64,
 		subgroup = 'virtual-signal-special',
-		order = 'a[special]-[1everything]' },
+		order = 'e[signal]-[zzz-mlc-err]' },
 
 }

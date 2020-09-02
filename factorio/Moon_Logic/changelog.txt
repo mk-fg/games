@@ -1,8 +1,13 @@
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.6
 Date: 2020-09-02
-  Bugfixes:
-    - Fix some minor gui issues.
+  Features:
+    - Add hotkeys, but they don't work while editing text anyway.
+    - Add "clear" button to reset combinator code.
+    - Update combinator gui layout - add tooltips, align signals on top, etc.
+
+  Changes:
+    - Major GUI code rewrite.
 
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.5

@@ -38,9 +38,7 @@ Note that red/green input tables are always available in the environment too, fo
 
 ## Known Issues
 
-- There really should be the usual Ok / Apply / Cancel button triplet in the UI there, not just Apply masquerading as Ok.
-- Some editing hotkeys would be nice: ctrl+s (save), ctrl+z (undo), ctrl+y/ctrl+shift+z (redo), ctrl+enter (save/close).
-- "Clear script" button would be useful.
+- Hotkeys for save/undo/redo/etc don't work when code text-box is active, which seem to be a game limitation.
 - Needs some code examples and screenshots here.
 
 

@@ -243,7 +243,7 @@ local function on_entity_settings_pasted(ev)
 	if not global.history['mlc_gui_'..uid_dst] then
 		global.history['mlc_gui_'..uid_dst] = {global.combinators[uid_src].code or ''}
 		global.historystate['mlc_gui_'..uid_dst] = 1
-	else comb_gui:insert_history('mlc_gui_'..uid_dst, global.combinators[uid_src].code or '') end
+	else comb_gui:insert_history(global.guis[uid_dst], global.combinators[uid_src].code or '') end
 end
 
 script.on_event(defines.events.on_entity_settings_pasted, on_entity_settings_pasted)
@@ -264,11 +264,11 @@ local function format_mlc_err_msg(mlc)
 end
 
 local function update_signals_in_guis()
-	local gui, gui_flow, e, cap
-	for uid, gui in pairs(global.guis) do
-		gui, e = gui.gui, Combinators[uid] and Combinators[uid]._e
+	local gui_flow, e, cap
+	for uid, gui_t in pairs(global.guis) do
+		e = Combinators[uid] and Combinators[uid]._e
 		if e and not e.valid then mlc_remove(uid); goto skip end
-		gui_flow = gui.main_table.flow
+		gui_flow = gui_t.signal_pane
 		if gui_flow then gui_flow.clear() end
 		for k, color in pairs{red={r=1,g=0.3,b=0.3}, green={r=0.3,g=1,b=0.3}} do
 			for sig, v in pairs(cn_wire_signals(e, defines.wire_type[k])) do
@@ -277,7 +277,7 @@ local function update_signals_in_guis()
 				cap.style.font_color = color
 		end end
 		cap = format_mlc_err_msg(global.combinators[uid]) or ''
-		gui.main_table.left_table.under_text.errors.caption = cap
+		gui_t.code_errs.caption = cap
 	::skip:: end
 end
 

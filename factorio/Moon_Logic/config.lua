@@ -13,6 +13,8 @@ conf.logic_alert_interval = 10 * 60
 -- Function to use for debug=true logging and game.log() calls in lua env
 conf.debug_print = print
 
+-- Max number of old code snippets saved on each combinator
+conf.code_history_max = 100
 
 function conf.update_from_settings()
 	local k_conf
