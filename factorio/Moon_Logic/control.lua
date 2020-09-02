@@ -1,15 +1,13 @@
-gui_manager, comb_gui = table.unpack(require('gui'))
+local gui_manager, comb_gui = table.unpack(require('gui'))
+
+local conf = require('config')
+conf.update_from_settings()
 
 
 -- Stores code and built environments as {code=..., ro=..., vars=...}
 -- This stuff can't be global, built locally, might be cause for desyncs
 local Combinators = {}
 local CombinatorEnv = {} -- to avoid self-recursive tables
-
-
-local conf = {}
-conf.logic_alert_interval = 10 * 60 -- raising global alerts on lua errors
-conf.debug_print = print
 
 
 local function tt(s, value)
@@ -172,14 +170,16 @@ local function mlc_init(e)
 	local env_wire_green = tc(env_wire_red)
 	env_wire_green._wire = 'green'
 
-	local env_ro = setmetatable({ -- sandbox_env_base + mlc_env proxies
+	local env_ro = { -- sandbox_env_base + mlc_env proxies
 		uid = mlc_env._uid,
 		out = setmetatable(mlc_env._out, {__index=cn_output_table_value}),
 		red = setmetatable(env_wire_red, {
 			__index=cn_input_signal_get, __newindex=cn_input_signal_set }),
 		green = setmetatable(env_wire_green, {
-			__index=cn_input_signal_get, __newindex=cn_input_signal_set }),
-	}, {__index=sandbox_env_base})
+			__index=cn_input_signal_get, __newindex=cn_input_signal_set }) }
+	env_ro[conf.red_wire_name] = env_ro.red
+	env_ro[conf.green_wire_name] = env_ro.green
+	setmetatable(env_ro, {__index=sandbox_env_base})
 
 	if not mlc.vars.var then mlc.vars.var = {} end
 	local env = setmetatable(mlc.vars, { -- env_ro + mlc.vars
@@ -274,7 +274,8 @@ local function update_signals_in_guis()
 		if gui_flow then gui_flow.clear() end
 		for k, color in pairs{red={r=1,g=0.3,b=0.3}, green={r=0.3,g=1,b=0.3}} do
 			for sig, v in pairs(cn_wire_signals(e, defines.wire_type[k])) do
-				cap = gui_flow.add{type='label', name=k..'_'..sig, caption=sig..'= '..v}
+				cap = gui_flow.add{ type='label', name=k..'_'..sig,
+					caption=('[%s] %s = %s'):format(conf[k..'_wire_name'], sig, v) }
 				cap.style.font_color = color
 		end end
 		cap = format_mlc_err_msg(global.combinators[uid]) or ''

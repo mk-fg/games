@@ -1,4 +1,10 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.0.4
+Date: 2020-09-02
+  Features:
+    - Add startup mod options to change red/green lua env vars and gui labels. Useful with other mods that change colors.
+
+---------------------------------------------------------------------------------------------------
 Version: 0.0.3
 Date: 2020-09-02
   Bugfixes:

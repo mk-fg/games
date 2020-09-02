@@ -1,3 +1,5 @@
+local conf = require('config')
+
 local gui_manager = {}
 local comb_gui_class = {}
 
@@ -39,8 +41,10 @@ local function help_window_toggle(pn)
 	local lines = {
 		'Special variables available/handled in Lua environment:',
 		'  uid (int) -- globally-unique number of this combinator.',
-		'  red {signal-name=value, ...} -- signals in the red network (read only).',
-		'  green {signal-name=value, ...} -- same for the green network.',
+		('  %s {signal-name=value, ...} -- signals in the %s network (read only).')
+			:format(conf.red_wire_name, conf.red_wire_name),
+		('  %s {signal-name=value, ...} -- same for the %s network.')
+			:format(conf.green_wire_name, conf.green_wire_name),
 		'  out {signal-name=value, ...} -- a table with all signals sent to networks.',
 		'    They are permanent, so to remove a signal you need to set its entry',
 		'     to nil or 0, or flush all signals by entering "out = {}" (creates a fresh table).',
@@ -115,8 +119,9 @@ function gui_manager:create_gui(player, entity)
 		name='mlc_gui_'..eid, caption='', direction='vertical' }
 	gui.location = {100, 150}
 	this_gui_data.gui = gui
-		gui.caption = ( 'Moon Logic [%s] -'..
-			' red {}, green {}, out {}, var {}, delay (int)' ):format(eid)
+		gui.caption =
+			('Moon Logic [%s] - %s {}, %s {}, out {}, var {}, delay (int)')
+			:format(eid, conf.red_wire_name, conf.green_wire_name)
 		gui.style.top_padding = 1
 		gui.style.right_padding = 4
 		gui.style.bottom_padding = 4

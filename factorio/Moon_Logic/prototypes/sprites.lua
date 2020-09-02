@@ -1,14 +1,6 @@
 data:extend{
 
 	{ type = 'sprite',
-		name = 'mlc_bug',
-		filename = '__Moon_Logic__/graphics/bug.png',
-		priority = 'extra-high-no-scale',
-		width = 32,
-		height = 32,
-		flags = {'no-crop', 'icon'},
-		scale = 0.2 },
-	{ type = 'sprite',
 		name = 'mlc_forward',
 		filename = '__Moon_Logic__/graphics/forward.png',
 		priority = 'extra-high-no-scale',
