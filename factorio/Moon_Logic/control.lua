@@ -9,6 +9,7 @@ local CombinatorEnv = {} -- to avoid self-recursive tables
 
 local conf = {}
 conf.logic_alert_interval = 10 * 60 -- raising global alerts on lua errors
+conf.debug_print = print
 
 
 local function tt(s, value)
@@ -201,41 +202,35 @@ end
 
 -- ----- Misc events -----
 
+local mlc_filter = {{filter='name', name='mlc'}}
+
 local function on_destroyed(ev)
-	local e = ev.entity or ev.ghost
-	if e.name == 'mlc' then mlc_remove(e.unit_number)
-	elseif e.name == 'entity-ghost' -- XXX: test this
-			and e.ghost_name == 'mlc' then
-		local spot= e.surface.find_entities_filtered{
-			name='entity-ghost', ghost_name='mlc_blueprint_data', area={
-				{e.position.x-0.1,e.position.y-0.1},
-				{e.position.x+0.1,e.position.y+0.1} } }
-		if #spot > 0 then spot[1].destroy() end
-	end
+	if e.name == 'mlc' then mlc_remove(ev.entity.unit_number) end
 end
 
--- XXX: script events
-script.on_event(defines.events.on_pre_player_mined_item, on_destroyed)
-script.on_event(defines.events.on_robot_pre_mined, on_destroyed)
-script.on_event(defines.events.on_entity_died, on_destroyed)
-script.on_event(defines.events.on_pre_ghost_deconstructed, on_destroyed)
+script.on_event(defines.events.on_pre_player_mined_item, on_destroyed, mlc_filter)
+script.on_event(defines.events.on_robot_pre_mined, on_destroyed, mlc_filter)
+script.on_event(defines.events.on_entity_died, on_destroyed, mlc_filter)
+script.on_event(defines.events.script_raised_destroy, on_destroyed, mlc_filter)
 
 
-local function on_built_entity(ev) -- XXX: event filter
+local function on_built(ev)
 	local e = ev.created_entity
 	if not e.valid then return end
 	if e.name == 'mlc' then global.combinators[e.unit_number] = {e=e} end
 end
 
---- XXX: event filters, script events
-script.on_event(defines.events.on_built_entity, on_built_entity)
-script.on_event(defines.events.on_robot_built_entity, on_built_entity)
+script.on_event(defines.events.on_built_entity, on_built, mlc_filter)
+script.on_event(defines.events.on_robot_built_entity, on_built, mlc_filter)
+script.on_event(defines.events.script_raised_built, on_built, mlc_filter)
+script.on_event(defines.events.script_raised_revive, on_built, mlc_filter)
 
 
-local function on_entity_settings_pasted(ev) -- XXX: event filter
+local function on_entity_settings_pasted(ev)
 	if not (ev.source.name == 'mlc' and ev.destination.name == 'mlc') then return end
 	local uid_src, uid_dst = ev.source.unit_number, ev.destination.unit_number
 
+	mlc_remove(uid_dst)
 	global.combinators[uid_dst] = tdc(global.combinators[uid_src])
 	local mlc_dst = global.combinators[uid_dst]
 	mlc_dst.e, mlc_dst.next_tick = ev.destination, 0
@@ -339,7 +334,7 @@ function run_moon_logic_tick(mlc, mlc_env, tick)
 	-- Runs logic of the specified combinator, reading its input and setting outputs
 	local out_tick, out_diff = mlc.next_tick, tc(mlc_env._out)
 	local dbg = mlc.vars.debug and function(fmt, ...)
-		log(('moon-logic [%s]: %s'):format(mlc_env._uid, fmt:format(...))) end
+		conf.debug_print((' -- moon-logic [%s]: %s'):format(mlc_env._uid, fmt:format(...))) end
 	mlc.vars.delay, mlc.vars.debug = 1
 
 	if dbg then -- debug
@@ -412,7 +407,7 @@ script.on_event(defines.events.on_gui_closed, function(ev)
 	end
 end)
 
-script.on_event(defines.events.on_gui_opened, function(ev) -- XXX: event filter
+script.on_event(defines.events.on_gui_opened, function(ev)
 	if not ev.entity then return end
 	local player = game.players[ev.player_index]
 	if not (player.opened ~= nil and player.opened.name == 'mlc') then return end
