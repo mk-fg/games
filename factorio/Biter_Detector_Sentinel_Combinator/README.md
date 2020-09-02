@@ -1,3 +1,5 @@
+--------------------
+
 ## Description
 
 Adds Sentinel Alarm and Sentinel Combinator devices, which can be used to detect biters in a configurable radius (via R signal).
@@ -33,6 +35,8 @@ Both combinators can be built after unlocking Circuit Network technology, locate
 Mod settings allow to change update intervals and some workload parameters.
 
 
+--------------------
+
 ## Usage
 
 These combinators can be used to power defenses when biters are detected in the area, potentially in tiers, e.g. only enabling most expensive ones upon detecting high numbers or heavier critters.
@@ -45,6 +49,8 @@ It's easy to do by adding arithmetic combinator with "memory" in-between alarm/s
 
 Having too many and/or too long-range detectors might impact performance on scans, but didn't test by how much. Alarms use simplier find_nearest_enemy() scans. If you are concerned about this when using many detectors, check "show-time-usage" in Shift-F4 debug menu and numbers under "Script Update" there.
 
+
+--------------------
 
 ## Links
 

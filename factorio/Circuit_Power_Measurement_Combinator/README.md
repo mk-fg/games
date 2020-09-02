@@ -1,3 +1,5 @@
+--------------------
+
 ## Description
 
 Adds Power Meter Combinator which can be used to measure power production of electric grid connected to any closest pole (within 16-tile radius), transmitting that as signals for circuit network (red/green wires).
@@ -23,6 +25,8 @@ Can be built after unlocking Circuit Network technology, located next to Power S
 It looks like blue-ish combinator with tiny yellow lighting bolt symbol painted on top (let me know if you know of a better sprites somewhere).
 
 
+--------------------
+
 ## Usage
 
 Common use-case can be generating alerts (e.g. via Programmable Speaker) when power capacity is close to the limit or to disable less efficient power sources depending on grid load (e.g. Steam Engines when Nuclear Power is sufficient, as latter consumes cells at a constant rate regardless).
@@ -32,6 +36,8 @@ Usually it's not hard to get a rough estimate for it though, by using Ctrl+C to 
 
 Comparing such high-watermark value against measured output can be used to get grid utilization estimates.
 
+
+--------------------
 
 ## Links
 
