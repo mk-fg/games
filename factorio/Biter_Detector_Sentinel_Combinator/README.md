@@ -6,10 +6,10 @@ Adds Sentinel Alarm and Sentinel Combinator devices, which can be used to detect
 
 - Sentinel Alarm
 
-    Constant combinator that enables when (any) hostile units are detected in specified circular range.
+    Constant combinator that enables when (any) hostile units are detected within specified circular range.
     Does not enable if no signals are set on it, so don't forget to set it up to actually send something.
 
-    Test-run mode: T signal can be set (non-zero) on alarm combinator to have it activate on (any) player within range instead.
+    Test-run mode: T signal can be set (to non-0 value) on alarm combinator to have it activate on (any) player within range instead.
     Can be used to test distance and connected systems' reaction by player(s) pretending to be a biter, or maybe to prank them with a train.
 
 - Sentinel Combinator
@@ -20,17 +20,21 @@ Adds Sentinel Alarm and Sentinel Combinator devices, which can be used to detect
     If radar is destroyed or scrapped, sentinel picks new radar within range, if any.
     When connected and working, it will always set at least "total" signal with 0 value on it, if nothing is within range.
 
-    Only mobile units in "enemy" force are counted by it, which should be biters/spitters (including modded ones), but not nests/worms, players or non-biter entities on other forces.
+    Only mobile units in "enemy" force are counted,
+    which should be biters/spitters (including modded ones), but not nests/worms, players or non-biter entities on other forces.
     Each default biter/spitter types emit their own signal. Modded biters are counted into "Other Aliens" signal. "Total Alien Units" sums them all up.
     Any other signals can be set on the combinator freely as well, it shouldn't touch them.
 
     Uses biter icons from vanilla game for virtual signals, with two special ones for "other" and "total".
 
+Difference between the two is that Alarm is a simplier on/off detector for when anything dangerous is in range,
+while Combinator sends which types of biters are in range and their exact count.
+
 Detection radius (in tiles, default=32) can be set by R signal right on these combinators, or sent from the circuit network (added to local one if both are present).
 Negative value can be sent to disable scanning, or 0 to use default range.
 Note that even with extremely high range set, detection should only work for map chunks that factorio simulates at the moment.
 
-Both combinators can be built after unlocking Circuit Network technology, located next to Programmable Speaker on the crafting grid, have their own sprites.
+Both detectors can be built after unlocking Circuit Network technology, located next to Programmable Speaker on the crafting grid, have their own icons/sprites.
 
 Mod settings allow to change update intervals and some workload parameters.
 
