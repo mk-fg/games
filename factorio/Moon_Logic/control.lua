@@ -236,7 +236,7 @@ local function on_entity_settings_pasted(ev)
 	global.combinators[uid_dst] = tdc(global.combinators[uid_src])
 	local mlc_dst, mlc_src = global.combinators[uid_dst], global.combinators[uid_src]
 	mlc_dst.e, mlc_dst.next_tick = ev.destination, 0
-	guis.history_insert(global.guis[uid_dst], mlc_src and mlc_src.code or '')
+	guis.history_insert(global.guis[uid_dst], mlc_src, mlc_src.code or '')
 end
 
 script.on_event(defines.events.on_entity_settings_pasted, on_entity_settings_pasted)
