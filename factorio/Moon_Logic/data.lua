@@ -60,9 +60,13 @@ data:extend{
 		key_sequence = 'CONTROL + S',
 		order = '03' },
 	{ type = 'custom-input',
+		name = 'mlc-code-close',
+		key_sequence = 'CONTROL + Q',
+		order = '04' },
+	{ type = 'custom-input',
 		name = 'mlc-code-commit',
 		key_sequence = 'CONTROL + RETURN',
-		order = '04' },
+		order = '05' },
 }
 
 

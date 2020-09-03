@@ -1,5 +1,5 @@
-**Important:** this is an early release of this mod, so expect more than the usual amount bugs crawling in here!
-(and please report any crashes with lua backtrace from factorio log or just a screenshot of it, thanks)
+**Important:** this is an early release of this mod, so expect more than the usual amount of bugs crawling in here!
+(and please report any crashes with lua backtrace from factorio log or a screenshot of it, thanks)
 
 **This mod should probably cause desyncs in multiplayer games**
 Mod code uses things which are likely to desync mp games, and I only test singleplayer, so it's highly unlikely that it will "just work" in mp.

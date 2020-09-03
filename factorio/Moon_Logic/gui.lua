@@ -1,42 +1,14 @@
 local conf = require('config')
 
-local gui_manager = {}
-local comb_gui_class = {}
-
-
-local function preset_help_tooltip(code)
-	if not code
-		then code = '-- [ left-click to save script here ] --'
-		else code = code:match('^%s*(.-)%s*$')..
-			'\n-- [ left-click - load, right-click - clear ] --' end
-	return code
-end
-
-local function find_eid_for_gui_element(v)
-	-- Returns eid of the gui table for the clicked element,
-	--  along with local name of the button in data table and index of preset-btn
-	for eid, e_g_els in pairs(global.guis) do
-		if type(eid) ~= 'number' then goto skip end
-		for elname, vv in pairs(e_g_els) do
-			if elname == 'preset_btns' then
-				for n, vvv in pairs(vv) do
-					if v == vvv then return eid, 'preset_btn', n
-				end end
-			elseif vv == v then return eid, elname end
-		end
-	::skip:: end
-	-- log(('BUG: GUI element not found: %s [gui dump follows]'):format(v and v.name or '???'))
-	-- log(serpent.block(global.guis))
-end
 
 local function help_window_toggle(pn)
 	local player = game.players[pn]
-	if player.gui.screen['mlc_helper_'..pn] then
-		player.gui.screen['mlc_helper_'..pn].destroy()
+	if player.gui.screen['mlc-helper-'..pn] then
+		player.gui.screen['mlc-helper-'..pn].destroy()
 		return
 	end
 	local gui = player.gui.screen.add{ type='frame',
-		name='mlc_helper_'..pn, caption='Moon Logic Combinator Info', direction='vertical' }
+		name='mlc-helper-'..pn, caption='Moon Logic Combinator Info', direction='vertical' }
 	gui.location = {math.max(50, player.display_resolution.width - 800), 150}
 	local lines = {
 		'Special variables available/handled in Lua environment:',
@@ -60,14 +32,15 @@ local function help_window_toggle(pn)
 		'Presets (buttons with numbers):',
 		'  Save and Load - left-click, Delete - right-click, Overwrite - right then left.',
 		'Default Hotkeys (rebindable, do not work when editing text-box is focused):',
-		'  Ctrl-S - save, Ctrl-Left/Right - undo/redo, Ctrl-Enter - save and close.',
+		'  Ctrl-S - save, Ctrl-Left/Right - undo/redo,',
+		'  Ctrl-Enter - save and close, Ctrl-Q or Esc - close.',
 		' ',
 		'To learn signal names, connect anything with signals to this combinator,',
 		'and their names will be printed as colored inputs on the right of the code window.',
 		' ' }
 	for n, line in ipairs(lines) do gui.add{
 		type='label', name='line_'..n, direction='horizontal', caption=line } end
-	gui.add{type='button', name='mlc_help_x', caption='Got it'}
+	gui.add{type='button', name='mlc-help-close', caption='Got it'}
 end
 
 local err_icon_sub_add = '[color=#c02a2a]%1[/color]'
@@ -92,338 +65,259 @@ local function code_error_highlight(text, line_err)
 	return result
 end
 
-
--- XXX: get rid of all this pretend-class nonsense
-
-function gui_manager:on_gui_text_changed(ev)
-	local eid = find_eid_for_gui_element(ev.element)
-	if not eid then return end
-	global.guis[eid]:on_gui_text_changed(eid, ev)
-end
-
-function gui_manager:on_gui_click(ev)
-	if ev.element.name == 'mlc_help_x' -- untracked "help" windows
-		then return ev.element.parent.destroy() end
-	local eid, elname, n = find_eid_for_gui_element(ev.element)
-	if not eid then return end
-	global.guis[eid]:on_gui_click(eid, elname, n, ev)
-end
-
-function gui_manager:open(player, entity)
-	local gui_data = self:create_gui(player, entity)
-	setmetatable(gui_data, {__index=comb_gui_class})
-	global.guis[entity.unit_number]=gui_data
-	player.opened=gui_data.gui
-end
-
-function gui_manager:set_history_btns_state(gui_t)
-	-- XXX: index history, historystate, textboxes by uid, not some special gui.name
-	-- XXX: is this even get cleared, like ever?
-	local gui_name = gui_t.gui.name
-	local n, hist_log = global.historystate[gui_name], global.history[gui_name]
-	if hist_log[n-1] then
-		gui_t.bw_btn.sprite = 'mlc_back_enabled'
-		gui_t.bw_btn.ignored_by_interaction = false
+local function set_history_btns_state(gui_t, mlc)
+	local hist_log, n = mlc.history, mlc.history_state
+	if n and hist_log[n-1] then
+		gui_t.mlc_back.sprite = 'mlc-back-enabled'
+		gui_t.mlc_back.ignored_by_interaction = false
 	else
-		gui_t.bw_btn.sprite = 'mlc_back'
-		gui_t.bw_btn.ignored_by_interaction = true
+		gui_t.mlc_back.sprite = 'mlc-back'
+		gui_t.mlc_back.ignored_by_interaction = true
 	end
-	if hist_log[n+1] then
-		gui_t.fw_btn.sprite = 'mlc_forward_enabled'
-		gui_t.fw_btn.ignored_by_interaction = false
+	if n and hist_log[n+1] then
+		gui_t.mlc_fwd.sprite = 'mlc-fwd-enabled'
+		gui_t.mlc_fwd.ignored_by_interaction = false
 	else
-		gui_t.fw_btn.sprite = 'mlc_forward'
-		gui_t.fw_btn.ignored_by_interaction = true
+		gui_t.mlc_fwd.sprite = 'mlc-fwd'
+		gui_t.mlc_fwd.ignored_by_interaction = true
 	end
 end
 
-function gui_manager:create_gui(player, entity)
-	local uid = entity.unit_number -- XXX: remove it from all names
+local function preset_help_tooltip(code)
+	if not code
+		then code = '-- [ left-click to save script here ] --'
+		else code = code:match('^%s*(.-)%s*$')..
+			'\n-- [ left-click - load, right-click - clear ] --' end
+	return code
+end
+
+local function create_gui(player, entity)
+	local uid = entity.unit_number
 	local mlc = global.combinators[uid]
 	local mlc_err = mlc.err_parse or mlc.err_run
 
 	-- Main frame
-	local gui_t, el = {}
-	local gui = player.gui.screen.add{ type='frame',
-		name='mlc_gui_'..uid, caption='', direction='vertical' }
-	gui.location = {20, 150}
-	gui_t.gui = gui
-		gui.caption =
-			('Moon Logic [%s] - %s {}, %s {}, out {}, var {}, delay (int)')
-			:format(uid, conf.red_wire_name, conf.green_wire_name)
-		gui.style.top_padding = 1
-		gui.style.right_padding = 4
-		gui.style.bottom_padding = 4
-		gui.style.left_padding = 4
-		--gui.style.scaleable = false
+	local el_map, el = {} -- map is to check if el belonds to this gui
+	local gui_t = {uid=uid, el_map=el_map}
+
+	local function elc(parent, props, style)
+		el = parent.add(props)
+		for k,v in pairs(style or {}) do el.style[k] = v end
+		gui_t[props.name:gsub('%-', '_')], el_map[el.index] = el, el
+		return el
+	end
+
+	local gui = elc( player.gui.screen,
+			{ type='frame', name='mlc-gui',
+				direction='vertical', caption =
+					('Moon Logic [%s] - %s {}, %s {}, out {}, var {}, delay (int)')
+					:format(uid, conf.red_wire_name, conf.green_wire_name) },
+			{top_padding=1, right_padding=4, bottom_padding=4, left_padding=4} )
+		el.location = {20, 150} -- doesn't work from initial props
 
 	-- Main table
-	local mt = gui.add{type='table', column_count=2, name='main_table', direction='vertical'}
-		mt.style.vertical_align = 'top'
-
+	local mt = elc(gui, {type='table', column_count=2, name='mt', direction='vertical'})
 
 	-- MT column-1
-	local mt_left = mt.add{type='flow', column_count=1, name='left', direction='vertical'}
-		mt_left.style.vertical_align = 'top'
-		-- mt_left.style.vertically_stretchable = true
-		-- mt_left.style.vertically_squashable = false
+	local mt_left = elc(mt, {type='flow', name='mt-left', direction='vertical'})
 
 	-- MT column-1: action button bar at the top
-	local top_btns = mt_left.add{type='flow', name='flow', direction='horizontal'}
-		top_btns.style.width = 799
-	el = top_btns.add{type='sprite-button', name='mlc_x_'..uid, direction='horizontal'}
-	gui_t.x_btn = el
-		el.style.height=20
-		el.style.width=20
-		el.style.top_padding=0
-		el.style.bottom_padding=0
-		el.style.left_padding=0
-		el.style.right_padding=0
-		--el.style.disabled_font_color ={r=1,g=1,b=1}
-		el.sprite='mlc_close'
-		el.tooltip = 'Discard changes and close [[color=#e69100]Esc[/color]]'
-	el = top_btns.add{type='sprite-button', name='mlc_help', direction='horizontal'}
-	gui_t.help_btn = el
-		el.style.height=20
-		el.style.width=20
-		el.style.top_padding=0
-		el.style.bottom_padding=0
-		el.style.left_padding=0
-		el.style.right_padding=0
-		el.sprite='mlc_questionmark'
-		el.tooltip = 'Open quick reference window'
-	el = top_btns.add{type = 'flow', name = 'flow1', direction = 'horizontal'}
-		el.style.width=15
+	local top_btns = elc( mt_left,
+		{type='flow', name='mt-top-btns', direction='horizontal'}, {width=799} )
 
-	el = top_btns.add{type='sprite-button', name='mlc_back', state=true}
-	gui_t.bw_btn = el
-		el.style.height=20
-		el.style.width=20
-		el.style.top_padding=0
-		el.style.bottom_padding=0
-		el.style.left_padding=0
-		el.style.right_padding=0
-		el.sprite='mlc_back'
-		el.hovered_sprite ='mlc_back'
-		el.clicked_sprite ='mlc_back'
-		el.tooltip = 'Undo [[color=#e69100]Ctrl-Left[/color]]\nRight-click - undo 5, +shift - undo 50'
-	el = top_btns.add{type='sprite-button', name='mlc_forward', state=true}
-	gui_t.fw_btn = el
-		el.style.height=20
-		el.style.width=20
-		el.style.top_padding=0
-		el.style.bottom_padding=0
-		el.style.left_padding=0
-		el.style.right_padding=0
-		el.sprite='mlc_forward'
-		el.hovered_sprite ='mlc_forward'
-		el.clicked_sprite  ='mlc_forward'
-		el.tooltip = 'Redo [[color=#e69100]Ctrl-Right[/color]]\nRight-click - redo 5, +shift - redo 50'
-	self:set_history_btns_state(gui_t)
+	local function top_btns_add(name, tooltip)
+		local sz, pad = 20, 0
+		return elc( top_btns,
+			{type='sprite-button', name=name, sprite=name, direction='horizontal', tooltip=tooltip},
+			{height=sz, width=sz, top_padding=pad, bottom_padding=pad, left_padding=pad, right_padding=pad} )
+	end
 
-	el = top_btns.add{type='sprite-button', name='mlc_clear', state=true}
-	gui_t.clear_btn = el
-		el.style.height=20
-		el.style.width=20
-		el.style.top_padding=0
-		el.style.bottom_padding=0
-		el.style.left_padding=0
-		el.style.right_padding=0
-		el.sprite='mlc_clear'
-		el.hovered_sprite ='mlc_clear'
-		el.clicked_sprite  ='mlc_clear'
-		el.tooltip = 'Clear code window'
+	top_btns_add('mlc-close', 'Discard changes and close [[color=#e69100]Esc[/color]]')
+	top_btns_add('mlc-help', 'Toggle quick reference window')
+
+	elc(top_btns, {type='flow', name='mt-top-spacer-a', direction='horizontal'}, {width=10})
+
+	top_btns_add( 'mlc-back',
+		'Undo [[color=#e69100]Ctrl-Left[/color]]\nRight-click - undo 5, right+shift - undo 50' )
+	top_btns_add( 'mlc-fwd',
+		'Redo [[color=#e69100]Ctrl-Right[/color]]\nRight-click - redo 5, right+shift - redo 50' )
+	set_history_btns_state(gui_t, mlc)
+
+	top_btns_add('mlc-clear', 'Clear code window')
+
+	elc(top_btns, {type='flow', name='mt-top-spacer-b', direction='horizontal'}, {width=10})
 
 	-- MT column-1: preset buttons at the top
-	local preset_btns = {}
 	for n=0, 20 do
-		el = top_btns.add{type='button', name='mlc_preset_'..n, direction='horizontal', caption=n}
-		preset_btns[n] = el
-			el.style.height=20
-			el.style.width=27
-			el.style.top_padding=0
-			el.style.bottom_padding=0
-			el.style.left_padding=0
-			el.style.right_padding=0
-		if not global.presets[n+1] then el.style, el.tooltip = 'button', preset_help_tooltip()
-		else el.style, el.tooltip = 'green_button', preset_help_tooltip(global.presets[n+1]) end
+		elc( top_btns,
+			{ type='button', name='mlc-preset-'..n, direction='horizontal', caption=n,
+				tooltip='Discard changes and close [[color=#e69100]Esc[/color]]' },
+			{height=20, width=27, top_padding=0, bottom_padding=0, left_padding=0, right_padding=0} )
+		if not global.presets[n] then el.style, el.tooltip = 'button', preset_help_tooltip()
+		else el.style, el.tooltip = 'green_button', preset_help_tooltip(global.presets[n]) end
 	end
-	gui_t.preset_btns = preset_btns
 
 	-- MT column-1: code text-box
-	local code_pane = mt_left.add{type='scroll-pane',  name='code_scroll', direction='vertical'}
-		-- code_pane.style.vertically_stretchable = true
-		-- code_pane.style.vertically_squashable = false
-		code_pane.style.maximal_height = 700
-	local code_table = code_pane.add{
-		type='table', column_count=1, name='code_table', direction='vertical' }
-		-- code_table.style.vertically_stretchable = true
-		-- code_table.style.vertically_squashable = false
-	el = code_table.add{type='text-box', name='mlc_code', direction='vertical'}
-	gui_t.code_tb = el
-		el.style.vertically_stretchable = true
-		-- el.style.vertically_squashable = false
-		el.style.width = 800
-		el.style.minimal_height = 300
-		el.text = mlc.code or ''
-		if mlc_err
-			then el.text = code_error_highlight(el.text, string.gsub(mlc_err,'.+:(%d+):.+', '%1'))
-			else el.text = code_error_highlight(el.text) end
-	global.textboxes[gui.name] = el.text
-	if not global.history[gui.name] then
-		global.history[gui.name] = {el.text}
-		global.historystate[gui.name] = 1
-	end
+	elc(mt_left, {type='scroll-pane',  name='mlc-code-scroll', direction='vertical'}, {maximal_height=700})
+	elc( el, {type='text-box', name='mlc-code', direction='vertical', text=mlc.code or ''},
+		{vertically_stretchable=true, width=800, minimal_height=300} )
+	if mlc_err
+		then el.text = code_error_highlight(el.text, string.gsub(mlc_err,'.+:(%d+):.+', '%1'))
+		else el.text = code_error_highlight(el.text) end
+	mlc.textbox = el.text -- XXX: maybe restore mlc.textbox instead with revert-to-code button?
 
 	-- MT column-1: error bar at the bottom
-	local code_errors = mt_left.add{type='table', column_count=2, name='under_text', direction='vertical'}
-		code_errors.style.width = 800
-	el = code_errors.add{type='label', name='errors', direction='horizontal'}
-	gui_t.code_errs = el
-		el.style.width = 760
-
+	elc(mt_left, {type='label', name='mlc-errors', direction='horizontal'}, {horizontally_stretchable=true})
 
 	-- MT column-2
-	local mt_right = mt.add{type='flow', column_count=1, name='right', direction='vertical'}
-		mt_right.style.vertical_align = 'top'
-		-- mt_left.style.vertically_stretchable = true
-		-- mt_left.style.vertically_squashable = false
+	local mt_right = elc(mt, {type='flow', name='mt-right', direction='vertical'})
 
 	-- MT column-2: input signal list
-	el = mt_right.add{type='label', name='signals_header', caption='Input Signals:'}
-		el.style.font = 'heading-2'
-	el = mt_right.add{type='scroll-pane', name='signal_pane', direction='vertical'}
-	gui_t.signal_pane = el
-		el.style.vertically_stretchable = true
-		el.style.vertically_squashable = true
-		el.style.maximal_height = 700
+	elc(mt_right, {type='label', name='signal-header', caption='Input Signals:'}, {font='heading-2'})
+	elc( mt_right, {type='scroll-pane', name='signal-pane', direction='vertical'},
+		{vertically_stretchable=true, vertically_squashable=true, maximal_height=700} )
 
 	-- MT column-2: input signal list
-	local control_btns = mt_right.add{
-		type='flow', name='control-btns', direction='horizontal' }
-	el = control_btns.add{type='button', name='mlc_ok_'..uid, caption='Save'}
-		el.style.width = 60
-	gui_t.ok_btn = el
-
-	el = control_btns.add{type='button', name='mlc_close_'..uid, caption='Close'}
-		el.style.width = 60
-	el = control_btns.add{type='button', name='mlc_commit_'..uid, caption='Save & Close'}
+	local control_btns = elc(mt_right, {type='flow', name='mt-br-btns', direction='horizontal'})
+	elc(control_btns, {type='button', name='mlc-save', caption='Save'}, {width=60})
+	elc(control_btns, {type='button', name='mlc-close', caption='Close'}, {width=60})
+	elc(control_btns, {type='button', name='mlc-commit', caption='Save & Close'})
 
 	return gui_t
 end
 
 
-function comb_gui_class:insert_history(gui_t, code)
-	local gui_name = gui_t.gui.name
-	local n, hist_log = global.historystate[gui_name], global.history[gui_name]
+-- ----- Interface for control.lua -----
+
+local function find_gui(el)
+	-- Finds uid and gui table for specified event-target element
+	local el_chk
+	for uid, gui_t in pairs(global.guis) do
+		el_chk = gui_t.el_map[el.index]
+		if el_chk and el_chk == el then return uid, gui_t end end
+	-- log(('No gui match for el: %s %s %s'):format(el.player_index, el.index, el.name))
+end
+
+local guis = {}
+
+function guis.open(player, entity)
+	local gui_t = create_gui(player, entity)
+	global.guis[entity.unit_number] = gui_t
+	player.opened = gui_t.mlc_gui
+end
+
+function guis.close(uid)
+	local gui_t = global.guis[uid]
+	local gui = gui_t and (gui_t.mlc_gui or gui_t.gui)
+	if gui then gui.destroy() end
+	global.guis[uid] = nil
+end
+
+function guis.history_insert(gui_t, mlc, code)
+	local hist_log, n = mlc.history, mlc.history_state
 	code = code:match('^%s*(.-)%s*$')..'\n' -- normalize leading/trailing spaces
 	-- XXX: do not store empty strings
-
-	if hist_log[n] == code then n = n
-	elseif #hist_log == n then
-		n = n + 1
-		table.insert(hist_log, code)
-		global.historystate[gui_name] = n
+	if not hist_log then
+		mlc.history = {mlc.textbox}
+		mlc.history_state = 1
 	else
-		n = n + 1
-		hist_log[n] = code
-		global.historystate[gui_name] = n
-		for a = n + 1, #hist_log do hist_log[a] = nil end
+		if hist_log[n] == code then n = n
+		elseif #hist_log == n then
+			n = n + 1
+			table.insert(hist_log, code)
+		else
+			n = n + 1
+			hist_log[n] = code
+			for a = n + 1, #hist_log do hist_log[a] = nil end
+		end
+		while n > conf.code_history_limit do
+			n = n - 1
+			table.remove(hist_log, 1)
+		end
+		mlc.history_state = n
 	end
-
-	while n > conf.code_history_max do
-		n = n - 1
-		table.remove(hist_log, 1)
-		global.historystate[gui_name] = n
-	end
-
-	gui_manager:set_history_btns_state(gui_t)
+	set_history_btns_state(gui_t, mlc)
 end
 
-function comb_gui_class:close(eid)
-	local gui_t = global.guis[eid]
-	if gui_t and gui_t.gui then gui_t.gui.destroy() end
-	global.guis[eid] = nil
+function guis.history_restore(gui_t, mlc, offset)
+	if not mlc.history then return end
+	local n = math.min(#mlc.history, math.max(1, mlc.history_state + offset))
+	mlc.history_state = n
+	gui_t.mlc_code.text = mlc.history[n]
+	set_history_btns_state(gui_t, mlc)
+	mlc.textbox = gui_t.mlc_code.text
 end
 
-function comb_gui_class:save_code(eid, code)
+function guis.save_code(eid, code)
 	local gui_t = global.guis[eid]
 	if not gui_t then return end
-	local clean_code = code_error_highlight(code or gui_t.code_tb.text)
+	local clean_code = code_error_highlight(code or gui_t.mlc_code.text)
 	load_code_from_gui(clean_code, eid)
-	gui_t.code_tb.text = clean_code
+	gui_t.mlc_code.text = clean_code
 end
 
-function comb_gui_class:on_gui_click(eid, elname, preset_n, ev)
-	local gui_t = global.guis[eid]
-	local gui = gui_t.gui
+function guis.on_gui_text_changed(ev)
+	if ev.element.name ~= 'mlc-code' then return end
+	local uid, gui_t = find_gui(ev.element)
+	if not uid then return end
+	local mlc = global.combinators[uid]
+	if not mlc then return end
+	guis.history_insert(gui_t, mlc, ev.element.text)
+	global.combinators[uid].textbox = ev.element.text
+end
 
-	if elname == 'ok_btn' then self:save_code(eid)
-	elseif elname == 'clear_btn' then
-		self:save_code(eid, '')
-		self:on_gui_text_changed(eid, {element=gui_t.code_tb})
-	elseif elname == 'x_btn' then self:close(eid)
-	elseif elname == 'help_btn' then help_window_toggle(ev.player_index)
+function guis.on_gui_click(ev)
+	local el = ev.element
+	if el.name == 'mlc-help-close' -- untracked "help" windows
+		then return el.parent.destroy() end
 
-	elseif elname == 'preset_btn' then
-		local id = preset_n + 1
+	local uid, gui_t = find_gui(el)
+	if not uid then return end
+	local mlc = global.combinators[uid]
+	if not mlc then return guis.close(uid) end
+	local el_id = el.name
+	local preset_n = tonumber(el_id:match('^mlc%-preset%-(%d+)$'))
+	local rmb = defines.mouse_button_type.right
+
+	if el_id == 'mlc-save' then guis.save_code(uid)
+	elseif el_id == 'mlc-commit' then guis.save_code(uid); guis.close(uid)
+	elseif el_id == 'mlc-clear' then
+		guis.save_code(uid, '')
+		guis.on_gui_text_changed{element=gui_t.mlc_code}
+	elseif el_id == 'mlc-close' then guis.close(uid)
+	elseif el_id == 'mlc-help' then help_window_toggle(ev.player_index)
+
+	elseif preset_n then
 		if ev.button == defines.mouse_button_type.left then
-			local code_textbox = gui_t.code_tb
-			if global.presets[id] then
-				code_textbox.text = global.presets[id]
-				global.textboxes[gui.name] = code_textbox.text
-				if not global.history[gui.name] then
-					global.history[gui.name] = {code_textbox.text}
-					global.historystate[gui.name] = 1
-				else self:insert_history(gui_t, code_textbox.text) end
+			if global.presets[preset_n] then
+				gui_t.mlc_code.text = global.presets[preset_n]
+				mlc.textbox = gui_t.mlc_code.text
+				guis.history_insert(gui_t, mlc, gui_t.mlc_code.text)
 			else
-				global.presets[id] = code_textbox.text
-				ev.element.style = 'green_button'
-				ev.element.tooltip = preset_help_tooltip(global.presets[id])
+				global.presets[preset_n] = gui_t.mlc_code.text
+				el.style = 'green_button'
+				el.tooltip = preset_help_tooltip(global.presets[preset_n])
 			end
-		elseif ev.button == defines.mouse_button_type.right then
-			global.presets[id] = nil
-			ev.element.style = 'button'
-			ev.element.tooltip = preset_help_tooltip()
+		elseif ev.button == rmb then
+			global.presets[preset_n] = nil
+			el.style = 'button'
+			el.tooltip = preset_help_tooltip()
 		end
 
-	elseif elname == 'bw_btn' then
-		-- XXX: mention keys in the tooltip
-		if ev.button == defines.mouse_button_type.right then self:history(gui_t, -5)
-		elseif ev.button == defines.mouse_button_type.right and ev.shift then self:history(gui_t, -50)
-		else self:history(gui_t, -1) end
-	elseif elname == 'fw_btn' then
-		if ev.button == defines.mouse_button_type.right then self:history(gui_t, 5)
-		elseif ev.button == defines.mouse_button_type.right and ev.shift then self:history(gui_t, 50)
-		else self:history(gui_t, 1) end
+	elseif el_id == 'mlc-back' then
+		if ev.button == rmb and ev.shift then guis.history_restore(gui_t, mlc, -50)
+		elseif ev.button == rmb then guis.history_restore(gui_t, mlc, -5)
+		else guis.history_restore(gui_t, mlc, -1) end
+	elseif el_id == 'mlc-fwd' then
+		if ev.button == rmb and ev.shift then guis.history_restore(gui_t, mlc, 50)
+		elseif ev.button == rmb then guis.history_restore(gui_t, mlc, 5)
+		else guis.history_restore(gui_t, mlc, 1) end
 	end
-
 end
 
-function comb_gui_class:on_gui_text_changed(eid, ev)
-	if ev.element.name ~= 'mlc_code' then return end
-	if not global.textboxes then global.textboxes = {} end
-	local gui_t = global.guis[eid]
-	local gui_name = gui_t.gui.name
-	if not global.history[gui_name] then
-		global.history[gui_name] = {ev.element.text}
-		global.historystate[gui_name] = 1
-	else self:insert_history(gui_t, ev.element.text) end
-	global.textboxes[gui_name] = ev.element.text
+function guis.on_gui_close(ev)
+	local uid, gui_t = find_gui(ev.element)
+	if uid then guis.close(uid) end
 end
 
-function comb_gui_class:history(gui_t, interval)
-	local gui_name = gui_t.gui.name
-	local eid = find_eid_for_gui_element(gui_t.gui)
-	local codebox = global.guis[eid].code_tb
-	local n = math.min(
-		#global.history[gui_name],
-		math.max(1, global.historystate[gui_name] + interval) )
-	global.historystate[gui_name] = n
-	codebox.text = global.history[gui_name][n]
-	gui_manager:set_history_btns_state(gui_t)
-	global.textboxes[gui_name] = codebox.text
-end
-
-
-return {gui_manager, comb_gui_class}
+return guis

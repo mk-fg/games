@@ -14,7 +14,7 @@ conf.logic_alert_interval = 10 * 60
 conf.debug_print = print
 
 -- Max number of old code snippets saved on each combinator
-conf.code_history_max = 100
+conf.code_history_limit = 200
 
 function conf.update_from_settings()
 	local k_conf

@@ -1,7 +1,7 @@
-local gui_manager, comb_gui = table.unpack(require('gui'))
-
 local conf = require('config')
 conf.update_from_settings()
+
+local guis = require('gui')
 
 
 -- Stores code and built environments as {code=..., ro=..., vars=...}
@@ -200,7 +200,7 @@ local function mlc_init(e)
 end
 
 local function mlc_remove(uid)
-	comb_gui:close(uid)
+	guis.close(uid)
 	Combinators[uid], CombinatorEnv[uid], global.combinators[uid], global.guis[uid] = nil
 end
 
@@ -232,18 +232,11 @@ script.on_event(defines.events.script_raised_revive, on_built, mlc_filter)
 local function on_entity_settings_pasted(ev)
 	if not (ev.source.name == 'mlc' and ev.destination.name == 'mlc') then return end
 	local uid_src, uid_dst = ev.source.unit_number, ev.destination.unit_number
-
 	mlc_remove(uid_dst)
 	global.combinators[uid_dst] = tdc(global.combinators[uid_src])
-	local mlc_dst = global.combinators[uid_dst]
+	local mlc_dst, mlc_src = global.combinators[uid_dst], global.combinators[uid_src]
 	mlc_dst.e, mlc_dst.next_tick = ev.destination, 0
-
-	if not global.textboxes['mlc_gui_'..uid_dst]
-		then global.textboxes['mlc_gui_'..uid_dst] = global.combinators[uid_src].code or '' end
-	if not global.history['mlc_gui_'..uid_dst] then
-		global.history['mlc_gui_'..uid_dst] = {global.combinators[uid_src].code or ''}
-		global.historystate['mlc_gui_'..uid_dst] = 1
-	else comb_gui:insert_history(global.guis[uid_dst], global.combinators[uid_src].code or '') end
+	guis.history_insert(global.guis[uid_dst], mlc_src and mlc_src.code or '')
 end
 
 script.on_event(defines.events.on_entity_settings_pasted, on_entity_settings_pasted)
@@ -277,7 +270,7 @@ local function update_signals_in_guis()
 				cap.style.font_color = color
 		end end
 		cap = format_mlc_err_msg(global.combinators[uid]) or ''
-		gui_t.code_errs.caption = cap
+		gui_t.mlc_errors.caption = cap
 	::skip:: end
 end
 
@@ -400,15 +393,6 @@ function load_code_from_gui(code, uid) -- note: in global _ENV, used from gui.lu
 	end end
 end
 
-script.on_event(defines.events.on_gui_click, function(ev) gui_manager:on_gui_click(ev) end)
-
-script.on_event(defines.events.on_gui_closed, function(ev)
-	if ev.element and string.match(ev.element.name, '^mlc_gui_') then
-		global.guis[tonumber(string.sub(ev.element.name, 9))] = nil
-		ev.element.destroy()
-	end
-end)
-
 script.on_event(defines.events.on_gui_opened, function(ev)
 	if not ev.entity then return end
 	local player = game.players[ev.player_index]
@@ -416,14 +400,15 @@ script.on_event(defines.events.on_gui_opened, function(ev)
 	local e = player.opened
 	player.opened = nil
 	if not global.guis[e.unit_number]
-		then gui_manager:open(player, e)
+		then guis.open(player, e)
 		else player.print(
 			game.players[global.guis[e.unit_number].gui.player_index].name..
 				' already opened this combinator', {1,1,0} ) end
 end)
 
-script.on_event( defines.events.on_gui_text_changed,
-	function(ev) gui_manager:on_gui_text_changed(ev) end )
+script.on_event(defines.events.on_gui_click, guis.on_gui_click)
+script.on_event(defines.events.on_gui_text_changed, guis.on_gui_text_changed)
+script.on_event(defines.events.on_gui_closed, guis.on_gui_close)
 
 
 -- ----- Keyboard editing hotkeys -----
@@ -442,24 +427,34 @@ end
 
 script.on_event('mlc-code-save', function(ev)
 	local uid, gui_t = get_active_gui()
-	if uid then comb_gui:save_code(uid) end
+	if uid then guis.save_code(uid) end
 end)
 
 script.on_event('mlc-code-undo', function(ev)
 	local uid, gui_t = get_active_gui()
-	if gui_t then comb_gui:history(gui_t.gui, -1) end
+	if not gui_t then return end
+	local mlc = global.combinators(gui_t.uid)
+	if mlc then guis.history_restore(gui_t, mlc, -1) end
 end)
 
 script.on_event('mlc-code-redo', function(ev)
 	local uid, gui_t = get_active_gui()
-	if gui_t then comb_gui:history(gui_t.gui, 1) end
+	if not gui_t then return end
+	local mlc = global.combinators(gui_t.uid)
+	if mlc then guis.history_restore(gui_t.gui, mlc, 1) end
+end)
+
+script.on_event('mlc-code-close', function(ev)
+	local uid, gui_t = next(global.guis)
+	if not uid then return end
+	guis.close(uid)
 end)
 
 script.on_event('mlc-code-commit', function(ev)
 	local uid, gui_t = next(global.guis)
 	if not uid then return end
-	comb_gui:save_code(uid)
-	comb_gui:close(uid)
+	guis.save_code(uid)
+	guis.close(uid)
 end)
 
 
@@ -496,12 +491,10 @@ end
 script.on_init(function()
 	strict_mode_enable()
 	update_signal_types_table()
-	for k, _ in pairs(tt( 'combinators guis'..
-			' presets history historystate textboxes' ))
-		do global[k] = {} end
+	for k, _ in pairs(tt('combinators guis presets')) do global[k] = {} end
 end)
 
-script.on_configuration_changed(function(data)
+script.on_configuration_changed(function(data) -- migration
 	strict_mode_enable()
 	update_signal_types_table()
 
@@ -527,17 +520,18 @@ script.on_configuration_changed(function(data)
 				uid = e.unit_number
 				if global.combinators[uid] then mlcs[uid] = {e=e, code=global.combinators[uid].code} end
 			end
-			for uid, gui_t in ipairs(global.guis) do comb_gui:close(uid) end
-			for k, _ in pairs(tt('guis presets history historystate textboxes')) do global[k] = {} end
+			for uid, gui_t in ipairs(global.guis) do guis.close(uid) end
+			for k, _ in pairs(tt('guis history historystate textboxes')) do global[k] = {} end
 			global.combinators = mlcs
 		end
 
+		if version_less_than('0.0.6') then
+			for uid, gui_t in ipairs(global.guis) do guis.close(uid) end
+			global.history, global.historystate, global.textboxes = nil
+		end
 	end
 
 	update_recipes()
 end)
 
-script.on_load(function()
-	strict_mode_enable()
-	for k,v in pairs(global.guis) do setmetatable(v, {__index=comb_gui}) end
-end)
+script.on_load(function() strict_mode_enable() end)

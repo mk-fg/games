@@ -3,11 +3,8 @@ Version: 0.0.6
 Date: 2020-09-02
   Features:
     - Add hotkeys, but they don't work while editing text anyway.
-    - Add "clear" button to reset combinator code.
-    - Update combinator gui layout - add tooltips, align signals on top, etc.
-
-  Changes:
-    - Major GUI code rewrite.
+    - Add "clear" GUI button to reset combinator code.
+    - Major combinator GUI layout/internals update.
 
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.5
