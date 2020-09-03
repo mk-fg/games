@@ -11,7 +11,7 @@ function conf.get_wire_label(k) return conf[k..'_wire_name'] end
 conf.logic_alert_interval = 10 * 60
 
 -- Function to use for debug=true logging and game.log() calls in lua env
-conf.debug_print = print
+conf.debug_print = log
 
 -- Max number of old code snippets saved on each combinator
 conf.code_history_limit = 200

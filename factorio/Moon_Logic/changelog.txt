@@ -1,4 +1,10 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.0.9
+Date: 2020-09-04
+  Changes:
+    - Changed logging stuff to use log() instead of print() - guess latter doesn't actually ends up in log.
+
+---------------------------------------------------------------------------------------------------
 Version: 0.0.8
 Date: 2020-09-04
   Bugfixes:
