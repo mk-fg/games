@@ -260,7 +260,8 @@ local function update_signals_in_guis()
 	local gui_flow, e, cap
 	for uid, gui_t in pairs(global.guis) do
 		e = Combinators[uid] and Combinators[uid]._e
-		if e and not e.valid then mlc_remove(uid); goto skip end
+		if not e then goto skip end
+		if not e.valid then mlc_remove(uid); goto skip end
 		gui_flow = gui_t.signal_pane
 		if gui_flow then gui_flow.clear() end
 		for k, color in pairs{red={r=1,g=0.3,b=0.3}, green={r=0.3,g=1,b=0.3}} do
