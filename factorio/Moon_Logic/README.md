@@ -36,10 +36,14 @@ Note that red/green input tables are always available in the environment too, fo
 
 --------------------
 
-## Known Issues
+## Known Issues/quirks
 
-- Hotkeys for save/undo/redo/etc don't work when code text-box is active, which seem to be a game limitation.
-- Needs some code examples and screenshots here.
+- Currently combinator looks exactly like arithmetic one, need to update sprites/icons/thumbnails after recent change.
+- Hotkeys for save/undo/redo/etc don't work when code textbox is focused, you need to press Esc or otherwise unfocus it first.
+- Combinator code is not serialized to blueprints, need to restore that later.
+- Would be nice to have some code examples and screenshots here.
+
+This list is only short thanks to [ixu](https://mods.factorio.com/user/ixu) testing the mod extensively and reporting dozens of bugs.
 
 
 --------------------

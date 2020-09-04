@@ -1,8 +1,23 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.0.12
+Date: 2020-09-04
+  Changes:
+    - Replace combinator type/looks from 1x1 to 2x1 one, with separate inputs and outputs.
+      All existing old combinators from saved games will be removed on migration,
+      but their non-duplicate/empty code is stored on spare preset buttons, with notification about it.
+    - Currently combinator looks exactly like arithmetic one, need to update sprites/icons/thumbnails.
+    - Improve help text for various unclear things that were reported.
+    - Display output signals in the GUI, but separately from inputs.
+    - Pressing Esc (or default "close guis") key now unfocuses code textbox first, closes on second press.
+
+  Bugfixes:
+    - Fix wrong line being highlighted for lua errors with leading empty lines.
+
+---------------------------------------------------------------------------------------------------
 Version: 0.0.11
 Date: 2020-09-04
   Changes:
-    - Signal output values are not reported in GUI anymore, as that is a bit confusing.
+    - Only signal input values are reported in GUI on the right, not inputs+outputs, as latter was confusing.
 
   Bugfixes:
     - Fix debug=true log not mentioning all keys if pairs() was run on inputs.
@@ -44,7 +59,8 @@ Date: 2020-09-02
 Version: 0.0.4
 Date: 2020-09-02
   Features:
-    - Add startup mod options to change red/green lua env vars and gui labels. Useful with other mods that change colors.
+    - Add startup mod options to change red/green lua env vars and gui labels.
+      Useful with other mods that change colors.
 
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.3
@@ -58,9 +74,11 @@ Date: 2020-09-02
 Version: 0.0.2
 Date: 2020-09-02
   Features:
-    - Remove separate input/output things and 2x1 combinator variant, not sure what's a good use-case for these.
+    - Remove separate input/output things and 2x1 combinator variant,
+      not sure what's a good use-case for these.
     - Add "debug" flag to dump combinator code inputs/outputs to factorio log.
-    - Misfeature: multiplayer is probably broken, not sure if worked before, with a bunch of local state assigned on ticks.
+    - Misfeature: multiplayer is probably broken, not sure if worked before,
+      with a bunch of local state assigned on ticks.
 
   Bugfixes:
     - Fixed closing GUI on Esc key.
@@ -73,9 +91,12 @@ Date: 2020-09-02
 Version: 0.0.1
 Date: 2020-08-31
   Features:
-    - Initial release, based on IWTDU's Sandboxed LuaCombinator mod code (which in turn is based on OwnlyMe's LuaCombinator2), but with less features.
+    - Initial release, based on IWTDU's Sandboxed LuaCombinator mod code
+      (which in turn is based on OwnlyMe's LuaCombinator2), but with less features.
 
   Changes:
-    - Remove all auto-indentation and syntax highlighting - it's not a substitute for vim/emacs, just paste/tweak code there.
-    - Remove all blueprint serialization code - one of these can easily control everything in the game, use simplier combinators for basic arithmetic.
+    - Remove all auto-indentation and syntax highlighting -
+      it's not a substitute for vim/emacs, just paste/tweak code there.
+    - Remove all blueprint serialization code - one of these can easily control everything in the game,
+      use simplier combinators for basic arithmetic.
     - GUIs have fixed position, not bouncing somewhere around screen center, and are generally fixed-up a bit.

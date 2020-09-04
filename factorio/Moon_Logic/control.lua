@@ -67,7 +67,7 @@ local sandbox_env_base = {
 	error = error,
 	select = select,
 
-	serpent = { block = serpent.block },
+	serpent = { block = serpent.block, line=serpent.line }, -- XXX: fix these for input tables
 	string = {
 		byte = string.byte, char = string.char, find = string.find,
 		format = string.format, gmatch = string.gmatch, gsub = string.gsub,
@@ -96,7 +96,7 @@ local sandbox_env_base = {
 
 local function cn_wire_signals(e, wire_type, output)
 	local res, cn, sig_name = {}, e.get_or_create_control_behavior()
-		.get_circuit_network(wire_type, defines.circuit_connector_id.constant_combinator)
+		.get_circuit_network(wire_type, defines.circuit_connector_id.combinator_input)
 	output = output or {}
 	for _, sig in pairs(cn and cn.signals or {}) do
 		sig_name = sig.signal.name
@@ -143,8 +143,8 @@ end
 
 local function mlc_update_code(mlc, mlc_env, lua_env)
 	mlc.next_tick, mlc.err_parse, mlc.err_run, mlc.err_out = 0
-	local code, err = (mlc.code or ''):match('^%s*(.-)%s*$')
-	if code == '' then mlc_env._func = nil; return end
+	local code, err = (mlc.code or '')
+	if code:match('^%s*(.-)%s*$') == '' then mlc_env._func = nil; return end
 	mlc_env._func, err = load(
 		code, code, 't', lua_env or CombinatorEnv[mlc_env._uid] )
 	if not mlc_env._func then mlc.err_parse = err end
@@ -154,6 +154,8 @@ local function mlc_init(e)
 	-- Inits *local* mlc_env state for combinator - builds env, evals lua code, etc
 	-- *global* state will be used for init values if it exists, otherwise empty defaults
 	-- Lua env for code is composed from: sandbox_env_base + local mlc_env proxies + global mlc.vars
+	-- Note that this part only cares about control network of visible 2x1 combinator, not mlc.core.
+	if not e.valid then return end
 	local uid = e.unit_number
 	if Combinators[uid] then error('Double-init for existing combinator unit_number') end
 	Combinators[uid] = {} -- some state (e.g. loaded func) has to be local
@@ -206,8 +208,13 @@ local function mlc_init(e)
 	return mlc_env
 end
 
-local function mlc_remove(uid)
+local function mlc_remove(uid, keep_entities)
 	guis.close(uid)
+	if not keep_entities then
+		local mlc = global.combinators[uid] or {}
+		if mlc.core and mlc.core.valid then mlc.core.destroy() end
+		if mlc.e and mlc.e.valid then mlc.e.destroy() end
+	end
 	Combinators[uid], CombinatorEnv[uid], global.combinators[uid], global.guis[uid] = nil
 end
 
@@ -216,19 +223,26 @@ end
 
 local mlc_filter = {{filter='name', name='mlc'}}
 
-local function on_destroyed(ev)
-	if ev.entity.name == 'mlc' then mlc_remove(ev.entity.unit_number) end
+local function bootstrap_core(e)
+	-- Creates/connects invisible constant-combinator "core" entity for wire outputs
+	-- XXX: check source entity power levels when running logic, skip it without power
+	local core = e.surface.create_entity{
+		name='mlc-core', position=e.position,
+		force=e.force, create_build_effect_smoke=false }
+	e.connect_neighbour{
+		wire=defines.wire_type.red, target_entity=core,
+		source_circuit_id=defines.circuit_connector_id.combinator_output }
+	e.connect_neighbour{
+		wire=defines.wire_type.green, target_entity=core,
+		source_circuit_id=defines.circuit_connector_id.combinator_output }
+	core.destructible = false
+	return core
 end
-
-script.on_event(defines.events.on_pre_player_mined_item, on_destroyed, mlc_filter)
-script.on_event(defines.events.on_robot_pre_mined, on_destroyed, mlc_filter)
-script.on_event(defines.events.on_entity_died, on_destroyed, mlc_filter)
-script.on_event(defines.events.script_raised_destroy, on_destroyed, mlc_filter)
 
 local function on_built(ev)
 	local e = ev.created_entity or ev.entity -- latter for revive event
-	if not e.valid then return end
-	if e.name == 'mlc' then global.combinators[e.unit_number] = {e=e} end
+	if not (e.valid and e.name == 'mlc') then return end
+	global.combinators[e.unit_number] = {e=e, core=bootstrap_core(e)}
 end
 
 script.on_event(defines.events.on_built_entity, on_built, mlc_filter)
@@ -239,14 +253,24 @@ script.on_event(defines.events.script_raised_revive, on_built, mlc_filter)
 local function on_entity_settings_pasted(ev)
 	if not (ev.source.name == 'mlc' and ev.destination.name == 'mlc') then return end
 	local uid_src, uid_dst = ev.source.unit_number, ev.destination.unit_number
-	mlc_remove(uid_dst)
+	local mlc_old = global.combinators[uid_dst]
+	mlc_remove(uid_dst, true)
 	global.combinators[uid_dst] = tdc(global.combinators[uid_src])
 	local mlc_dst, mlc_src = global.combinators[uid_dst], global.combinators[uid_src]
-	mlc_dst.e, mlc_dst.next_tick = ev.destination, 0
+	mlc_dst.e, mlc_dst.core, mlc_dst.next_tick = ev.destination, mlc_old.core, 0
 	guis.history_insert(global.guis[uid_dst], mlc_src, mlc_src.code or '')
 end
 
 script.on_event(defines.events.on_entity_settings_pasted, on_entity_settings_pasted)
+
+local function on_destroyed(ev)
+	if ev.entity.name == 'mlc' then mlc_remove(ev.entity.unit_number) end
+end
+
+script.on_event(defines.events.on_pre_player_mined_item, on_destroyed, mlc_filter)
+script.on_event(defines.events.on_robot_pre_mined, on_destroyed, mlc_filter)
+script.on_event(defines.events.on_entity_died, on_destroyed, mlc_filter)
+script.on_event(defines.events.script_raised_destroy, on_destroyed, mlc_filter)
 
 
 -- ----- on_tick handling - lua code, gui updates -----
@@ -264,7 +288,7 @@ local function format_mlc_err_msg(mlc)
 end
 
 local function update_signals_in_guis()
-	local gui_flow, cap, mlc_env, e
+	local gui_flow, label, mlc_env, e
 	for uid, gui_t in pairs(global.guis) do
 		mlc_env = Combinators[uid]
 		e = mlc_env and mlc_env._e
@@ -272,20 +296,25 @@ local function update_signals_in_guis()
 		if not e.valid then mlc_remove(uid); goto skip end
 		gui_flow = gui_t.signal_pane
 		if gui_flow then gui_flow.clear() end
-		for k, color in pairs{red={r=1,g=0.3,b=0.3}, green={r=0.3,g=1,b=0.3}} do
+		for k, color in pairs{red={1,0.3,0.3}, green={0.3,1,0.3}} do
 			for sig, v in pairs(cn_wire_signals(e, defines.wire_type[k], mlc_env._out)) do
 				if v > 0 then
-					cap = gui_flow.add{ type='label', name=k..'_'..sig,
+					label = gui_flow.add{ type='label', name='in-'..k..'-'..sig,
 						caption=('[%s] %s = %s'):format(conf.get_wire_label(k), sig, v) }
-					cap.style.font_color = color
+					label.style.font_color = color
 		end end end
-		cap = format_mlc_err_msg(global.combinators[uid]) or ''
-		gui_t.mlc_errors.caption = cap
+		for sig, v in pairs(mlc_env._out) do if v > 0 then
+			label = gui_flow.add{ type='label',
+				name='out-'..sig, caption=('[out] %s = %s'):format(sig, v) }
+		end end
+		label = format_mlc_err_msg(global.combinators[uid]) or ''
+		gui_t.mlc_errors.caption = label
 	::skip:: end
 end
 
 local function update_signals_diff(mlc, output, output_diff)
-	local ecc = mlc.e.get_or_create_control_behavior()
+	-- Note: uses invisible mlc.core combinator to set signal outputs
+	local ecc = mlc.core.get_or_create_control_behavior()
 	if not (ecc and ecc.valid) then return end
 	local signals, err_msg, n, n_max, err, t = {}, '', 1, ecc.signals_count
 	for sig, v in pairs(output) do
@@ -308,6 +337,27 @@ local function update_signals_diff(mlc, output, output_diff)
 	ecc.enabled, ecc.parameters = true, {parameters=signals}
 end
 
+local function alert_about_mlc_error(mlc_env, err_msg)
+	local p = mlc_env._e.last_user
+	if p.valid and p.connected
+		then p = {p} else p = p.force.connected_players end
+	mlc_env._alert = p
+	for _, p in ipairs(p) do
+		p.add_custom_alert(
+			mlc_env._e, {type='virtual', name='mlc-error'},
+			'Moon Logic Error ['..mlc_env._uid..']: '..err_msg, true )
+	end
+end
+
+local function alert_clear(mlc_env)
+	local p = mlc_env._alert or {}
+	for _, p in ipairs(p) do
+		if p.valid and p.connected then
+			p.remove_alert{icon={type='virtual', name='mlc-error'}}
+	end end
+	mlc_env._alert = nil
+end
+
 local function on_tick(ev)
 	local tick = ev.tick
 	if next(global.guis) then update_signals_in_guis() end
@@ -315,20 +365,16 @@ local function on_tick(ev)
 
 	for uid, mlc in pairs(global.combinators) do
 		local mlc_env = Combinators[uid]
-		if not mlc_env then mlc_env = mlc_init(mlc.e)
-		elseif not (mlc_env._e and mlc_env._e.valid)
+		if not mlc_env then mlc_env = mlc_init(mlc.e) end
+		if not (mlc_env and mlc.e.valid and mlc.core.valid)
 			then mlc_remove(uid); goto skip end
 
 		local err_msg = format_mlc_err_msg(mlc)
 		if err_msg then
-			if tick % conf.logic_alert_interval == 0 then
-				for _, player in ipairs(game.connected_players) do
-					player.add_custom_alert(
-						mlc_env._e, {type='virtual', name='mlc_error'},
-						'Moon Logic Error(s): '..err_msg, true )
-			end end
+			if tick % conf.logic_alert_interval == 0
+				then alert_about_mlc_error(mlc_env, err_msg) end
 			goto skip -- suspend combinator logic until errors are addressed
-		end
+		elseif mlc_env._alert then alert_clear(mlc_env) end
 
 		if tick >= (mlc.next_tick or 0) and mlc_env._func
 			then run_moon_logic_tick(mlc, mlc_env, tick) end
@@ -377,11 +423,9 @@ function run_moon_logic_tick(mlc, mlc_env, tick)
 
 	local err_msg = format_mlc_err_msg(mlc)
 	if err_msg then
-		if dbg then dbg('err=%s', serpent.line(err_msg)) end -- debug
-		for _, player in pairs(mlc_env._e.last_user.force.connected_players) do
-			player.add_custom_alert( mlc_env._e,
-				{type='virtual', name='mlc_error'}, 'Moon Logic Error(s): '..err_msg, true )
-	end end
+		if dbg then dbg('error :: %s', err_msg) end -- debug
+		alert_about_mlc_error(mlc_env, err_msg)
+	end
 
 	if dbg then dbg('--- debug-run end [tick=%s] ---', tick) end -- debug
 end
@@ -393,7 +437,7 @@ script.on_event(defines.events.on_tick, on_tick)
 
 function load_code_from_gui(code, uid) -- note: in global _ENV, used from gui.lua
 	local mlc, mlc_env = global.combinators[uid], Combinators[uid]
-	if not (mlc and mlc.e and mlc.e.valid) then return mlc_remove(uid) end
+	if not (mlc and mlc.e.valid and mlc.core.valid) then return mlc_remove(uid) end
 	mlc.code = code or ''
 	if not mlc_env then return mlc_init(mlc.e) end
 	mlc_update_code(mlc, mlc_env)
@@ -408,12 +452,19 @@ script.on_event(defines.events.on_gui_opened, function(ev)
 	local player = game.players[ev.player_index]
 	if not (player.opened ~= nil and player.opened.name == 'mlc') then return end
 	local e = player.opened
-	player.opened = nil
+	if not global.combinators[e.unit_number] then
+		player.opened = nil
+		return player.print( 'BUG: Moon Logic Combinator #'..
+			e.unit_number..' is not registered with mod code', {1, 0.3, 0} )
+	end
 	if not global.guis[e.unit_number]
 		then guis.open(player, e)
-		else player.print(
-			game.players[global.guis[e.unit_number].gui.player_index].name..
-				' already opened this combinator', {1,1,0} ) end
+		else
+			e = global.guis[e.unit_number].mlc_gui.player_index
+			if e then e = game.players[e].name end
+			if not e then e = 'Another player' end
+			player.print(e..' already opened this combinator', {1,1,0})
+		end
 end)
 
 script.on_event(defines.events.on_gui_click, guis.on_gui_click)
@@ -424,6 +475,7 @@ script.on_event(defines.events.on_gui_closed, guis.on_gui_close)
 -- ----- Keyboard editing hotkeys -----
 -- Most editing hotkeys only work if one window is opened,
 --  as I don't know how to check which one is focused otherwise.
+-- Keybindings don't work in general when text-box element is focused.
 
 local function get_active_gui()
 	local uid, gui_t
@@ -538,6 +590,37 @@ script.on_configuration_changed(function(data) -- migration
 		if version_less_than('0.0.6') then
 			for uid, gui_t in ipairs(global.guis) do guis.close(uid) end
 			global.history, global.historystate, global.textboxes = nil
+		end
+
+		if version_less_than('0.0.12') then
+			local used_presets, mlc_count, mlc_code, n_free, warned = '', 0
+			for uid, gui_t in ipairs(global.guis) do guis.close(uid) end
+			for uid, mlc in pairs(global.combinators) do
+				mlc_code, n_free = mlc and mlc.code
+				for n = 0, 20 do
+					if not n_free and not global.presets[n] then n_free = n end
+					if mlc_code == global.presets[n] then mlc_code = nil end
+				end
+				if mlc_code then
+					if n_free then
+						global.presets[n_free] = mlc_code
+						if used_presets ~= '' then used_presets = used_presets..', ' end
+						used_presets = used_presets..n_free
+					else game.print('No free presets left for code'..
+						' in one of the removed Moon Logic Combinators') end
+				end
+				mlc.e.destroy()
+				mlc_count, global.combinators[uid] = mlc_count + 1
+			end
+			for _, e in ipairs(game.surfaces.nauvis.find_entities_filtered{name='mlc'} or {}) do e.destroy() end
+			game.print( 'Moon Logic Combinator: in 0.0.12 these'..
+				' combinators changed in size (1x1 -> 2x1), and now work slightly differently.' )
+			game.print( 'Moon Logic Combinator: To avoid error-prone'..
+				' migration process, they all were removed from the map.' )
+			game.print( 'Moon Logic Combinator: But their code will be stored'..
+				' on preset buttons (numbers on top of GUI). Rebuild, reconnect, restore.' )
+			if used_presets ~= '' then game.print(( 'Moon Logic Combinator: stored non-duplicate/empty code from'..
+					' %s removed combinator(s) to following preset button(s): %s' ):format(mlc_count, used_presets)) end
 		end
 	end
 

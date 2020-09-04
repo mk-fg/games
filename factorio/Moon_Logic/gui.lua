@@ -9,19 +9,24 @@ local function help_window_toggle(pn)
 	end
 	local gui = player.gui.screen.add{ type='frame',
 		name='mlc-helper-'..pn, caption='Moon Logic Combinator Info', direction='vertical' }
-	gui.location = {math.max(50, player.display_resolution.width - 800), 150}
+	gui.location = {math.max(50, player.display_resolution.width - 800), 20}
 	local lines = {
+		'Combinator has separate input and output leads, but note that you can connect them.',
+		' ',
 		'Special variables available/handled in Lua environment:',
 		'  uid (int) -- globally-unique number of this combinator.',
-		('  %s {signal-name=value, ...} -- signals in the %s network (read only).')
+		('  %s {signal-name=value, ...} -- signals in the %s network (read-only).')
 			:format(conf.red_wire_name, conf.red_wire_name),
-		('  %s {signal-name=value, ...} -- same for the %s network.')
+		'    Any keys queried there are always numbers, return 0 for missing signal.',
+		('  %s {signal-name=value, ...} -- same as above for %s network.')
 			:format(conf.green_wire_name, conf.green_wire_name),
-		'  out {signal-name=value, ...} -- a table with all signals sent to networks.',
-		'    They are permanent, so to remove a signal you need to set its entry',
+		'  out {signal-name=value, ...} -- table with all signals sent to networks.',
+		'    They are persistent, so to remove a signal you need to set its entry',
 		'     to nil or 0, or flush all signals by entering "out = {}" (creates a fresh table).',
-		'  var {} -- a table to easily store values between code runs (per-mlc globals work too).',
-		'  delay (number) -- delay in ticks until next run (saves ups), has to be set on each run!',
+		'  delay (number) -- delay in ticks until next run - use for intervals or performance.',
+		'    Defaults to 1 (run again on next tick), and gets reset to it before each run,',
+		'    so must be set on every individual run if you want to delay the next one.',
+		'  var {} -- table to easily store values between code runs (per-mlc globals work too).',
 		'  debug (bool) -- set to true to print debug info about next code run to factorio log.',
 		' ',
 		'Factorio APIs available, aside from general Lua stuff:',
@@ -29,11 +34,15 @@ local function help_window_toggle(pn)
 		'  game.print(...) -- prints string as in-game console output.',
 		'  game.log(...) -- prints to factorio log.',
 		' ',
-		'Presets (buttons with numbers):',
+		'Presets - buttons with numbers on top of the UI:',
 		'  Save and Load - left-click, Delete - right-click, Overwrite - right then left.',
-		'Default Hotkeys (rebindable, do not work when editing text-box is focused):',
-		'  Ctrl-S - save, Ctrl-Left/Right - undo/redo,',
-		'  Ctrl-Enter - save and close, Ctrl-Q or Esc - close.',
+		'  These are shared between all combinators, and can be used to copy code snippets.',
+		'  Another way to copy code is the usual shift+right-click - shift+left-click.',
+		' ',
+		'Default editing hotkeys (rebindable, do not work when editing text-box is focused):',
+		'  Esc - unfocus editing textbox (makes all other hotkeys work again),',
+		'  Ctrl-S - save/apply code changes, Ctrl-Left/Right - undo/redo last change,',
+		'  Ctrl-Enter - save/apply and close combinator UI, Ctrl-Q - close UI.',
 		' ',
 		'To learn signal names, connect anything with signals to this combinator,',
 		'and their names will be printed as colored inputs on the right of the code window.',
@@ -189,20 +198,27 @@ end
 
 -- ----- Interface for control.lua -----
 
-local function find_gui(el)
+local function find_gui(ev)
 	-- Finds uid and gui table for specified event-target element
-	local el_chk
+	if ev.entity and ev.entity.valid then
+		local uid = ev.entity.unit_number
+		local gui_t = global.guis[uid]
+		if gui_t then return uid, gui_t end
+	end
+	local el, el_chk = ev.element
+	if not el then return end
 	for uid, gui_t in pairs(global.guis) do
 		el_chk = gui_t.el_map[el.index]
-		if el_chk and el_chk == el then return uid, gui_t end end
-	-- log(('No gui match for el: %s %s %s'):format(el.player_index, el.index, el.name))
+		if el_chk and el_chk == el then return uid, gui_t end
+	end
 end
 
 local guis = {}
 
-function guis.open(player, entity)
-	local gui_t = create_gui(player, entity)
-	global.guis[entity.unit_number] = gui_t
+function guis.open(player, e)
+	player.opened = nil
+	local gui_t = create_gui(player, e)
+	global.guis[e.unit_number] = gui_t
 	player.opened = gui_t.mlc_gui
 end
 
@@ -215,7 +231,6 @@ end
 
 function guis.history_insert(gui_t, mlc, code)
 	local hist_log, n = mlc.history, mlc.history_state
-	code = code:match('^%s*(.-)%s*$')..'\n' -- normalize leading/trailing spaces
 	-- XXX: do not store empty strings
 	if not hist_log then
 		mlc.history = {mlc.textbox}
@@ -258,7 +273,7 @@ end
 
 function guis.on_gui_text_changed(ev)
 	if ev.element.name ~= 'mlc-code' then return end
-	local uid, gui_t = find_gui(ev.element)
+	local uid, gui_t = find_gui(ev)
 	if not uid then return end
 	local mlc = global.combinators[uid]
 	if not mlc then return end
@@ -271,7 +286,7 @@ function guis.on_gui_click(ev)
 	if el.name == 'mlc-help-close' -- untracked "help" windows
 		then return el.parent.destroy() end
 
-	local uid, gui_t = find_gui(el)
+	local uid, gui_t = find_gui(ev)
 	if not uid then return end
 	local mlc = global.combinators[uid]
 	if not mlc then return guis.close(uid) end
@@ -279,7 +294,9 @@ function guis.on_gui_click(ev)
 	local preset_n = tonumber(el_id:match('^mlc%-preset%-(%d+)$'))
 	local rmb = defines.mouse_button_type.right
 
-	if el_id == 'mlc-save' then guis.save_code(uid)
+	if el_id == 'mlc-code' then gui_t.code_focused = true -- disables hotkeys
+
+	elseif el_id == 'mlc-save' then guis.save_code(uid)
 	elseif el_id == 'mlc-commit' then guis.save_code(uid); guis.close(uid)
 	elseif el_id == 'mlc-clear' then
 		guis.save_code(uid, '')
@@ -316,8 +333,18 @@ function guis.on_gui_click(ev)
 end
 
 function guis.on_gui_close(ev)
-	local uid, gui_t = find_gui(ev.element)
-	if uid then guis.close(uid) end
+	-- Also fired for original auto-closed combinator GUI, which is ignored due to uid=gui_t=nil
+	-- How unfocus/close sequence works:
+	--  - click on code -  sets "code_focused = true", and game suppresses hotkeys except for esc
+	--  - esc - with code_focused set, it is cleared, unfocus(), player.opened re-set to this gui again
+	--  - esc again - as gui_t.code_focused is unset now, gui is simply closed here
+	local uid, gui_t = find_gui(ev)
+	if not uid then return end
+	local p = game.players[ev.player_index]
+	if p.valid and gui_t.code_focused then
+		gui_t.mlc_gui.focus()
+		p.opened, gui_t.code_focused = gui_t.mlc_gui
+	else guis.close(uid) end
 end
 
 return guis
