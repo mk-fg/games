@@ -173,7 +173,7 @@ local function create_gui(player, entity)
 	local mt_right = elc(mt, {type='flow', name='mt-right', direction='vertical'})
 
 	-- MT column-2: input signal list
-	elc(mt_right, {type='label', name='signal-header', caption='Network Signals:'}, {font='heading-2'})
+	elc(mt_right, {type='label', name='signal-header', caption='Input Wire Signals:'}, {font='heading-2'})
 	elc( mt_right, {type='scroll-pane', name='signal-pane', direction='vertical'},
 		{vertically_stretchable=true, vertically_squashable=true, maximal_height=700} )
 

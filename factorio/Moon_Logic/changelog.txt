@@ -1,6 +1,9 @@
 ---------------------------------------------------------------------------------------------------
-Version: 0.0.10
+Version: 0.0.11
 Date: 2020-09-04
+  Changes:
+    - Signal output values are not reported in GUI anymore, as that is a bit confusing.
+
   Bugfixes:
     - Fix debug=true log not mentioning all keys if pairs() was run on inputs.
 
