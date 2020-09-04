@@ -13,11 +13,13 @@ conf.logic_alert_interval = 10 * 60
 -- Thresholds for LED state indication
 conf.led_sleep_min = 5 * 60 -- avoids flipping between sleep/run too often
 
--- Function to use for debug=true logging and game.log() calls in lua env
-conf.debug_print = log
-
 -- Max number of old code snippets saved on each combinator
 conf.code_history_limit = 200
+
+-- entity.energy threshold when combinator shuts down
+-- Full e-buffer of arithmetic combinator is 34.44, "red" level in UI is half of it
+conf.energy_fail_level = 34.44 / 2
+conf.energy_fail_delay = 2 * 60 -- when to re-check energy level
 
 function conf.update_from_settings()
 	local k_conf

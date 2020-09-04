@@ -1,12 +1,20 @@
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.13
 Date: 2020-09-04
+  Features:
+    - New combinator graphics and icons, updated some descriptions.
+    - Dynamic state output on combinator LED display (blank, run, sleep, error, no-power).
+    - Combinator now stops working when its power goes into red.
+
   Changes:
-    - Update combinator graphics and various descriptions.
     - Bugs on the combinator will now set output error signal on it.
+    - 6KW energy usage (regular combinators = 1KW, lamp = 5KW).
 
   Bugfixes:
     - Fix undo/redo hotkeys.
+    - Fix clearing output table via "out = {}" and when using "clear" UI button.
+    - Fix running serpent.block/line on overloaded input ro-tables.
+    - Logging via game.log doesn't print whole function code anymore.
 
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.12

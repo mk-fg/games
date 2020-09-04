@@ -52,6 +52,12 @@ function sandbox_env_pairs(tbl) -- allows to iterate over red/green ro-tables
 	return pairs(tbl)
 end
 
+function sandbox_clean_table(tbl, apply_func)
+	local tbl_clean = {}
+	for k, v in sandbox_env_pairs(tbl) do tbl_clean[k] = v end
+	if apply_func then return apply_func(tbl_clean) else return tbl_clean end
+end
+
 -- This env gets modified on ticks, which might cause mp desyncs
 local sandbox_env_base = {
 	_init = false,
@@ -67,7 +73,9 @@ local sandbox_env_base = {
 	error = error,
 	select = select,
 
-	serpent = { block = serpent.block, line=serpent.line }, -- XXX: fix these for input tables
+	serpent = {
+		block = function(tbl) return sandbox_clean_table(tbl, serpent.block) end,
+		line = function(tbl) return sandbox_clean_table(tbl, serpent.line) end },
 	string = {
 		byte = string.byte, char = string.char, find = string.find,
 		format = string.format, gmatch = string.gmatch, gsub = string.gsub,
@@ -137,11 +145,37 @@ local function cn_input_signal_iter(wenv)
 end
 
 local function cn_output_table_value(out, k) return rawget(out, k) or 0 end
-local function cn_output_table_update(out, update)
+local function cn_output_table_replace(out, new_tbl)
 	-- Note: validation for sig_names/values is done when output table is used later
-	for sig, v in pairs(update) do out[sig] = v end
+	for sig, v in pairs(out) do out[sig] = nil end
+	for sig, v in pairs(new_tbl or {}) do out[sig] = v end
 end
 
+
+local function mlc_update_output(mlc, output)
+	-- Note: uses invisible mlc.core combinator to set signal outputs
+	local ecc = mlc.core.get_or_create_control_behavior()
+	if not (ecc and ecc.valid) then return end
+	local signals, err_msg, n, n_max, err, t = {}, '', 1, ecc.signals_count
+	for sig, v in pairs(output) do
+		t, err = global.signals[sig]
+		if not t then err = ('unknown signal [%s]'):format(sig)
+		elseif type(v) ~= 'number'
+			then err = ('signal must be a number [%s=(%s) %s]'):format(sig, type(v), v)
+		elseif not (v >= -2147483648 and v <= 2147483647)
+			then err = ('signal value out of range [%s=%s]'):format(sig, v) end
+		if err then
+			if err_msg ~= '' then err_msg = err_msg..', ' end
+			err_msg = err_msg..err
+			goto skip
+		end
+		signals[n] = {signal={type=t, name=sig}, count=v, index=n}
+		n = n + 1
+		if n > n_max then break end
+	::skip:: end
+	if err_msg ~= '' then mlc.err_out = err_msg end
+	ecc.enabled, ecc.parameters = true, {parameters=signals}
+end
 
 local function mlc_update_led(mlc, mlc_env)
 	-- This should set state in a way that doesn't actually produce any signals
@@ -154,6 +188,7 @@ local function mlc_update_led(mlc, mlc_env)
 	if not st then op = '*'
 	elseif st == 'run' then op = '+'
 	elseif st == 'sleep' then op = '-'
+	elseif st == 'no-power' then op, b = '^', 1
 	elseif st == 'error' then op, a, b, out = '%', 1, 2, mlc_err_sig end -- show with ALT
 	cb.parameters = {parameters={
 		operation=op, first_signal=nil, second_signal=nil,
@@ -164,12 +199,19 @@ end
 local function mlc_update_code(mlc, mlc_env, lua_env)
 	mlc.next_tick, mlc.state, mlc.err_parse, mlc.err_run, mlc.err_out = 0
 	local code, err = (mlc.code or '')
-	if code:match('^%s*(.-)%s*$') == '' then mlc_env._func = nil; return end
-	mlc_env._func, err = load(
-		code, code, 't', lua_env or CombinatorEnv[mlc_env._uid] )
-	if not mlc_env._func then mlc.err_parse, mlc.state = err, 'error' end
+	if code:match('^%s*(.-)%s*$') ~= '' then
+		mlc_env._func, err = load(
+			code, code, 't', lua_env or CombinatorEnv[mlc_env._uid] )
+		if not mlc_env._func then mlc.err_parse, mlc.state = err, 'error' end
+	else
+		mlc_env._func = nil
+		cn_output_table_replace(mlc_env._out)
+		mlc_update_output(mlc, mlc_env._out)
+	end
 	mlc_update_led(mlc, mlc_env)
 end
+
+local function mlc_log(...) log(...) end -- to avoid logging func code
 
 local function mlc_init(e)
 	-- Inits *local* mlc_env state for combinator - builds env, evals lua code, etc
@@ -186,7 +228,7 @@ local function mlc_init(e)
 	if not sandbox_env_base._init then
 		-- This gotta cause mp desyncs, +1 metatable layer should probably be used instead
 		sandbox_env_base.game = {
-			tick=game.tick, print=game.print, log=conf.debug_print }
+			tick=game.tick, print=game.print, log=mlc_log }
 		sandbox_env_pairs_mt_iter[cn_input_signal_get] = true
 		sandbox_env_base._init = true
 	end
@@ -214,7 +256,7 @@ local function mlc_init(e)
 	if not mlc.vars.var then mlc.vars.var = {} end
 	local env = setmetatable(mlc.vars, { -- env_ro + mlc.vars
 		__index=env_ro, __newindex=function(vars, k, v)
-			if k == 'out' then cn_output_table_update(env_ro.out, v)
+			if k == 'out' then cn_output_table_replace(env_ro.out, v)
 				env_wire_red._debug, env_wire_green._debug = v, v
 			else rawset(vars, k, v) end end })
 
@@ -246,7 +288,6 @@ local mlc_filter = {{filter='name', name='mlc'}}
 
 local function bootstrap_core(e)
 	-- Creates/connects invisible constant-combinator "core" entity for wire outputs
-	-- XXX: check source entity power levels when running logic, skip it without power
 	local core = e.surface.create_entity{
 		name='mlc-core', position=e.position,
 		force=e.force, create_build_effect_smoke=false }
@@ -333,31 +374,6 @@ local function update_signals_in_guis()
 	::skip:: end
 end
 
-local function update_signals_diff(mlc, output, output_diff)
-	-- Note: uses invisible mlc.core combinator to set signal outputs
-	local ecc = mlc.core.get_or_create_control_behavior()
-	if not (ecc and ecc.valid) then return end
-	local signals, err_msg, n, n_max, err, t = {}, '', 1, ecc.signals_count
-	for sig, v in pairs(output) do
-		t, err = global.signals[sig]
-		if not t then err = ('unknown signal [%s]'):format(sig)
-		elseif type(v) ~= 'number'
-			then err = ('signal must be a number [%s=(%s) %s]'):format(sig, type(v), v)
-		elseif not (v >= -2147483648 and v <= 2147483647)
-			then err = ('signal value out of range [%s=%s]'):format(sig, v) end
-		if err then
-			if err_msg ~= '' then err_msg = err_msg..', ' end
-			err_msg = err_msg..err
-			goto skip
-		end
-		signals[n] = {signal={type=t, name=sig}, count=v, index=n}
-		n = n + 1
-		if n > n_max then break end
-	::skip:: end
-	if err_msg ~= '' then mlc.err_out = err_msg end
-	ecc.enabled, ecc.parameters = true, {parameters=signals}
-end
-
 local function alert_about_mlc_error(mlc_env, err_msg)
 	local p = mlc_env._e.last_user
 	if p.valid and p.connected
@@ -404,8 +420,16 @@ function run_moon_logic_tick(mlc, mlc_env, tick)
 	-- Runs logic of the specified combinator, reading its input and setting outputs
 	local out_tick, out_diff = mlc.next_tick, tc(mlc_env._out)
 	local dbg = mlc.vars.debug and function(fmt, ...)
-		conf.debug_print((' -- moon-logic [%s]: %s'):format(mlc_env._uid, fmt:format(...))) end
+		mlc_log((' -- moon-logic [%s]: %s'):format(mlc_env._uid, fmt:format(...))) end
 	mlc.vars.delay, mlc.vars.debug = 1
+
+	if mlc.e.energy < conf.energy_fail_level then
+		mlc.state = 'no-power'
+		cn_output_table_replace(mlc_env._out)
+		mlc_update_led(mlc, mlc_env)
+		mlc.next_tick = game.tick + conf.energy_fail_delay
+		return
+	end
 
 	if dbg then -- debug
 		dbg('--- debug-run start [tick=%s] ---', tick)
@@ -447,7 +471,7 @@ function run_moon_logic_tick(mlc, mlc_env, tick)
 		end end
 		dbg('out-sync=%s out-diff :: %s', out_sync and true, serpent.line(out_diff)) end
 
-	if out_sync then update_signals_diff(mlc, mlc_env._out, out_diff) end
+	if out_sync then mlc_update_output(mlc, mlc_env._out) end
 
 	local err_msg = format_mlc_err_msg(mlc)
 	if err_msg then
