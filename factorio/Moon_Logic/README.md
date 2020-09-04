@@ -27,23 +27,27 @@ Fixing/maintaining these is much easier without few thousand lines of extra comp
 
 ## Mod Options
 
+Startup Mod Settings:
+
 - Red Wire Label - Lua environment name for in-game "red" circuit network values. Changes all labels in the GUIs as well.
 - Green Wire Label - same as Red Wire Label, but for Green wire.
 
 These can be useful when playing with other mods that change colors, for labels to match those.
 Note that red/green input tables are always available in the environment too, for better code/snippet compability.
 
+Some UI hotkeys can also be customized in the Settings - Controls game menu.
+
 
 --------------------
 
-## Known Issues/quirks
+## Known Issues and quirks
 
 - Currently combinator looks exactly like arithmetic one, need to update sprites/icons/thumbnails after recent change.
 - Hotkeys for save/undo/redo/etc don't work when code textbox is focused, you need to press Esc or otherwise unfocus it first.
 - Combinator code is not serialized to blueprints, need to restore that later.
 - Would be nice to have some code examples and screenshots here.
 
-This list is only short thanks to [ixu](https://mods.factorio.com/user/ixu) testing the mod extensively and reporting dozens of bugs.
+Big thanks to [ixu](https://mods.factorio.com/user/ixu) for testing the mod extensively and reporting dozens of bugs here.
 
 
 --------------------
