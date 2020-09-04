@@ -1,8 +1,14 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.0.10
+Date: 2020-09-04
+  Bugfixes:
+    - Fix debug=true log not mentioning all keys if pairs() was run on inputs.
+
+---------------------------------------------------------------------------------------------------
 Version: 0.0.9
 Date: 2020-09-04
   Changes:
-    - Changed logging stuff to use log() instead of print() - guess latter doesn't actually ends up in log.
+    - Change logging stuff to use log() instead of print() - guess latter doesn't actually ends up in log.
 
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.8

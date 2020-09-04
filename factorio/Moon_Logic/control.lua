@@ -106,9 +106,11 @@ local function cn_wire_signals(e, wire_type, output)
 end
 
 local function cn_input_signal(wenv, wire_type, k)
-	if wenv._cache_tick == game.tick then return wenv._cache[k] end
-	local signals = cn_wire_signals(wenv._e, wire_type, wenv._out)
-	wenv._cache, wenv._cache_tick = signals, game.tick
+	local signals = wenv._cache
+	if wenv._cache_tick ~= game.tick then
+		signals = cn_wire_signals(wenv._e, wire_type, wenv._out)
+		wenv._cache, wenv._cache_tick = signals, game.tick
+	end
 	if k then signals = signals[k] end
 	return signals
 end
@@ -124,13 +126,18 @@ local function cn_input_signal_set(wenv, k, v)
 end
 
 local function cn_input_signal_iter(wenv)
-	return cn_input_signal(wenv, defines.wire_type[wenv._wire])
+	local signals = cn_input_signal(wenv, defines.wire_type[wenv._wire])
+	if wenv._debug then
+		local sig_fmt = conf.get_wire_label(wenv._wire)..'[%s]'
+		for sig, v in pairs(signals) do wenv._debug[sig_fmt:format(sig)] = v or 0 end
+	end
+	return signals
 end
 
 local function cn_output_table_value(out, k) return rawget(out, k) or 0 end
 local function cn_output_table_update(out, update)
 	-- Note: validation for sig_names/values is done when output table is used later
-	for sig_name, v in pairs(update) do out[sig_name] = v end
+	for sig, v in pairs(update) do out[sig] = v end
 end
 
 
@@ -349,7 +356,7 @@ function run_moon_logic_tick(mlc, mlc_env, tick)
 		dbg('env-after :: %s', serpent.line(mlc.vars))
 		dbg('out-after :: %s', serpent.line(mlc_env._out)) end
 
-	local delay = tonumber(mlc.vars.delay or 1) or 1
+	local delay = tonumber(mlc.vars.delay) or 1
 	mlc.next_tick = tick + delay
 
 	for sig, v in pairs(mlc_env._out) do
