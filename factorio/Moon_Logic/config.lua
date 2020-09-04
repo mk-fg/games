@@ -10,6 +10,9 @@ function conf.get_wire_label(k) return conf[k..'_wire_name'] end
 -- Interval between raising global alerts on lua errors, in ticks
 conf.logic_alert_interval = 10 * 60
 
+-- Thresholds for LED state indication
+conf.led_sleep_min = 5 * 60 -- avoids flipping between sleep/run too often
+
 -- Function to use for debug=true logging and game.log() calls in lua env
 conf.debug_print = log
 

@@ -1,4 +1,14 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.0.13
+Date: 2020-09-04
+  Changes:
+    - Update combinator graphics and various descriptions.
+    - Bugs on the combinator will now set output error signal on it.
+
+  Bugfixes:
+    - Fix undo/redo hotkeys.
+
+---------------------------------------------------------------------------------------------------
 Version: 0.0.12
 Date: 2020-09-04
   Changes:

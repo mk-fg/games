@@ -93,6 +93,8 @@ local sandbox_env_base = {
 		lshift = bit32.lshift , rrotate = bit32.rrotate , rshift = bit32.rshift }
 }
 
+local mlc_err_sig = {type='virtual', name='mlc-error'}
+
 
 local function cn_wire_signals(e, wire_type, output)
 	local res, cn, sig_name = {}, e.get_or_create_control_behavior()
@@ -141,13 +143,32 @@ local function cn_output_table_update(out, update)
 end
 
 
+local function mlc_update_led(mlc, mlc_env)
+	-- This should set state in a way that doesn't actually produce any signals
+	-- Combinator is not considered "active", as it ends up with 0 value
+	-- It's possible to have it output value and cancel it out, but shows-up on ALT-display
+	if mlc.state == mlc_env._state then return end
+	local st, cb = mlc.state, mlc.e.get_or_create_control_behavior()
+	if not (cb and cb.valid) then return end
+	local op, a, b, out = '*', 0, 0
+	if not st then op = '*'
+	elseif st == 'run' then op = '+'
+	elseif st == 'sleep' then op = '-'
+	elseif st == 'error' then op, a, b, out = '%', 1, 2, mlc_err_sig end -- show with ALT
+	cb.parameters = {parameters={
+		operation=op, first_signal=nil, second_signal=nil,
+		first_constant=a, second_constant=b, output_signal=out }}
+	mlc_env._state = st
+end
+
 local function mlc_update_code(mlc, mlc_env, lua_env)
-	mlc.next_tick, mlc.err_parse, mlc.err_run, mlc.err_out = 0
+	mlc.next_tick, mlc.state, mlc.err_parse, mlc.err_run, mlc.err_out = 0
 	local code, err = (mlc.code or '')
 	if code:match('^%s*(.-)%s*$') == '' then mlc_env._func = nil; return end
 	mlc_env._func, err = load(
 		code, code, 't', lua_env or CombinatorEnv[mlc_env._uid] )
-	if not mlc_env._func then mlc.err_parse = err end
+	if not mlc_env._func then mlc.err_parse, mlc.state = err, 'error' end
+	mlc_update_led(mlc, mlc_env)
 end
 
 local function mlc_init(e)
@@ -343,8 +364,7 @@ local function alert_about_mlc_error(mlc_env, err_msg)
 		then p = {p} else p = p.force.connected_players end
 	mlc_env._alert = p
 	for _, p in ipairs(p) do
-		p.add_custom_alert(
-			mlc_env._e, {type='virtual', name='mlc-error'},
+		p.add_custom_alert( mlc_env._e, mlc_err_sig,
 			'Moon Logic Error ['..mlc_env._uid..']: '..err_msg, true )
 	end
 end
@@ -352,9 +372,8 @@ end
 local function alert_clear(mlc_env)
 	local p = mlc_env._alert or {}
 	for _, p in ipairs(p) do
-		if p.valid and p.connected then
-			p.remove_alert{icon={type='virtual', name='mlc-error'}}
-	end end
+		if p.valid and p.connected then p.remove_alert{icon=mlc_err_sig} end
+	end
 	mlc_env._alert = nil
 end
 
@@ -393,10 +412,18 @@ function run_moon_logic_tick(mlc, mlc_env, tick)
 		mlc_env.debug_wires_set({})
 		dbg('env-before :: %s', serpent.line(mlc.vars))
 		dbg('out-before :: %s', serpent.line(mlc_env._out)) end
+	mlc_env._out['mlc-error'] = nil -- for internal use
 
 	do
 		local st, err = pcall(mlc_env._func)
-		if not st then mlc.err_run = err or '[unspecified lua error]' else mlc.err_run = nil end
+		if not st then mlc.err_run = err or '[unspecified lua error]'
+		else
+			mlc.state, mlc.err_run = 'run'
+			if mlc_env._out['mlc-error'] ~= 0 then -- can be used to stop combinator
+				mlc.err_run = 'Internal mlc-error signal set'
+				mlc_env._out['mlc-error'] = nil -- signal will be emitted via mlc.state
+			end
+		end
 	end
 
 	if dbg then -- debug
@@ -405,6 +432,7 @@ function run_moon_logic_tick(mlc, mlc_env, tick)
 		dbg('out-after :: %s', serpent.line(mlc_env._out)) end
 
 	local delay = tonumber(mlc.vars.delay) or 1
+	if delay > conf.led_sleep_min then mlc.state = 'sleep' end
 	mlc.next_tick = tick + delay
 
 	for sig, v in pairs(mlc_env._out) do
@@ -423,11 +451,13 @@ function run_moon_logic_tick(mlc, mlc_env, tick)
 
 	local err_msg = format_mlc_err_msg(mlc)
 	if err_msg then
+		mlc.state = 'error'
 		if dbg then dbg('error :: %s', err_msg) end -- debug
 		alert_about_mlc_error(mlc_env, err_msg)
 	end
 
 	if dbg then dbg('--- debug-run end [tick=%s] ---', tick) end -- debug
+	mlc_update_led(mlc, mlc_env)
 end
 
 script.on_event(defines.events.on_tick, on_tick)
@@ -495,15 +525,15 @@ end)
 script.on_event('mlc-code-undo', function(ev)
 	local uid, gui_t = get_active_gui()
 	if not gui_t then return end
-	local mlc = global.combinators(gui_t.uid)
+	local mlc = global.combinators[gui_t.uid]
 	if mlc then guis.history_restore(gui_t, mlc, -1) end
 end)
 
 script.on_event('mlc-code-redo', function(ev)
 	local uid, gui_t = get_active_gui()
 	if not gui_t then return end
-	local mlc = global.combinators(gui_t.uid)
-	if mlc then guis.history_restore(gui_t.gui, mlc, 1) end
+	local mlc = global.combinators[gui_t.uid]
+	if mlc then guis.history_restore(gui_t, mlc, 1) end
 end)
 
 script.on_event('mlc-code-close', function(ev)
