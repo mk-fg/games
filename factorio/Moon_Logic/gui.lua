@@ -182,7 +182,7 @@ local function create_gui(player, entity)
 	local mt_right = elc(mt, {type='flow', name='mt-right', direction='vertical'})
 
 	-- MT column-2: input signal list
-	elc(mt_right, {type='label', name='signal-header', caption='Input Wire Signals:'}, {font='heading-2'})
+	elc(mt_right, {type='label', name='signal-header', caption='Wire Signals:'}, {font='heading-2'})
 	elc( mt_right, {type='scroll-pane', name='signal-pane', direction='vertical'},
 		{vertically_stretchable=true, vertically_squashable=true, maximal_height=700} )
 
@@ -216,14 +216,15 @@ end
 local guis = {}
 
 function guis.open(player, e)
-	player.opened = nil
+	player.opened = guis.close(global.guis_player[player.index])
 	local gui_t = create_gui(player, e)
 	global.guis[e.unit_number] = gui_t
 	player.opened = gui_t.mlc_gui
+	global.guis_player[player.index] = e.unit_number
 end
 
 function guis.close(uid)
-	local gui_t = global.guis[uid]
+	local gui_t = uid and global.guis[uid]
 	local gui = gui_t and (gui_t.mlc_gui or gui_t.gui)
 	if gui then gui.destroy() end
 	global.guis[uid] = nil

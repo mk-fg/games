@@ -159,6 +159,7 @@ local function mlc_update_output(mlc, output)
 	local signals, err_msg, n, n_max, err, t = {}, '', 1, ecc.signals_count
 	for sig, v in pairs(output) do
 		t, err = global.signals[sig]
+		if type(v) == 'boolean' then v = v and 1 or 0 end
 		if not t then err = ('unknown signal [%s]'):format(sig)
 		elseif type(v) ~= 'number'
 			then err = ('signal must be a number [%s=(%s) %s]'):format(sig, type(v), v)
@@ -607,7 +608,7 @@ end
 script.on_init(function()
 	strict_mode_enable()
 	update_signal_types_table()
-	for k, _ in pairs(tt('combinators guis presets')) do global[k] = {} end
+	for k, _ in pairs(tt('combinators presets guis guis_player')) do global[k] = {} end
 end)
 
 script.on_configuration_changed(function(data) -- migration
@@ -676,6 +677,8 @@ script.on_configuration_changed(function(data) -- migration
 			if used_presets ~= '' then game.print(( 'Moon Logic Combinator: stored non-duplicate/empty code from'..
 					' %s removed combinator(s) to following preset button(s): %s' ):format(mlc_count, used_presets)) end
 		end
+
+		if version_less_than('0.0.14') then global.guis_player = {} end
 	end
 
 	update_recipes()

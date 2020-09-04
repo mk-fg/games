@@ -1,7 +1,4 @@
-**Important:** this is an early release of this mod, so expect more than the usual amount of bugs crawling in here!
-(and please report any crashes with lua backtrace from factorio log or a screenshot of it, thanks)
-
-**This mod should probably cause desyncs in multiplayer games**
+**Important: This mod should probably cause desyncs in multiplayer games**
 Mod code uses things which are likely to desync mp games, and I only test singleplayer, so it's highly unlikely that it will "just work" in mp.
 
 
@@ -40,12 +37,62 @@ Some UI hotkeys can also be customized in the Settings - Controls game menu.
 
 --------------------
 
+## Lua Code
+
+Lua is a very simple and easy-to-use programming language, which [fits entirely on a couple pages](http://lua-users.org/files/wiki_insecure/users/thomasl/luarefv51.pdf).
+This mod allows using it to script factorio circuit network logic directly from within the game.
+
+Example code:
+
+- Set constant output signal value: `out.wood = 1`
+
+- Simple arithmetic on an input: `out.wood = red.wood * 5`
+
+- Ever-increasing counter: `out.wood = out.wood + 1`
+
+- Don't update counter on every single [game tick](https://wiki.factorio.com/Time#Ticks): `out.wood = out.wood + 1; delay = 60`
+
+- Control any number of things at once:
+
+```
+local our_train = 17 -- hover over train to find out its ID number
+local train_loaded, train_unloaded -- locals get forgotten between runs
+
+if red['signal-T'] == our_train then
+  out['signal-black'] = red.coal < 500 -- load coal
+  out['signal-grey'] = red.barrel < 20 -- load barrels
+
+  train_loaded =
+    not (out['signal-black'] or out['signal-grey']) -- cargo limit
+    or (var.coal == red.coal and var.barrels == red.barrel) -- no change since last check
+  var.coal, var.barrels = red.coal, red.barrel -- remember for the next check
+
+  local inbound_cargo = red['sulfur'] + red['solid-fuel']
+  train_unloaded = inbound_cargo ~= var.inbound_cargo -- that's "not equals" in Lua
+  var.inbound_cargo = inbound_cargo
+
+  out['signal-check'] = train_loaded and train_unloaded -- HONK!
+  delay = 2 * 60 -- check on cargo loading every other second
+else
+  out = {} -- keep inserters idle and environment clean :)
+  delay = 20 * 60 -- check for next train every 20s
+end
+
+```
+
+What is all this magic? See [Lua 5.2 Reference Manual](https://www.lua.org/manual/5.2/). I also like [quick pdf reference here](http://lua-users.org/files/wiki_insecure/users/thomasl/luarefv51single.pdf).
+
+Runtime errors in the code will raise global alert on the map, set "mlc-error" output on the combinator (can catch these on Programmable Speakers), and highlight the line where it happened. Syntax errors are reported on save immediately. See in-game help window for some extra debugging options.
+
+Regular combinators are best for simple things, as they work ridiculously fast on every tick. Fancy programmable ones are no replacement for them.
+
+
+--------------------
+
 ## Known Issues and quirks
 
-- Currently combinator looks exactly like arithmetic one, need to update sprites/icons/thumbnails after recent change.
 - Hotkeys for save/undo/redo/etc don't work when code textbox is focused, you need to press Esc or otherwise unfocus it first.
 - Combinator code is not serialized to blueprints, need to restore that later.
-- Would be nice to have some code examples and screenshots here.
 
 Big thanks to [ixu](https://mods.factorio.com/user/ixu) for testing the mod extensively and reporting dozens of bugs here.
 
@@ -63,12 +110,12 @@ Big thanks to [ixu](https://mods.factorio.com/user/ixu) for testing the mod exte
 
     - [LuaCombinator 2](https://mods.factorio.com/mod/LuaCombinator2) by [OwnlyMe](https://mods.factorio.com/user/OwnlyMe)
 
-        Base mod on which Sandboxed LuaCombinator above was based itself. Long-deprecated by now.
+        Great mod on which Sandboxed LuaCombinator above was based itself. Long-deprecated by now.
 
 
 - Other programmable logic combinator mods, in no particular order
 
-    - [LuaCombinator 3](https://mods.factorio.com/mod/LuaCombinator3) - successor to LuaCombinator 2, which this mod is based on.
+    - [LuaCombinator 3](https://mods.factorio.com/mod/LuaCombinator3) - successor to LuaCombinator 2.
 
         Unfortunately quite buggy, never worked right for me, and way-way overcomplicated, exposing pretty much whole factorio Lua modding API instead of simple inputs-and-outputs sandbox for in-game combinator logic. Seem to be abandoned at the moment (2020-08-31).
 

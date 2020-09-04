@@ -1,4 +1,14 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.0.14
+Date: 2020-09-05
+  Features:
+    - Convert boolean values to 1/0 for an easy on/off signals.
+
+  Bugfixes:
+    - Fix signal header on the right to say "wire signals", as they're not only inputs anymore.
+    - Fix crash when opening different mlc gui when textbox is focused, introduced in 0.0.12.
+
+---------------------------------------------------------------------------------------------------
 Version: 0.0.13
 Date: 2020-09-04
   Features:
