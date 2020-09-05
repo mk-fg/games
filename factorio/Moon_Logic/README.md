@@ -160,7 +160,7 @@ Big thanks to [ixu](https://mods.factorio.com/user/ixu) for testing the mod exte
 
     - [Improved Combinator](https://mods.factorio.com/mod/ImprovedCombinator) - factorio combinator combinator.
 
-        Combines operations of any number factorio combinators into one processing pipeline.
+        Combines operations of any number of factorio combinators into one processing pipeline.
         Nice to save space and make vanilla simple combinator logic more tidy, without the confusing mess of wires.
 
     - [Advanced Combinator](https://mods.factorio.com/mod/advanced-combinator) - like Improved Combinator, but allows more advanced logic.

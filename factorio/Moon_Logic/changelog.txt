@@ -1,4 +1,13 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.0.16
+Date: 2020-09-05
+  Features:
+    - New mod thumbnail, with a new combinator sprite on it.
+
+  Changes:
+    - Use tick (arachnid) instead of a bug on the "moon logic error" signal, to match the name.
+
+---------------------------------------------------------------------------------------------------
 Version: 0.0.14
 Date: 2020-09-05
   Features:
