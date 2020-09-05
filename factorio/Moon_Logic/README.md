@@ -27,7 +27,7 @@ Fixing/maintaining these is much easier without few thousand lines of extra comp
 Startup Mod Settings:
 
 - Red Wire Label - Lua environment name for in-game "red" circuit network values. Changes all labels in the GUIs as well.
-- Green Wire Label - same as Red Wire Label, but for Green wire.
+- Green Wire Label - same as Red Wire Label, but for the other wire color.
 
 These can be useful when playing with other mods that change colors, for labels to match those.
 Note that red/green input tables are always available in the environment too, for better code/snippet compability.
@@ -59,6 +59,13 @@ local our_train = 17 -- hover over train to find out its ID number
 local train_loaded, train_unloaded -- locals get forgotten between runs
 
 if red['signal-T'] == our_train then
+  if not var.inbound_manifest_checked then
+    -- Emit alarm signal for underloaded train arrival while it's on station
+    -- Note how outputs persist until they are changed/reset
+    out['signal-info'] = red['sulfur'] < 100 or red['solid-fuel'] < 200
+    var.inbound_manifest_checked = true
+  end
+
   out['signal-black'] = red.coal < 500 -- load coal
   out['signal-grey'] = red.barrel < 20 -- load barrels
 
@@ -72,15 +79,18 @@ if red['signal-T'] == our_train then
   var.inbound_cargo = inbound_cargo
 
   out['signal-check'] = train_loaded and train_unloaded -- HONK!
+  if out['signal-check']
+    then var.inbound_manifest_checked = false end -- reset for the next arrival
+
   delay = 2 * 60 -- check on cargo loading every other second
 else
-  out = {} -- keep inserters idle and environment clean :)
+  out = {} -- keep inserters idle and environment clean
   delay = 20 * 60 -- check for next train every 20s
 end
 
 ```
 
-What is all this magic? See [Lua 5.2 Reference Manual](https://www.lua.org/manual/5.2/). I also like [quick pdf reference here](http://lua-users.org/files/wiki_insecure/users/thomasl/luarefv51single.pdf).
+What is all this dark magic? See [Lua 5.2 Reference Manual](https://www.lua.org/manual/5.2/). I also like [quick pdf reference here](http://lua-users.org/files/wiki_insecure/users/thomasl/luarefv51single.pdf).
 
 Runtime errors in the code will raise global alert on the map, set "mlc-error" output on the combinator (can catch these on Programmable Speakers), and highlight the line where it happened. Syntax errors are reported on save immediately. See in-game help window for some extra debugging options.
 
@@ -102,7 +112,28 @@ Big thanks to [ixu](https://mods.factorio.com/user/ixu) for testing the mod exte
 ## Links
 
 
-- This mod base/predecessors
+- Nice and useful Circuit Network extensions:
+
+    - [Switch Button](https://mods.factorio.com/mod/Switch_Button-1_0) - On/Off switch with configurable signal.
+
+        Kinda like [Pushbutton](https://mods.factorio.com/mod/pushbutton), but signal is persistent, not just pulse, which is easiler to work with from any kind of delayed checks.
+        Works from anywhere on the radar-covered map (flip with E key).
+        Don't forget to bind a hotkey to change its signal, as [it defaults to none and won't enable without it](https://mods.factorio.com/mod/Switch_Button-1_0/discussion/5f53449361f20f06a85aac9f).
+
+    - [Nixie Tubes](https://mods.factorio.com/mod/nixie-tubes) - a nice display for signal values.
+
+        [Integrated Circuitry](https://mods.factorio.com/mod/integratedCircuitry) has even more display options and a neat wire support posts.
+
+    - [Schall Virtual Signal](https://mods.factorio.com/mod/SchallVirtualSignal) - adds a bunch more extra signals to use on the net.
+
+        They might not be very descriptive - mostly just more numbers - but there are a lot of them!
+
+    - [Time Series Graphs](https://mods.factorio.com/mod/timeseries) - time-series monitoring/graphing system for your network.
+
+    - [RadioNetwork](https://mods.factorio.com/mod/RadioNetwork) - to control everything from afar.
+
+
+- This mod base/predecessors:
 
     - [Sandboxed LuaCombinator](https://mods.factorio.com/mod/SandboxedLuaCombinator) by [IWTDU](https://mods.factorio.com/user/IWTDU)
 
@@ -113,7 +144,7 @@ Big thanks to [ixu](https://mods.factorio.com/user/ixu) for testing the mod exte
         Great mod on which Sandboxed LuaCombinator above was based itself. Long-deprecated by now.
 
 
-- Other programmable logic combinator mods, in no particular order
+- Other programmable logic combinator mods, in no particular order:
 
     - [LuaCombinator 3](https://mods.factorio.com/mod/LuaCombinator3) - successor to LuaCombinator 2.
 
