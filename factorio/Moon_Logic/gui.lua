@@ -216,7 +216,8 @@ end
 local guis = {}
 
 function guis.open(player, e)
-	player.opened = guis.close(global.guis_player[player.index])
+	local uid_old = global.guis_player[player.index]
+	if uid_old then player.opened = guis.close(uid_old) end
 	local gui_t = create_gui(player, e)
 	global.guis[e.unit_number] = gui_t
 	player.opened = gui_t.mlc_gui
@@ -224,7 +225,7 @@ function guis.open(player, e)
 end
 
 function guis.close(uid)
-	local gui_t = uid and global.guis[uid]
+	local gui_t = global.guis[uid]
 	local gui = gui_t and (gui_t.mlc_gui or gui_t.gui)
 	if gui then gui.destroy() end
 	global.guis[uid] = nil
