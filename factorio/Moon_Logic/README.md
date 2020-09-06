@@ -123,8 +123,7 @@ Big thanks to [ixu](https://mods.factorio.com/user/ixu) and [completion](https:/
     - [Switch Button](https://mods.factorio.com/mod/Switch_Button-1_0) - On/Off switch with configurable signal.
 
         Kinda like [Pushbutton](https://mods.factorio.com/mod/pushbutton), but signal is persistent, not just pulse, which is easier to work with from any kind of delayed checks.
-        Works from anywhere on the radar-covered map (flip with E key).
-        Don't forget to bind a hotkey to change its signal, as [it defaults to none and won't enable without it](https://mods.factorio.com/mod/Switch_Button-1_0/discussion/5f53449361f20f06a85aac9f).
+        Works from anywhere on the (radar-covered) map by default, and can be flipped by simple left-click or E key.
 
     - [Nixie Tubes](https://mods.factorio.com/mod/nixie-tubes) - a nice display for signal values.
 

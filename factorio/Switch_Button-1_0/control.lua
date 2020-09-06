@@ -7,12 +7,12 @@ local onoff_on_click = settings.startup['ReverseOpenInventory'].value
 local button_reach_range = settings.startup['ButtonReachRange'].value
 
 local function player_can_reach_button(player, entity)
-	-- Button on/off-on-click reach is a bit longer than the default one
+  -- Button on/off-on-click reach is a bit longer than the default one
   if not (player.character and entity and entity.valid) then return end
   local pos1, pos2 = player.position, entity.position
   return
-		(((pos1.x - pos2.x)^2 + (pos1.y - pos2.y)^2)^0.5 < button_reach_range)
-		or player.character.can_reach_entity(entity)
+    (((pos1.x - pos2.x)^2 + (pos1.y - pos2.y)^2)^0.5 < button_reach_range)
+    or player.character.can_reach_entity(entity)
 end
 
 ---------------------[BUILD ENTITY FUNCTION]---------------------
@@ -44,10 +44,10 @@ local function onKey(event)
   global.keybind_state[event.player_index] = true -- skip on_gui_opened handling
   if player_can_reach_button(player, entity) then
     if onoff_on_click then player.opened = entity
-		else
-			local control = entity.get_or_create_control_behavior()
-			control.enabled = not control.enabled
-		end
+    else
+      local control = entity.get_or_create_control_behavior()
+      control.enabled = not control.enabled
+    end
   end
   if onoff_on_click then global.keybind_state[event.player_index] = nil end
 end

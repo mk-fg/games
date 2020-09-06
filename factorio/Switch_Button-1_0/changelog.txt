@@ -1,6 +1,6 @@
 
 ---------------------------------------------------------------------------------------------------
-Version: 0.1.14
+Version: 0.1.15
 Date: 2020-09-07
   Features:
     - Add "Button reach range" mod option to allow for old bug-like behavior and to disable it.
