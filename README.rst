@@ -124,19 +124,27 @@ slow or tedious to setup or debug without bunch of repetition.
 
 Easy to fix with mods though, which are one of the best parts of the game.
 
-- `Burner Drill 4x4 Area
-  <https://mods.factorio.com/mod/Burner_Drill_4x4_Area>`_
-
-  Changes Burner Mining Drills to have 4x4 resource search area instead of
-  default 2x2 (right under), and nothing else.
-
 - `Will-o'-the-Wisps updated
   <https://mods.factorio.com/mod/Will-o-the-Wisps_updated>`_
 
   Compatibility update (for Factorio 0.16.x) and bunch of tweaks to
   `Will-o'-the-Wisps mod <https://mods.factorio.com/mod/Will-o-the-wisps>`_
   by Betep3akata, which seem to be abandoned since 0.15.x.
-  License: `CC BY-NC-SA <https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode>`_
+  Pretty alien fauna mod with some challenge elements and couple unique mechanics.
+
+- `Moon Logic <https://mods.factorio.com/mod/Moon_Logic>`_
+
+  Fork of `Sandboxed LuaCombinator`_ by IWTDU and LuaCombinator2_ by OwnlyMe,
+  allowing to pretty much just script game in Lua from within it, with a bunch
+  of QoL and usability enhancements and updates for modern factorio.
+
+  .. _Sandboxed LuaCombinator: https://mods.factorio.com/mod/SandboxedLuaCombinator
+  .. _LuaCombinator2: https://mods.factorio.com/mod/LuaCombinator2
+
+- `Biter Detector Sentinel Combinator
+  <https://mods.factorio.com/mod/Biter_Detector_Sentinel_Combinator>`_
+
+  Easy-to-use alarm and detector/counter for biter enemies within range.
 
 - `Vehicle Cruise Control
   <https://mods.factorio.com/mod/Vehicle_Cruise_Control>`_
@@ -144,33 +152,29 @@ Easy to fix with mods though, which are one of the best parts of the game.
   Adds GUI panel with buttons to toggle acceleration and brakes, so that you
   don't have to hold W or S.
 
-- `Longer Days and Nights
-  <https://mods.factorio.com/mod/Longer_Days_and_Nights>`_
+- `Circuit Power Measurement Combinator
+  <https://mods.factorio.com/mod/Circuit_Power_Measurement_Combinator>`_ /
+  `Circuit Power Measurement Pole
+  <https://mods.factorio.com/mod/Circuit_Power_Measurement_Pole>`_
 
-  Gives control over the length of day/night cycle.
+  Power grid production/consumption measuring mods, outputting signals to
+  circuit network, which were curiously absent until now.
 
 - `Configurable Roboport Range
   <https://mods.factorio.com/mod/Configurable_Roboport_Range>`_
 
   Small tweak to change Roboport building ranges.
 
-- `Circuit Power Measurement Pole
-  <https://mods.factorio.com/mod/Circuit_Power_Measurement_Pole>`_ /
-  `Circuit Power Measurement Combinator
-  <https://mods.factorio.com/mod/Circuit_Power_Measurement_Combinator>`_
+- `Burner Drill 4x4 Area
+  <https://mods.factorio.com/mod/Burner_Drill_4x4_Area>`_
 
-  Power grid production/consumption measuring mods, outputting signals to
-  circuit network, which were curiously absent until now.
+  Changes Burner Mining Drills to have 4x4 resource search area instead of
+  default 2x2 (right under), and nothing else.
 
-- `Biter Detector Sentinel Combinator
-  <https://mods.factorio.com/mod/Biter_Detector_Sentinel_Combinator>`_
+- `Longer Days and Nights
+  <https://mods.factorio.com/mod/Longer_Days_and_Nights>`_
 
-  Detector/counter for biter enemies within range.
-
-- `Moon Logic <https://mods.factorio.com/mod/Moon_Logic>`_
-
-  Fork of Sandboxed LuaCombinator by IWTDU and LuaCombinator2 by OwnlyMe,
-  allowing to pretty much just script game in Lua from within it.
+  Gives control over the length of day/night cycle.
 
 - ReducedResearchX
 
@@ -195,7 +199,7 @@ Easy to fix with mods though, which are one of the best parts of the game.
 - blueprints.yaml - misc blueprints I came up with, esp. for defence units or
   stuff like circuit logic parts.
 
-- lua-combinator-code.txt - lua code for `LuaCombinator 2 mod`_, best combinator logic mod.
+- lua-combinator-code.txt - some code snippets for lua combinator mod(s) mentioned above.
 
 - doomeer-factorio-calc.index.html - replacement index.html for online `doomeer/factorio`_
   production-chains calculator to fix only major issue I had with it - filled-in
