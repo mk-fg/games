@@ -242,9 +242,15 @@ local function mlc_init(e)
 
 	if not sandbox_env_base._init then
 		-- This gotta cause mp desyncs, +1 metatable layer should probably be used instead
+		local proto = {}
+		for k, _ in pairs(tt( 'entity item fluid tile equipment damage virtual_signal'..
+			' equipment_grid recipe technology decorative particle autoplace_control noise_layer'..
+			' mod_setting custom_input ammo_category item_subgroup item_group'..
+			' fuel_category resource_category achievement module_category equipment_category'..
+			' trivial_smoke shortcut recipe_category' )) do proto[k] = game[k..'_prototypes'] end
 		sandbox_env_base.game = {
 			tick=game.tick, log=mlc_log, remote=remote,
-			print=sandbox_game_print, print_color=game.print }
+			print=sandbox_game_print, print_color=game.print, proto=proto }
 		sandbox_env_pairs_mt_iter[cn_input_signal_get] = true
 		sandbox_env_base._init = true
 	end

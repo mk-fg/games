@@ -1,8 +1,9 @@
 ---------------------------------------------------------------------------------------------------
-Version: 0.0.24
+Version: 0.0.25
 Date: 2020-09-06
   Features:
     - Added "GUI Signals Update Interval" setting for more UPS-efficient GUI updates.
+    - Expose read-only prototype tables for everything under game.proto.
 
   Bugfixes:
     - Fix showing signal values in GUI that are <0, oops.
