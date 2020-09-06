@@ -174,12 +174,12 @@ local function create_gui(player, entity)
 	end
 
 	local gui = elc( player.gui.screen,
-			{ type='frame', name='mlc-gui',
-				direction='vertical', caption =
-					('Moon Logic [%s] - %s {}, %s {}, out {}, var {}, delay (int)')
-					:format(uid, conf.red_wire_name, conf.green_wire_name) },
-			{top_padding=1, right_padding=4, bottom_padding=4, left_padding=4} )
-		el.location = {20, 150} -- doesn't work from initial props
+		{ type='frame', name='mlc-gui',
+			direction='vertical', caption =
+				('Moon Logic [%s] - %s {}, %s {}, out {}, var {}, delay (int)')
+				:format(uid, conf.red_wire_name, conf.green_wire_name) },
+		{top_padding=1, right_padding=4, bottom_padding=4, left_padding=4} )
+	gui.location = {20, 150} -- doesn't work from initial props
 
 	-- Main table
 	local mt = elc(gui, {type='table', column_count=2, name='mt', direction='vertical'})
@@ -432,6 +432,7 @@ end
 function guis.vars_window_toggle(pn, toggle_on)
 	local gui = game.players[pn].gui.screen['mlc-gui']
 	local uid, gui_t = find_gui{element=gui}
+	if not uid then uid = global.guis_player['vars.'..pn] end
 	if not uid then return end
 	vars_window_switch_or_toggle(pn, uid, toggle_on)
 end

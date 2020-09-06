@@ -1,5 +1,5 @@
 ---------------------------------------------------------------------------------------------------
-Version: 0.0.22
+Version: 0.0.23
 Date: 2020-09-06
   Features:
     - Right-click on "open environment" button will clear the env, mentioned in button tooltip.
@@ -9,6 +9,7 @@ Date: 2020-09-06
 
   Bugfixes:
     - Fix broken locale string and a tooltip for environment display window.
+    - Fix Ctrl-F (env window) hotkey not working without main GUI open.
 
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.19
