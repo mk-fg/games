@@ -1,11 +1,14 @@
 ---------------------------------------------------------------------------------------------------
-Version: 0.0.21
+Version: 0.0.22
 Date: 2020-09-06
   Features:
     - Right-click on "open environment" button will clear the env, mentioned in button tooltip.
 
   Changes:
     - Hide internals of red/green input tables in vars window, there's other display for them anyway.
+
+  Bugfixes:
+    - Fix broken locale string and a tooltip for environment display window.
 
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.19

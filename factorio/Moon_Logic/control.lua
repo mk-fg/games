@@ -598,7 +598,7 @@ script.on_event('mlc-code-close', function(ev)
 	guis.close(uid)
 end)
 
-script.on_event('mlc-vars', function(ev)
+script.on_event('mlc-code-vars', function(ev)
 	guis.vars_window_toggle(ev.player_index)
 end)
 

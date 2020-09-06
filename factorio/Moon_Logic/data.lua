@@ -143,12 +143,12 @@ data:extend{
 		key_sequence = 'CONTROL + RETURN',
 		order = '04' },
 	{ type = 'custom-input',
-		name = 'mlc-code-close',
-		key_sequence = 'CONTROL + Q',
+		name = 'mlc-code-vars',
+		key_sequence = 'CONTROL + F',
 		order = '05' },
 	{ type = 'custom-input',
-		name = 'mlc-vars',
-		key_sequence = 'CONTROL + F',
+		name = 'mlc-code-close',
+		key_sequence = 'CONTROL + Q',
 		order = '06' },
 
 	-- GUI button sprites

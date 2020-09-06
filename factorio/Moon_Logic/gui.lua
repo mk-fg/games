@@ -198,10 +198,12 @@ local function create_gui(player, entity)
 			{height=sz, width=sz, top_padding=pad, bottom_padding=pad, left_padding=pad, right_padding=pad} )
 	end
 
-	top_btns_add('mlc-close', 'Discard changes and close [[color=#e69100]Esc[/color]]')
+	top_btns_add( 'mlc-close',
+		'Discard changes and close [[color=#e69100]Esc[/color]]\n'..
+		'There\'s also Close All Windows [[color=#e69100]Ctrl-Q[/color]] hotkey' )
 	top_btns_add('mlc-help', 'Toggle quick reference window')
 	top_btns_add( 'mlc-vars',
-		'Toggle environment window for this combinator\n'..
+		'Toggle environment window for this combinator [[color=#e69100]Ctrl-F[/color]]\n'..
 		'Right-click to clear all environment variables on it' )
 
 	elc(top_btns, {type='flow', name='mt-top-spacer-a', direction='horizontal'}, {width=10})
