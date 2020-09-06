@@ -7,7 +7,7 @@
 local function onBuilt(event)
   local switchbutton = event.created_entity or event.entity -- latter for revive event
   local control = switchbutton.get_or_create_control_behavior()
-  if not control.parameters.parameters[1].signal.name then
+  if not control.parameters.parameters[1].signal.name then -- can be already set via blueprint
     control.enabled = false
     control.parameters = {parameters={{ index=1,
       signal={type='virtual', name='signal-check'}, count=1 }}}
@@ -29,31 +29,31 @@ end
 local function onKey(event)
   local player = game.players[event.player_index]
   local entity = player.selected
-  global.keybind_state[event.player_index] = true
+  local onoff_on_click = settings.startup['ReverseOpenInventory'].value
+  global.keybind_state[event.player_index] = true -- skip on_gui_opened handling
   if entity and entity.valid then
-    local distance = math.abs(player.position.x-entity.position.x)+math.abs(player.position.y-entity.position.y)
+    local distance =
+      math.abs(player.position.x-entity.position.x)
+      + math.abs(player.position.y-entity.position.y)
     if distance < 15 or player.character.can_reach_entity(entity) then
       local control = entity.get_or_create_control_behavior()
-      if settings.startup['ReverseOpenInventory'].value then
-        player.opened = entity
-        global.keybind_state[event.player_index] = nil
-      elseif not settings.startup['ReverseOpenInventory'].value then
-        control.enabled = not control.enabled
-      end
+      if onoff_on_click then player.opened = entity
+      else control.enabled = not control.enabled end
     end
   end
+  if onoff_on_click then global.keybind_state[event.player_index] = nil end
 end
 
 ------------------------[OPEN ENTITY GUI]------------------------
 script.on_event(defines.events.on_gui_opened, function(event)
   local player = game.players[event.player_index]
   local entity = player.selected
-  if entity ~= nil and entity.name == 'switchbutton' and not global.keybind_state[event.player_index] then
+  if entity ~= nil and entity.name == 'switchbutton'
+      and settings.startup['ReverseOpenInventory'].value -- on/off on click
+      and not global.keybind_state[event.player_index] then -- not from keybind
     local control = entity.get_or_create_control_behavior()
-    if settings.startup['ReverseOpenInventory'].value then
-      player.opened = nil
-      control.enabled = not control.enabled
-    end
+    player.opened = nil
+    control.enabled = not control.enabled
   end
 end)
 
