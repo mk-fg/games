@@ -7,6 +7,9 @@ conf.red_wire_name = 'red'
 conf.green_wire_name = 'green'
 function conf.get_wire_label(k) return conf[k..'_wire_name'] end
 
+-- Interval between updating signal table in the main GUI
+conf.gui_signals_update_interval = 1
+
 -- Interval between raising global alerts on lua errors, in ticks
 conf.logic_alert_interval = 10 * 60
 
@@ -29,7 +32,9 @@ conf.gui_vars_serpent_opts = {metatostring=true, nocode=true}
 
 function conf.update_from_settings()
 	local k_conf
-	for _, k in ipairs{'red-wire-name', 'green-wire-name'} do
+	for _, k in ipairs{
+			'red-wire-name', 'green-wire-name',
+			'gui-signals-update-interval' } do
 		k_conf = k:gsub('%-', '_')
 		if conf[k_conf] == nil then error(('BUG - config key typo: %s'):format(k)) end
 		conf[k_conf] = settings.startup[k].value

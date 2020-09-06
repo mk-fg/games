@@ -436,7 +436,9 @@ local function on_tick(ev)
 		end
 	::skip:: end
 
-	if next(global.guis) then update_signals_in_guis() end
+	if next(global.guis)
+			and game.tick % conf.gui_signals_update_interval == 0
+		then update_signals_in_guis() end
 end
 
 function run_moon_logic_tick(mlc, mlc_env, tick)

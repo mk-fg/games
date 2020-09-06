@@ -32,7 +32,13 @@ Startup Mod Settings:
 These can be useful when playing with other mods that change colors, for labels to match those.
 Note that red/green input tables are always available in the environment too, for better code/snippet compability.
 
-Some UI hotkeys can also be customized in the Settings - Controls game menu.
+- GUI Signals Update Interval
+
+    Interval in game ticks (60 ticks = 1 second at 1x game speed) between updating signal table in GUI.
+    Only relevant when combinator code/signals GUI window is actually open.
+    Higher values will give better performance, but you might not notice some signals flapping on/off there, if they do that in-between updates. Default is 1, i.e. update on every tick.
+
+UI hotkeys can also be customized in the Settings - Controls game menu.
 
 
 --------------------
