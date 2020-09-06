@@ -377,7 +377,7 @@ local function update_signals_in_guis()
 		for k, color in pairs{red={1,0.3,0.3}, green={0.3,1,0.3}} do
 			cb = cn_wire_signals(mlc_env._e, defines.wire_type[k], mlc_env._out)
 			for sig, v in pairs(cb) do
-				if v > 0 then
+				if v ~= 0 then
 					label = gui_flow.add{ type='label', name='in-'..k..'-'..sig,
 						caption=('[%s] %s = %s'):format(conf.get_wire_label(k), sig, v) }
 					label.style.font_color = color
@@ -385,7 +385,7 @@ local function update_signals_in_guis()
 		cb = mlc.core.get_control_behavior()
 		for _, cbs in pairs(cb and cb.parameters.parameters or {}) do
 			sig = cbs.signal.name
-			if sig and cbs.count > 0 then gui_flow.add{ type='label',
+			if sig and cbs.count ~= 0 then gui_flow.add{ type='label',
 				name='out-'..sig, caption=('[out] %s = %s'):format(sig, cbs.count) } end
 		end
 		gui_t.mlc_errors.caption = format_mlc_err_msg(global.combinators[uid]) or ''

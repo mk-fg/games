@@ -4,6 +4,9 @@ Date: 2020-09-06
   Features:
     - Added "GUI Signals Update Interval" setting for more UPS-efficient GUI updates.
 
+  Bugfixes:
+    - Fix showing signal values in GUI that are <0, oops.
+
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.23
 Date: 2020-09-06
