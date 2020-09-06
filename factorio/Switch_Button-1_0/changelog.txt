@@ -1,7 +1,10 @@
 
 ---------------------------------------------------------------------------------------------------
-Version: 0.1.11
+Version: 0.1.12
 Date: 2020-09-07
+  Features:
+    - Minor locale updates and corrections.
+
   Bugfixes:
     - Fix resetting button signal when constructing it from a blueprint.
     - Fix selecting the switch for blueprints with alt-info mode disabled.

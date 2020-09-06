@@ -1,3 +1,17 @@
-[Switch Button](https://mods.factorio.com/mod/Switch_Button) updated for 0.17 until [GalactusX31](https://mods.factorio.com/user/GalactusX31) gets a [round tuit](https://en.wiktionary.org/wiki/round_tuit).
+This mod adds on/off switch button for sending a single circuit network signal.
 
-Updated using [Perl script to do trivial edits for supporting 0.17](https://forums.factorio.com/viewtopic.php?f=34&t=69307).
+Mod Settings (startup):
+
+- Toggle On/Off on click
+
+    **Checked**: Will change On/Off state on left-click, will open signal panel with the assigned keybind.
+    **Unchecked**: Left-click will work normally like with a regular constant combinator, hotkey will toggle On/Off state.
+
+- Show signal in ALT-info mode
+
+    **Checked**: Display configured signal overlay when switch is enabled in ALT-info mode, like constant combinator does.
+    **Unchecked**: Do not display signal in ALT-mode.
+
+Mod hotkey - "Switch Button keybind" - allows to either open switch inventory or to toggle it, depending on "Toggle On/Off on click" mod option described above.
+
+Based on [the original Switch_Button mod](https://mods.factorio.com/mod/Switch_Button) by GalactusX31, with some minor bugfixes and updated for compatibility with Factorio 1.0.

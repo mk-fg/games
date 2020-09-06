@@ -1,10 +1,10 @@
 {
    "name" : "Switch_Button-1_0",
-   "version" : "0.1.11",
+   "version" : "0.1.12",
    "factorio_version" : "1.0",
    "dependencies" : ["base >= 1.0.0"],
    "title" : "Switch Button by GalactusX31 updated for 1.0",
    "author" : "GalactusX31",
    "homepage" : "https://mods.factorio.com/mod/Switch_Button",
-   "description" : "This mod adds on/off switch button for sending a single signal.\nIt also allows to change the way it works in mod settings, to either toggle On/Off state by left-click and access inventory via mod hotkey, or to work like a regular constant combinator."
+   "description" : "This mod adds on/off switch button for sending a single signal.\nAllows to either toggle On/Off state by left-click and access inventory via mod hotkey, or to work like a regular constant combinator."
 }
