@@ -1,0 +1,30 @@
+
+---------------------------------------------------------------------------------------------------
+Version: 0.1.11
+Date: 2020-09-07
+  Bugfixes:
+    - Fix resetting button signal when constructing it from a blueprint.
+    - Fix selecting the switch for blueprints with alt-info mode disabled.
+
+---------------------------------------------------------------------------------------------------
+Version: 0.1.10
+Date: 2020-09-05
+  Features:
+    - Add default "checkmark" signal (with value=1) to newly-built buttons.
+    - Fix copy-pasting signal setting and button state with shift-RMB/LMB.
+    - Add event filters and handle script_raised events for better performance and compatibility.
+
+  Bugfixes:
+    - Do not store state in file-local variable, as it can potentially desync multiplayer game.
+
+---------------------------------------------------------------------------------------------------
+Version: 0.1.9
+Date: 2020-09-05
+  Features:
+    - Add mod thumbnail image.
+
+---------------------------------------------------------------------------------------------------
+Version: 0.1.8
+Date: 2020-09-03
+  Features:
+    - Update of original Switch_Button mod by GalactusX31 for Factorio 1.0 compatibility.

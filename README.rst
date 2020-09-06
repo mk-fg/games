@@ -165,6 +165,11 @@ Easy to fix with mods though, which are one of the best parts of the game.
 
   Small tweak to change Roboport building ranges.
 
+- `Switch Button 1.0
+  <https://mods.factorio.com/mod/Switch_Button-1_0>`_
+
+  Compatibility update and fixes for a simple circuit network on/off button mod.
+
 - `Burner Drill 4x4 Area
   <https://mods.factorio.com/mod/Burner_Drill_4x4_Area>`_
 
