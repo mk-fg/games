@@ -6,6 +6,7 @@ Date: 2020-09-06
 
   Changes:
     - game.print() now behaves more like lua print(), and game.print_color() is for colors.
+    - Make help window scrollable if necessary and set UI limits from player screen height.
 
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.17

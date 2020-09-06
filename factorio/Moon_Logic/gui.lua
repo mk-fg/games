@@ -3,13 +3,14 @@ local conf = require('config')
 
 local function help_window_toggle(pn)
 	local player = game.players[pn]
-	if player.gui.screen['mlc-helper-'..pn] then
-		player.gui.screen['mlc-helper-'..pn].destroy()
-		return
-	end
+	local gui_exists = player.gui.screen['mlc-help']
+	if gui_exists then return gui_exists.destroy() end
+
 	local gui = player.gui.screen.add{ type='frame',
-		name='mlc-helper-'..pn, caption='Moon Logic Combinator Info', direction='vertical' }
+		name='mlc-help', caption='Moon Logic Combinator Info', direction='vertical' }
 	gui.location = {math.max(50, player.display_resolution.width - 800), 20}
+	local scroll = gui.add{type='scroll-pane',  name='mlc-help-scroll', direction='vertical'}
+	scroll.style.maximal_height = player.display_resolution.height - 200
 	local lines = {
 		'Combinator has separate input and output leads, but note that you can connect them.',
 		' ',
@@ -54,7 +55,7 @@ local function help_window_toggle(pn)
 		'To learn signal names, connect anything with signals to this combinator,',
 		'and their names will be printed as colored inputs on the right of the code window.',
 		' ' }
-	for n, line in ipairs(lines) do gui.add{
+	for n, line in ipairs(lines) do scroll.add{
 		type='label', name='line_'..n, direction='horizontal', caption=line } end
 	gui.add{type='button', name='mlc-help-close', caption='Got it'}
 end
@@ -111,6 +112,7 @@ local function create_gui(player, entity)
 	local uid = entity.unit_number
 	local mlc = global.combinators[uid]
 	local mlc_err = mlc.err_parse or mlc.err_run
+	local max_height = player.display_resolution.height - 350
 
 	-- Main frame
 	local el_map, el = {} -- map is to check if el belonds to this gui
@@ -174,7 +176,8 @@ local function create_gui(player, entity)
 	end
 
 	-- MT column-1: code text-box
-	elc(mt_left, {type='scroll-pane',  name='mlc-code-scroll', direction='vertical'}, {maximal_height=700})
+	elc(mt_left, { type='scroll-pane',
+		name='mlc-code-scroll', direction='vertical' }, {maximal_height=max_height})
 	elc( el, {type='text-box', name='mlc-code', direction='vertical', text=mlc.code or ''},
 		{vertically_stretchable=true, width=800, minimal_height=300} )
 	if mlc_err
@@ -191,7 +194,7 @@ local function create_gui(player, entity)
 	-- MT column-2: input signal list
 	elc(mt_right, {type='label', name='signal-header', caption='Wire Signals:'}, {font='heading-2'})
 	elc( mt_right, {type='scroll-pane', name='signal-pane', direction='vertical'},
-		{vertically_stretchable=true, vertically_squashable=true, maximal_height=700} )
+		{vertically_stretchable=true, vertically_squashable=true, maximal_height=max_height} )
 
 	-- MT column-2: input signal list
 	local control_btns = elc(mt_right, {type='flow', name='mt-br-btns', direction='horizontal'})
