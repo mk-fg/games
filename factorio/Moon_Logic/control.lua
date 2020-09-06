@@ -194,7 +194,7 @@ end
 
 local function mlc_update_led(mlc, mlc_env)
 	-- This should set state in a way that doesn't actually produce any signals
-	-- Combinator is not considered "active", as it ends up with 0 value
+	-- Combinator is not considered 'active', as it ends up with 0 value
 	-- It's possible to have it output value and cancel it out, but shows-up on ALT-display
 	if mlc.state == mlc_env._state then return end
 	local st, cb = mlc.state, mlc.e.get_or_create_control_behavior()
@@ -311,7 +311,7 @@ end
 local mlc_filter = {{filter='name', name='mlc'}}
 
 local function bootstrap_core(e)
-	-- Creates/connects invisible constant-combinator "core" entity for wire outputs
+	-- Creates/connects invisible constant-combinator 'core' entity for wire outputs
 	local core = e.surface.create_entity{
 		name='mlc-core', position=e.position,
 		force=e.force, create_build_effect_smoke=false }
@@ -736,3 +736,7 @@ script.on_configuration_changed(function(data) -- migration
 end)
 
 script.on_load(function() strict_mode_enable() end)
+
+
+-- Activate Global Variable Viewer (gvv) mod, if installed/enabled - https://mods.factorio.com/mod/gvv
+if script.active_mods['gvv'] then require('__gvv__.gvv')() end
