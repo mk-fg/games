@@ -104,7 +104,7 @@ Regular combinators are best for simple things, as they work ridiculously fast o
 - Hotkeys for save/undo/redo/etc don't work when code textbox is focused, you need to press Esc or otherwise unfocus it first.
 - Combinator code is not serialized to blueprints, need to restore that later.
 
-Big thanks to [ixu](https://mods.factorio.com/user/ixu) for testing the mod extensively and reporting dozens of bugs here.
+Big thanks to [ixu](https://mods.factorio.com/user/ixu) and [completion](https://mods.factorio.com/user/completion) for testing the mod extensively and reporting dozens of bugs here.
 
 
 --------------------

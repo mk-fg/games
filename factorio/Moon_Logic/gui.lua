@@ -73,9 +73,9 @@ local function vars_window_update(player, uid)
 		local text, esc, vs, c = '', function(s) return tostring(s):gsub('%[', '[ ') end
 		for k, v in pairs(mlc.vars) do
 			if text ~= '' then text = text..'\n' end
-			vs = serpent.line(v, {nocode=true})
+			vs = serpent.line(v, conf.gui_vars_serpent_opts)
 			if vs:len() > conf.gui_vars_line_len_max
-			then vs = serpent.block(v, {nocode=true})
+			then vs = serpent.block(v, conf.gui_vars_serpent_opts)
 			elseif vs:len() > conf.gui_vars_line_len_max * 0.6 then vs = '\n  '..vs end
 			text = text..('[color=#520007][font=default-bold]%s[/font][/color] = %s'):format(esc(k), esc(vs))
 		end

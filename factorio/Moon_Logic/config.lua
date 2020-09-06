@@ -24,6 +24,7 @@ conf.energy_fail_delay = 2 * 60 -- when to re-check energy level
 -- Size of lua environment window
 conf.gui_vars_line_px = 500
 conf.gui_vars_line_len_max = 80
+conf.gui_vars_serpent_opts = {metatostring=true, nocode=true}
 
 
 function conf.update_from_settings()

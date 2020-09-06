@@ -154,6 +154,10 @@ local function cn_input_signal_iter(wenv)
 	return signals
 end
 
+local function cn_input_signal_table_serialize(wenv)
+	return {__wire_inputs=conf.get_wire_label(wenv._wire)}
+end
+
 local function cn_output_table_value(out, k) return rawget(out, k) or 0 end
 local function cn_output_table_replace(out, new_tbl)
 	-- Note: validation for sig_names/values is done when output table is used later
@@ -258,8 +262,10 @@ local function mlc_init(e)
 		uid = mlc_env._uid,
 		out = setmetatable(mlc_env._out, {__index=cn_output_table_value}),
 		red = setmetatable(env_wire_red, {
+			__serialize=cn_input_signal_table_serialize,
 			__index=cn_input_signal_get, __newindex=cn_input_signal_set }),
 		green = setmetatable(env_wire_green, {
+			__serialize=cn_input_signal_table_serialize,
 			__index=cn_input_signal_get, __newindex=cn_input_signal_set }) }
 	env_ro[conf.red_wire_name] = env_ro.red
 	env_ro[conf.green_wire_name] = env_ro.green
