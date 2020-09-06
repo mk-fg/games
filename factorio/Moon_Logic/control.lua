@@ -373,6 +373,13 @@ local function format_mlc_err_msg(mlc)
 	return err_msg
 end
 
+local function signal_icon_tag(sig)
+	local t = global.signals[sig]
+	if not t then return end
+	if t == 'virtual' then return '[virtual-signal='..sig..']' end
+	if game.is_valid_sprite_path(t..'/'..sig) then return '[img='..t..'/'..sig..']' end
+end
+
 local function update_signals_in_guis()
 	local gui_flow, label, mlc, mlc_env, cb, sig
 	for uid, gui_t in pairs(global.guis) do
@@ -384,16 +391,19 @@ local function update_signals_in_guis()
 			cb = cn_wire_signals(mlc_env._e, defines.wire_type[k], mlc_env._out)
 			for sig, v in pairs(cb) do
 				if v ~= 0 then
+					label = signal_icon_tag(sig)
 					label = gui_flow.add{ type='label', name='in-'..k..'-'..sig,
-						caption=('[%s] %s = %s'):format(conf.get_wire_label(k), sig, v) }
+						caption=('[%s] %s%s = %s'):format(conf.get_wire_label(k), label or '', sig, v) }
 					label.style.font_color = color
 		end end end
 		cb = mlc.core.get_control_behavior()
 		for _, cbs in pairs(cb and cb.parameters.parameters or {}) do
 			sig = cbs.signal.name
-			if sig and cbs.count ~= 0 then gui_flow.add{ type='label',
-				name='out-'..sig, caption=('[out] %s = %s'):format(sig, cbs.count) } end
-		end
+			if sig and cbs.count ~= 0 then
+				label = signal_icon_tag(sig)
+				gui_flow.add{ type='label', name='out-'..sig,
+					caption=('[out] %s %s = %s'):format(label, sig, cbs.count) }
+		end end
 		gui_t.mlc_errors.caption = format_mlc_err_msg(global.combinators[uid]) or ''
 	::skip:: end
 end
@@ -435,10 +445,10 @@ local function on_tick(ev)
 		elseif mlc_env._alert then alert_clear(mlc_env) end
 
 		if tick >= (mlc.next_tick or 0) and mlc_env._func then
-			-- XXX: highlight error line immediately, if gui is open, same for code loads
 			run_moon_logic_tick(mlc, mlc_env, tick)
 			for _, p in ipairs(game.connected_players)
 				do guis.vars_window_update(p.index, uid) end
+			if mlc.err_run then guis.update_error_highlight(uid, mlc, mlc.err_run) end
 		end
 	::skip:: end
 
@@ -527,9 +537,9 @@ function load_code_from_gui(code, uid) -- note: in global _ENV, used from gui.lu
 	if not mlc_env then return mlc_init(mlc.e) end
 	mlc_update_code(mlc, mlc_env)
 	if not mlc.err_parse then
-		for _, player in pairs(game.players) do
-			player.remove_alert{entity=mlc_env._e}
-	end end
+		for _, player in pairs(game.players)
+			do player.remove_alert{entity=mlc_env._e} end
+	else guis.update_error_highlight(uid, mlc, mlc.err_parse) end
 end
 
 script.on_event(defines.events.on_gui_opened, function(ev)
@@ -710,12 +720,16 @@ script.on_configuration_changed(function(data) -- migration
 				' migration process, they all were removed from the map.' )
 			game.print( 'Moon Logic Combinator: But their code will be stored'..
 				' on preset buttons (numbers on top of GUI). Rebuild, reconnect, restore.' )
-			if used_presets ~= '' then game.print(( 'Moon Logic Combinator: stored non-duplicate/empty code from'..
-					' %s removed combinator(s) to following preset button(s): %s' ):format(mlc_count, used_presets)) end
+			if used_presets ~= '' then game.print(( 'Moon Logic Combinator: stored non-duplicate/empty code'..
+				' from %s removed combinator(s) to following preset button(s): %s' ):format(mlc_count, used_presets)) end
 		end
 
 		if version_less_than('0.0.14') then global.guis_player = {} end
 		if version_less_than('0.0.19') then global.presets[20] = nil end
+
+		if version_less_than('0.0.27') then
+			for uid, mlc in pairs(global.combinators) do mlc.textbox = nil end
+		end
 	end
 
 	update_recipes()

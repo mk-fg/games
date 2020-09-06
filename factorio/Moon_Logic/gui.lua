@@ -112,6 +112,8 @@ local err_icon_sub_add = '[color=#c02a2a]%1[/color]'
 local err_icon_sub_clear = '%[color=#c02a2a%]([^\n]+)%[/color%]'
 local function code_error_highlight(text, line_err)
 	-- Add/strip rich error highlight tags
+	if type(line_err) == 'string'
+		then line_err = line_err:match(':(%d+):') end
 	text = text:gsub(err_icon_sub_clear, '%1')
 	line_err = tonumber(line_err)
 	if not line_err then return text end
@@ -121,12 +123,10 @@ local function code_error_highlight(text, line_err)
 	local n, result = 0, ''
 	for line in text:gmatch('([^\n]*)\n?') do
 		n = n + 1
-		if n < line_count then
-			if n == line_err
-				then line = line:gsub('^(.+)$', err_icon_sub_add) end
-			if n > 1 then line = '\n'..line end
-			result = result..line
-	end end
+		if n == line_err
+			then line = line:gsub('^(.+)$', err_icon_sub_add) end
+		result = result..line..'\n'
+	end
 	return result
 end
 
@@ -231,12 +231,9 @@ local function create_gui(player, entity)
 	-- MT column-1: code text-box
 	elc(mt_left, { type='scroll-pane',
 		name='mlc-code-scroll', direction='vertical' }, {maximal_height=max_height})
-	elc( el, {type='text-box', name='mlc-code', direction='vertical', text=mlc.code or ''},
+	elc( el, {type='text-box', name='mlc-code', text=mlc.code or ''},
 		{vertically_stretchable=true, width=800, minimal_height=300} )
-	if mlc_err
-		then el.text = code_error_highlight(el.text, string.gsub(mlc_err,'.+:(%d+):.+', '%1'))
-		else el.text = code_error_highlight(el.text) end
-	mlc.textbox = el.text -- XXX: maybe restore mlc.textbox instead with revert-to-code button?
+	el.text = code_error_highlight(el.text, mlc_err)
 
 	-- MT column-1: error bar at the bottom
 	elc(mt_left, {type='label', name='mlc-errors', direction='horizontal'}, {horizontally_stretchable=true})
@@ -298,7 +295,7 @@ function guis.history_insert(gui_t, mlc, code)
 	local hist_log, n = mlc.history, mlc.history_state
 	-- XXX: do not store empty strings
 	if not hist_log then
-		mlc.history = {mlc.textbox}
+		mlc.history = {gui_t.mlc_code.text}
 		mlc.history_state = 1
 	else
 		if hist_log[n] == code then n = n
@@ -325,15 +322,21 @@ function guis.history_restore(gui_t, mlc, offset)
 	mlc.history_state = n
 	gui_t.mlc_code.text = mlc.history[n]
 	set_history_btns_state(gui_t, mlc)
-	mlc.textbox = gui_t.mlc_code.text
 end
 
-function guis.save_code(eid, code)
-	local gui_t = global.guis[eid]
+function guis.save_code(uid, code)
+	local gui_t = global.guis[uid]
 	if not gui_t then return end
 	local clean_code = code_error_highlight(code or gui_t.mlc_code.text)
-	load_code_from_gui(clean_code, eid)
 	gui_t.mlc_code.text = clean_code
+	load_code_from_gui(clean_code, uid)
+end
+
+function guis.update_error_highlight(uid, mlc, err)
+	local gui_t = global.guis[uid]
+	if not gui_t then return end
+	gui_t.mlc_code.text = code_error_highlight(
+		gui_t.mlc_code.text, err or mlc.err_parse or mlc.err_run )
 end
 
 function guis.on_gui_text_changed(ev)
@@ -343,7 +346,6 @@ function guis.on_gui_text_changed(ev)
 	local mlc = global.combinators[uid]
 	if not mlc then return end
 	guis.history_insert(gui_t, mlc, ev.element.text)
-	global.combinators[uid].textbox = ev.element.text
 end
 
 function guis.on_gui_click(ev)
@@ -380,7 +382,6 @@ function guis.on_gui_click(ev)
 		if ev.button == defines.mouse_button_type.left then
 			if global.presets[preset_n] then
 				gui_t.mlc_code.text = global.presets[preset_n]
-				mlc.textbox = gui_t.mlc_code.text
 				guis.history_insert(gui_t, mlc, gui_t.mlc_code.text)
 			else
 				global.presets[preset_n] = gui_t.mlc_code.text
