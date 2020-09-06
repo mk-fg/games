@@ -1,5 +1,11 @@
 
 ---------------------------------------------------------------------------------------------------
+Version: 0.1.14
+Date: 2020-09-07
+  Bugfixes:
+    - Fix player opening their inventory while hovering over buttons switching them instead.
+
+---------------------------------------------------------------------------------------------------
 Version: 0.1.13
 Date: 2020-09-07
   Bugfixes:

@@ -3,6 +3,13 @@
   and prevent to close the gui when the keybin key is presed to open the entity gui
 ]]
 
+local function player_can_reach(player, entity)
+	-- Button on/off-on-click reach is a bit longer than the default one
+  if not (player.character and entity and entity.valid) then return end
+  local pos1, pos2 = player.position, entity.position
+  return ((pos1.x - pos2.x)^2 + (pos1.y - pos2.y)^2)^0.5 < 15
+end
+
 ---------------------[BUILD ENTITY FUNCTION]---------------------
 local function onBuilt(event)
   local switchbutton = event.created_entity or event.entity -- latter for revive event
@@ -31,15 +38,10 @@ local function onKey(event)
   local entity = player.selected
   local onoff_on_click = settings.startup['ReverseOpenInventory'].value
   global.keybind_state[event.player_index] = true -- skip on_gui_opened handling
-  if entity and entity.valid then
-    local distance =
-      math.abs(player.position.x-entity.position.x)
-      + math.abs(player.position.y-entity.position.y)
-    if distance < 15 or player.character.can_reach_entity(entity) then
-      local control = entity.get_or_create_control_behavior()
-      if onoff_on_click then player.opened = entity
-      else control.enabled = not control.enabled end
-    end
+  if player_can_reach(player, entity) then
+    local control = entity.get_or_create_control_behavior()
+    if onoff_on_click then player.opened = entity
+    else control.enabled = not control.enabled end
   end
   if onoff_on_click then global.keybind_state[event.player_index] = nil end
 end
@@ -48,7 +50,8 @@ end
 script.on_event(defines.events.on_gui_opened, function(event)
   local player = game.players[event.player_index]
   local entity = player.selected
-  if entity ~= nil and entity.name == 'switchbutton'
+  if player.opened
+      and entity and entity.valid and entity.name == 'switchbutton'
       and settings.startup['ReverseOpenInventory'].value -- on/off on click
       and not global.keybind_state[event.player_index] then -- not from keybind
     local control = entity.get_or_create_control_behavior()
