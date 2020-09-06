@@ -3,11 +3,16 @@
   and prevent to close the gui when the keybin key is presed to open the entity gui
 ]]
 
-local function player_can_reach(player, entity)
+local onoff_on_click = settings.startup['ReverseOpenInventory'].value
+local button_reach_range = settings.startup['ButtonReachRange'].value
+
+local function player_can_reach_button(player, entity)
 	-- Button on/off-on-click reach is a bit longer than the default one
   if not (player.character and entity and entity.valid) then return end
   local pos1, pos2 = player.position, entity.position
-  return ((pos1.x - pos2.x)^2 + (pos1.y - pos2.y)^2)^0.5 < 15
+  return
+		(((pos1.x - pos2.x)^2 + (pos1.y - pos2.y)^2)^0.5 < button_reach_range)
+		or player.character.can_reach_entity(entity)
 end
 
 ---------------------[BUILD ENTITY FUNCTION]---------------------
@@ -36,12 +41,13 @@ end
 local function onKey(event)
   local player = game.players[event.player_index]
   local entity = player.selected
-  local onoff_on_click = settings.startup['ReverseOpenInventory'].value
   global.keybind_state[event.player_index] = true -- skip on_gui_opened handling
-  if player_can_reach(player, entity) then
-    local control = entity.get_or_create_control_behavior()
+  if player_can_reach_button(player, entity) then
     if onoff_on_click then player.opened = entity
-    else control.enabled = not control.enabled end
+		else
+			local control = entity.get_or_create_control_behavior()
+			control.enabled = not control.enabled
+		end
   end
   if onoff_on_click then global.keybind_state[event.player_index] = nil end
 end
@@ -50,12 +56,12 @@ end
 script.on_event(defines.events.on_gui_opened, function(event)
   local player = game.players[event.player_index]
   local entity = player.selected
-  if player.opened
-      and entity and entity.valid and entity.name == 'switchbutton'
-      and settings.startup['ReverseOpenInventory'].value -- on/off on click
+  if player_can_reach_button(player, entity)
+      and entity.name == 'switchbutton'
+      and onoff_on_click -- on/off on click
       and not global.keybind_state[event.player_index] then -- not from keybind
-    local control = entity.get_or_create_control_behavior()
     player.opened = nil
+    local control = entity.get_or_create_control_behavior()
     control.enabled = not control.enabled
   end
 end)

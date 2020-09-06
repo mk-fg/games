@@ -1,14 +1,18 @@
-data:extend({
-    {
-      type = 'bool-setting',
-      name = 'ReverseOpenInventory',
-      setting_type = 'startup',
-      default_value = true
-    },
-    {
-      type = 'bool-setting',
-      name = 'ShowBonusGui',
-      setting_type = 'startup',
-      default_value = true
-    }
-})
+data:extend{
+	{ order = '01',
+		type = 'bool-setting',
+		name = 'ReverseOpenInventory',
+		setting_type = 'startup',
+		default_value = true },
+	{ order = '02',
+		type = 'bool-setting',
+		name = 'ShowBonusGui',
+		setting_type = 'startup',
+		default_value = true },
+	{ order = '03',
+		type = 'int-setting',
+		name = 'ButtonReachRange',
+		setting_type = 'startup',
+		minimum_value = 0,
+		default_value = 99999 },
+}

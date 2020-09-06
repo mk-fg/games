@@ -7,10 +7,10 @@ Mod Settings (startup):
     **Checked**: Will change On/Off state on left-click, will open signal panel with the assigned keybind.
     **Unchecked**: Left-click will work normally like with a regular constant combinator, hotkey will toggle On/Off state.
 
-- Show signal in ALT-info mode
+- Show signal in Alt-info mode
 
-    **Checked**: Display configured signal overlay when switch is enabled in ALT-info mode, like constant combinator does.
-    **Unchecked**: Do not display signal in ALT-mode.
+    **Checked**: Display configured signal overlay when switch is enabled in Alt-info mode, like constant combinator does.
+    **Unchecked**: Do not display signal in Alt-info mode.
 
 Mod hotkey - "Switch Button keybind" - allows to either open switch inventory or to toggle it, depending on "Toggle On/Off on click" mod option described above.
 
