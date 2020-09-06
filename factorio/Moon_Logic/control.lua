@@ -58,6 +58,16 @@ function sandbox_clean_table(tbl, apply_func)
 	if apply_func then return apply_func(tbl_clean) else return tbl_clean end
 end
 
+function sandbox_game_print(...)
+	local args, msg = table.pack(...), ''
+	for _, arg in ipairs(args) do
+		if msg ~= '' then msg = msg..' ' end
+		if type(arg) == 'table' then arg = sandbox_clean_table(arg, serpent.line) end
+		msg = msg..(tostring(arg or 'nil') or '[value]')
+	end
+	game.print(msg)
+end
+
 -- This env gets modified on ticks, which might cause mp desyncs
 local sandbox_env_base = {
 	_init = false,
@@ -229,7 +239,8 @@ local function mlc_init(e)
 	if not sandbox_env_base._init then
 		-- This gotta cause mp desyncs, +1 metatable layer should probably be used instead
 		sandbox_env_base.game = {
-			tick=game.tick, print=game.print, log=mlc_log }
+			tick=game.tick, log=mlc_log,
+			print=sandbox_game_print, print_color=game.print }
 		sandbox_env_pairs_mt_iter[cn_input_signal_get] = true
 		sandbox_env_base._init = true
 	end

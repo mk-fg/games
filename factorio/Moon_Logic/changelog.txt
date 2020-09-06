@@ -1,4 +1,13 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.0.18
+Date: 2020-09-06
+  Features:
+    - Add some colors highlight keywords in an in-game help window.
+
+  Changes:
+    - game.print() now behaves more like lua print(), and game.print_color() is for colors.
+
+---------------------------------------------------------------------------------------------------
 Version: 0.0.17
 Date: 2020-09-05
   Bugfixes:
