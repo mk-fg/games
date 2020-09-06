@@ -37,8 +37,6 @@ local function help_window_toggle(pn, toggle_on)
 		'  [color=#ffe6c0]game.print(...)[/color] -- prints values to an in-game console output.',
 		'  [color=#ffe6c0]game.print_color(msg, c)[/color] -- for a more [color=#08c2ca]co[/color]'..
 				'[color=#ed7a7e]lor[/color][color=#5cd568]ful[/color] console output, c={r[0-1],g,b}.',
-		'  [color=#ffe6c0]game.proto.<something>[/color] -- prototype tables for everything in the game.',
-		'    E.g. game.proto.item.wood is LuaItemPrototype (see factorio lua-api) for "wood".',
 		'  [color=#ffe6c0]serpent.line(...)[/color] and [color=#ffe6c0]serpent.block(...)[/color] -- dump tables to strings.',
 		' ',
 		'Presets - buttons with numbers on top of the UI:',

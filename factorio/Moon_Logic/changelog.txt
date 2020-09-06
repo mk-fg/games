@@ -1,9 +1,12 @@
 ---------------------------------------------------------------------------------------------------
-Version: 0.0.25
+Version: 0.0.26
 Date: 2020-09-06
   Features:
     - Added "GUI Signals Update Interval" setting for more UPS-efficient GUI updates.
-    - Expose read-only prototype tables for everything under game.proto.
+    - Secret feature: expose read-only prototype tables for everything under game.proto.
+      But if you try to store these into var or globals, the game will crash on save,
+      so only use them directly and never put anything but simple values from there into
+      persistent combinator state (globals or "var"), at your own risk.
 
   Bugfixes:
     - Fix showing signal values in GUI that are <0, oops.
