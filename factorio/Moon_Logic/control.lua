@@ -438,7 +438,7 @@ function run_moon_logic_tick(mlc, mlc_env, tick)
 	local out_tick, out_diff = mlc.next_tick, tc(mlc_env._out)
 	local dbg = mlc.vars.debug and function(fmt, ...)
 		mlc_log((' -- moon-logic [%s]: %s'):format(mlc_env._uid, fmt:format(...))) end
-	mlc.vars.delay, mlc.vars.debug = 1
+	mlc.vars.delay, mlc.vars.var, mlc.vars.debug = 1, mlc.vars.var or {}
 
 	if mlc.e.energy < conf.energy_fail_level then
 		mlc.state = 'no-power'

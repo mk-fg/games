@@ -200,7 +200,9 @@ local function create_gui(player, entity)
 
 	top_btns_add('mlc-close', 'Discard changes and close [[color=#e69100]Esc[/color]]')
 	top_btns_add('mlc-help', 'Toggle quick reference window')
-	top_btns_add('mlc-vars', 'Toggle variable/environment window for this combinator')
+	top_btns_add( 'mlc-vars',
+		'Toggle environment window for this combinator\n'..
+		'Right-click to clear all environment variables on it' )
 
 	elc(top_btns, {type='flow', name='mt-top-spacer-a', direction='horizontal'}, {width=10})
 
@@ -365,7 +367,12 @@ function guis.on_gui_click(ev)
 		guis.on_gui_text_changed{element=gui_t.mlc_code}
 	elseif el_id == 'mlc-close' then guis.close(uid)
 	elseif el_id == 'mlc-help' then help_window_toggle(ev.player_index)
-	elseif el_id == 'mlc-vars' then vars_window_switch_or_toggle(ev.player_index, uid)
+
+	elseif el_id == 'mlc-vars' then
+		if ev.button == rmb then
+			for k, _ in pairs(mlc.vars) do mlc.vars[k] = nil end -- clear env
+			vars_window_update(game.players[ev.player_index], uid)
+		else vars_window_switch_or_toggle(ev.player_index, uid) end
 
 	elseif preset_n then
 		if ev.button == defines.mouse_button_type.left then

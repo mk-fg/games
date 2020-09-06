@@ -1,4 +1,10 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.0.20
+Date: 2020-09-06
+  Features:
+    - Right-click on "open environment" button will clear the env, mentioned in button tooltip.
+
+---------------------------------------------------------------------------------------------------
 Version: 0.0.19
 Date: 2020-09-06
   Features:
@@ -9,6 +15,7 @@ Date: 2020-09-06
 
   Changes:
     - Only 20 preset buttons instead of 21, as more won't fit on that button-line.
+    - "Close UIs" hotkey now closes all windows created by this mod, not just the main one.
 
   Bugfixes:
     - Output signals on the right are now read from combinator directly, not output table.

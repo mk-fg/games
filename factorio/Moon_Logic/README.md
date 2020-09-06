@@ -48,7 +48,7 @@ Example code:
 
 - Simple arithmetic on an input: `out.wood = red.wood * 5`
 
-- Ever-increasing counter: `out.wood = out.wood + 1`
+- Ever-increasing output counter: `out.wood = out.wood + 1`
 
 - Don't update counter on every single [game tick](https://wiki.factorio.com/Time#Ticks): `out.wood = out.wood + 1; delay = 60`
 
