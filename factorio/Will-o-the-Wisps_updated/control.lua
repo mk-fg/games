@@ -1178,3 +1178,7 @@ script.on_event(defines.events.on_player_created, on_player_change)
 script.on_event(defines.events.on_player_changed_force, on_player_change)
 
 script.on_event(defines.events.on_runtime_mod_setting_changed, Init.settings)
+
+
+-- Activate Global Variable Viewer (gvv) mod, if installed/enabled - https://mods.factorio.com/mod/gvv
+if script.active_mods['gvv'] then require('__gvv__.gvv')() end
