@@ -1,20 +1,11 @@
 ---------------------------------------------------------------------------------------------------
-Version: 0.0.27
-Date: 2020-09-06
-  Features:
-    - Add a small item icons to an input/output signals list.
-    - Highlight code error line on save and after code runs, if gui for it is opened.
-    - Enable gvv mod support (used to debug other mods), only if it's installed and enabled.
-
----------------------------------------------------------------------------------------------------
-Version: 0.0.26
+Version: 0.0.28
 Date: 2020-09-06
   Features:
     - Added "GUI Signals Update Interval" setting for more UPS-efficient GUI updates.
-    - Secret feature: expose read-only prototype tables for everything under game.proto.
-      But if you try to store these into "var" or globals, the game will crash, so only use
-      them directly and never put anything but simple values from there into persistent
-      combinator state, at your own risk.
+    - Add small item icons to an input/output signals list.
+    - Highlight code error line on save and after code runs, if gui for it is opened.
+    - Enable gvv mod support (used to debug other mods), only if it's installed and enabled.
 
   Bugfixes:
     - Fix showing signal values in GUI that are <0, oops.
