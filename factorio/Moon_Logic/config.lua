@@ -21,6 +21,11 @@ conf.code_history_limit = 200
 conf.energy_fail_level = 34.44 / 2
 conf.energy_fail_delay = 2 * 60 -- when to re-check energy level
 
+-- Size of lua environment window
+conf.gui_vars_line_px = 500
+conf.gui_vars_line_len_max = 80
+
+
 function conf.update_from_settings()
 	local k_conf
 	for _, k in ipairs{'red-wire-name', 'green-wire-name'} do

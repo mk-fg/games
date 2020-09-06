@@ -1,10 +1,11 @@
 local conf = require('config')
 
 
-local function help_window_toggle(pn)
+local function help_window_toggle(pn, toggle_on)
 	local player = game.players[pn]
 	local gui_exists = player.gui.screen['mlc-help']
-	if gui_exists then return gui_exists.destroy() end
+	if gui_exists and not toggle_on then return gui_exists.destroy()
+	elseif toggle_on == false then return end
 
 	local gui = player.gui.screen.add{ type='frame',
 		name='mlc-help', caption='Moon Logic Combinator Info', direction='vertical' }
@@ -49,8 +50,9 @@ local function help_window_toggle(pn)
 		'  [color=#ffe6c0]Esc[/color] - unfocus/close code textbox (makes all other hotkeys work again),',
 		'  [color=#ffe6c0]Ctrl-S[/color] - save/apply code changes,'..
 				' [color=#ffe6c0]Ctrl-Left/Right[/color] - undo/redo last change,',
-		'  [color=#ffe6c0]Ctrl-Enter[/color] - save/apply and close combinator UI,'..
-				' [color=#ffe6c0]Ctrl-Q[/color] - close UI.',
+		'  [color=#ffe6c0]Ctrl-Q[/color] - close all UIs,'..
+				' [color=#ffe6c0]Ctrl-Enter[/color] - save/apply and close,'..
+				' [color=#ffe6c0]Ctrl-F[/color] - toggle env window.',
 		' ',
 		'To learn signal names, connect anything with signals to this combinator,',
 		'and their names will be printed as colored inputs on the right of the code window.',
@@ -59,6 +61,52 @@ local function help_window_toggle(pn)
 		type='label', name='line_'..n, direction='horizontal', caption=line } end
 	gui.add{type='button', name='mlc-help-close', caption='Got it'}
 end
+
+
+local function vars_window_update(player, uid)
+	local gui = player.gui.screen['mlc-vars']
+	if not gui then return end
+	gui.caption = ('Moon Logic Environment Variables [%s]'):format(uid)
+	local mlc, vars_box = global.combinators[uid], gui['mlc-vars-scroll']['mlc-vars-box']
+	if not mlc then vars_box.text = '--- [color=#911818]Moon Logic Combinator is Offline[/color] ---'
+	else
+		local text, esc, vs, c = '', function(s) return tostring(s):gsub('%[', '[ ') end
+		for k, v in pairs(mlc.vars) do
+			if text ~= '' then text = text..'\n' end
+			vs = serpent.line(v, {nocode=true})
+			if vs:len() > conf.gui_vars_line_len_max
+			then vs = serpent.block(v, {nocode=true})
+			elseif vs:len() > conf.gui_vars_line_len_max * 0.6 then vs = '\n  '..vs end
+			text = text..('[color=#520007][font=default-bold]%s[/font][/color] = %s'):format(esc(k), esc(vs))
+		end
+		vars_box.text = text
+	end
+end
+
+local function vars_window_switch_or_toggle(pn, uid, toggle_on)
+	-- Switches variables-window to specified combinator or toggles it on/off
+	local player, gui_k = game.players[pn], 'vars.'..pn
+	local gui_exists = player.gui.screen['mlc-vars']
+	if gui_exists then
+		if toggle_on == nil and global.guis_player[gui_k] ~= uid then
+			global.guis_player[gui_k] = uid
+			return vars_window_update(player, uid)
+		elseif not toggle_on then return gui_exists.destroy() end
+	elseif toggle_on == false then return end -- force off toggle
+
+	global.guis_player[gui_k] = uid
+	local gui = player.gui.screen.add{ type='frame',
+		name='mlc-vars', caption='', direction='vertical' }
+	gui.location = {math.max(50, player.display_resolution.width - 800), 45}
+	local scroll = gui.add{type='scroll-pane',  name='mlc-vars-scroll', direction='vertical'}
+	scroll.style.maximal_height = player.display_resolution.height - 300
+	local tb = scroll.add{type='text-box', name='mlc-vars-box', text=''}
+	tb.style.width = conf.gui_vars_line_px
+	tb.read_only, tb.selectable, tb.word_wrap = true, false, true
+	gui.add{type='button', name='mlc-vars-close', caption='Close'}
+	vars_window_update(player, uid)
+end
+
 
 local err_icon_sub_add = '[color=#c02a2a]%1[/color]'
 local err_icon_sub_clear = '%[color=#c02a2a%]([^\n]+)%[/color%]'
@@ -152,6 +200,7 @@ local function create_gui(player, entity)
 
 	top_btns_add('mlc-close', 'Discard changes and close [[color=#e69100]Esc[/color]]')
 	top_btns_add('mlc-help', 'Toggle quick reference window')
+	top_btns_add('mlc-vars', 'Toggle variable/environment window for this combinator')
 
 	elc(top_btns, {type='flow', name='mt-top-spacer-a', direction='horizontal'}, {width=10})
 
@@ -166,7 +215,7 @@ local function create_gui(player, entity)
 	elc(top_btns, {type='flow', name='mt-top-spacer-b', direction='horizontal'}, {width=10})
 
 	-- MT column-1: preset buttons at the top
-	for n=0, 20 do
+	for n=0, 19 do
 		elc( top_btns,
 			{ type='button', name='mlc-preset-'..n, direction='horizontal', caption=n,
 				tooltip='Discard changes and close [[color=#e69100]Esc[/color]]' },
@@ -295,8 +344,9 @@ end
 
 function guis.on_gui_click(ev)
 	local el = ev.element
-	if el.name == 'mlc-help-close' -- untracked "help" windows
-		then return el.parent.destroy() end
+	-- Separate "help" and "vars" windows, tracked separately from main guis
+	if el.name == 'mlc-help-close' then return el.parent.destroy() end
+	if el.name == 'mlc-vars-close' then return el.parent.destroy() end
 
 	local uid, gui_t = find_gui(ev)
 	if not uid then return end
@@ -315,6 +365,7 @@ function guis.on_gui_click(ev)
 		guis.on_gui_text_changed{element=gui_t.mlc_code}
 	elseif el_id == 'mlc-close' then guis.close(uid)
 	elseif el_id == 'mlc-help' then help_window_toggle(ev.player_index)
+	elseif el_id == 'mlc-vars' then vars_window_switch_or_toggle(ev.player_index, uid)
 
 	elseif preset_n then
 		if ev.button == defines.mouse_button_type.left then
@@ -357,6 +408,23 @@ function guis.on_gui_close(ev)
 		gui_t.mlc_gui.focus()
 		p.opened, gui_t.code_focused = gui_t.mlc_gui
 	else guis.close(uid) end
+end
+
+function guis.help_window_toggle(pn, toggle_on)
+	help_window_toggle(pn, toggle_on)
+end
+
+function guis.vars_window_update(pn, uid)
+	local player, vars_uid = game.players[pn], global.guis_player['vars.'..pn]
+	if not player or vars_uid ~= uid then return end
+	vars_window_update(player, uid)
+end
+
+function guis.vars_window_toggle(pn, toggle_on)
+	local gui = game.players[pn].gui.screen['mlc-gui']
+	local uid, gui_t = find_gui{element=gui}
+	if not uid then return end
+	vars_window_switch_or_toggle(pn, uid, toggle_on)
 end
 
 return guis

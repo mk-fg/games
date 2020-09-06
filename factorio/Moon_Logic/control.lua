@@ -239,7 +239,7 @@ local function mlc_init(e)
 	if not sandbox_env_base._init then
 		-- This gotta cause mp desyncs, +1 metatable layer should probably be used instead
 		sandbox_env_base.game = {
-			tick=game.tick, log=mlc_log,
+			tick=game.tick, log=mlc_log, remote=remote,
 			print=sandbox_game_print, print_color=game.print }
 		sandbox_env_pairs_mt_iter[cn_input_signal_get] = true
 		sandbox_env_base._init = true
@@ -362,27 +362,27 @@ local function format_mlc_err_msg(mlc)
 end
 
 local function update_signals_in_guis()
-	local gui_flow, label, mlc_env, e
+	local gui_flow, label, mlc, mlc_env, cb, sig
 	for uid, gui_t in pairs(global.guis) do
-		mlc_env = Combinators[uid]
-		e = mlc_env and mlc_env._e
-		if not e then goto skip end
-		if not e.valid then mlc_remove(uid); goto skip end
+		mlc, mlc_env = global.combinators[uid], Combinators[uid]
+		if not (mlc and mlc.e.valid) then mlc_remove(uid); goto skip end
 		gui_flow = gui_t.signal_pane
 		if gui_flow then gui_flow.clear() end
 		for k, color in pairs{red={1,0.3,0.3}, green={0.3,1,0.3}} do
-			for sig, v in pairs(cn_wire_signals(e, defines.wire_type[k], mlc_env._out)) do
+			cb = cn_wire_signals(mlc_env._e, defines.wire_type[k], mlc_env._out)
+			for sig, v in pairs(cb) do
 				if v > 0 then
 					label = gui_flow.add{ type='label', name='in-'..k..'-'..sig,
 						caption=('[%s] %s = %s'):format(conf.get_wire_label(k), sig, v) }
 					label.style.font_color = color
 		end end end
-		for sig, v in pairs(mlc_env._out) do if v > 0 then
-			label = gui_flow.add{ type='label',
-				name='out-'..sig, caption=('[out] %s = %s'):format(sig, v) }
-		end end
-		label = format_mlc_err_msg(global.combinators[uid]) or ''
-		gui_t.mlc_errors.caption = label
+		cb = mlc.core.get_control_behavior()
+		for _, cbs in pairs(cb and cb.parameters.parameters or {}) do
+			sig = cbs.signal.name
+			if sig and cbs.count > 0 then gui_flow.add{ type='label',
+				name='out-'..sig, caption=('[out] %s = %s'):format(sig, cbs.count) } end
+		end
+		gui_t.mlc_errors.caption = format_mlc_err_msg(global.combinators[uid]) or ''
 	::skip:: end
 end
 
@@ -407,7 +407,6 @@ end
 
 local function on_tick(ev)
 	local tick = ev.tick
-	if next(global.guis) then update_signals_in_guis() end
 	if sandbox_env_base.game then sandbox_env_base.game.tick = tick end
 
 	for uid, mlc in pairs(global.combinators) do
@@ -423,9 +422,15 @@ local function on_tick(ev)
 			goto skip -- suspend combinator logic until errors are addressed
 		elseif mlc_env._alert then alert_clear(mlc_env) end
 
-		if tick >= (mlc.next_tick or 0) and mlc_env._func
-			then run_moon_logic_tick(mlc, mlc_env, tick) end
+		if tick >= (mlc.next_tick or 0) and mlc_env._func then
+			-- XXX: highlight error line immediately, if gui is open, same for code loads
+			run_moon_logic_tick(mlc, mlc_env, tick)
+			for _, p in ipairs(game.connected_players)
+				do guis.vars_window_update(p.index, uid) end
+		end
 	::skip:: end
+
+	if next(global.guis) then update_signals_in_guis() end
 end
 
 function run_moon_logic_tick(mlc, mlc_env, tick)
@@ -572,17 +577,23 @@ script.on_event('mlc-code-redo', function(ev)
 	if mlc then guis.history_restore(gui_t, mlc, 1) end
 end)
 
-script.on_event('mlc-code-close', function(ev)
-	local uid, gui_t = next(global.guis)
-	if not uid then return end
-	guis.close(uid)
-end)
-
 script.on_event('mlc-code-commit', function(ev)
 	local uid, gui_t = next(global.guis)
 	if not uid then return end
 	guis.save_code(uid)
 	guis.close(uid)
+end)
+
+script.on_event('mlc-code-close', function(ev)
+	guis.vars_window_toggle(ev.player_index, false)
+	guis.help_window_toggle(ev.player_index, false)
+	local uid, gui_t = next(global.guis)
+	if not uid then return end
+	guis.close(uid)
+end)
+
+script.on_event('mlc-vars', function(ev)
+	guis.vars_window_toggle(ev.player_index)
 end)
 
 
@@ -690,6 +701,7 @@ script.on_configuration_changed(function(data) -- migration
 		end
 
 		if version_less_than('0.0.14') then global.guis_player = {} end
+		if version_less_than('0.0.19') then global.presets[20] = nil end
 	end
 
 	update_recipes()

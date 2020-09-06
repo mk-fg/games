@@ -1,4 +1,19 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.0.19
+Date: 2020-09-06
+  Features:
+    - Add toggle-able and auto-updating combinator environment display window (Ctrl-F).
+    - Secret feature: expose factorio LuaRemote interface as game.remote.
+      This is to allow people to use "signalstrings" or such helper mods from code.
+      Using any other mod interfaces can break the game, as they're only intended for mods devs!
+
+  Changes:
+    - Only 20 preset buttons instead of 21, as more won't fit on that button-line.
+
+  Bugfixes:
+    - Output signals on the right are now read from combinator directly, not output table.
+
+---------------------------------------------------------------------------------------------------
 Version: 0.0.18
 Date: 2020-09-06
   Features:
