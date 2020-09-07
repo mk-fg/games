@@ -1,4 +1,10 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.0.30
+Date: 2020-09-07
+  Bugfixes:
+    - Fix displaying inputs as "inputs - outputs", from all the way back when this was a constant combinator!
+
+---------------------------------------------------------------------------------------------------
 Version: 0.0.29
 Date: 2020-09-07
   Features:

@@ -114,21 +114,17 @@ local sandbox_env_base = {
 local mlc_err_sig = {type='virtual', name='mlc-error'}
 
 
-local function cn_wire_signals(e, wire_type, output)
-	local res, cn, sig_name = {}, e.get_or_create_control_behavior()
+local function cn_wire_signals(e, wire_type)
+	local res, cn = {}, e.get_or_create_control_behavior()
 		.get_circuit_network(wire_type, defines.circuit_connector_id.combinator_input)
-	output = output or {}
-	for _, sig in pairs(cn and cn.signals or {}) do
-		sig_name = sig.signal.name
-		res[sig_name] = sig.count - (output[sig_name] or 0)
-	end
+	for _, sig in pairs(cn and cn.signals or {}) do res[sig.signal.name] = sig.count end
 	return res
 end
 
 local function cn_input_signal(wenv, wire_type, k)
 	local signals = wenv._cache
 	if wenv._cache_tick ~= game.tick then
-		signals = cn_wire_signals(wenv._e, wire_type, wenv._out)
+		signals = cn_wire_signals(wenv._e, wire_type)
 		wenv._cache, wenv._cache_tick = signals, game.tick
 	end
 	if k then signals = signals[k] end
@@ -375,14 +371,14 @@ local function signal_icon_tag(sig)
 end
 
 local function update_signals_in_guis()
-	local gui_flow, label, mlc, mlc_env, cb, sig
+	local gui_flow, label, mlc, cb, sig
 	for uid, gui_t in pairs(global.guis) do
-		mlc, mlc_env = global.combinators[uid], Combinators[uid]
+		mlc = global.combinators[uid], Combinators[uid]
 		if not (mlc and mlc.e.valid) then mlc_remove(uid); goto skip end
 		gui_flow = gui_t.signal_pane
 		if gui_flow then gui_flow.clear() end
 		for k, color in pairs{red={1,0.3,0.3}, green={0.3,1,0.3}} do
-			cb = cn_wire_signals(mlc_env._e, defines.wire_type[k], mlc_env._out)
+			cb = cn_wire_signals(mlc.e, defines.wire_type[k])
 			for sig, v in pairs(cb) do
 				if v ~= 0 then
 					label = signal_icon_tag(sig)
