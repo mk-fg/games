@@ -557,8 +557,10 @@ script.on_event(defines.events.on_gui_opened, function(ev)
 end)
 
 script.on_event(defines.events.on_gui_click, guis.on_gui_click)
-script.on_event(defines.events.on_gui_text_changed, guis.on_gui_text_changed)
 script.on_event(defines.events.on_gui_closed, guis.on_gui_close)
+
+if conf.code_history_enabled -- this adds a lot of unpleasant lag to editing text in that textbox
+	then script.on_event(defines.events.on_gui_text_changed, guis.on_gui_text_changed) end
 
 
 -- ----- Keyboard editing hotkeys -----

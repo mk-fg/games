@@ -17,7 +17,9 @@ conf.logic_alert_interval = 10 * 60
 conf.led_sleep_min = 5 * 60 -- avoids flipping between sleep/run too often
 
 -- Max number of old code snippets saved on each combinator
+conf.code_history_enabled = true
 conf.code_history_limit = 200
+conf.code_tooltip_lines = 30 -- to avoid tooltip on preset button getting too long
 
 -- entity.energy threshold when combinator shuts down
 -- Full e-buffer of arithmetic combinator is 34.44, "red" level in UI is half of it
@@ -39,6 +41,7 @@ function conf.update_from_settings()
 		if conf[k_conf] == nil then error(('BUG - config key typo: %s'):format(k)) end
 		conf[k_conf] = settings.startup[k].value
 	end
+	conf.code_history_enabled = settings.startup['gui-textbox-edit-history'].value
 end
 
 return conf

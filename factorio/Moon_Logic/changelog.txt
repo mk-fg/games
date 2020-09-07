@@ -1,4 +1,16 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.0.29
+Date: 2020-09-07
+  Features:
+    - Add option to disable undo/redo history for way more smooth and pleasant editing experience.
+      Highly recommended for anyone not actually using those buttons!
+    - Preset tooltips now have nicer text and can use comments from code for tooltip on the button.
+
+  Bugfixes:
+    - Fix "save" button adding trailing newlines to code.
+    - Fix copying from textbox with error getting factorio rich-text markup tag in there.
+
+---------------------------------------------------------------------------------------------------
 Version: 0.0.28
 Date: 2020-09-06
   Features:

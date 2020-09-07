@@ -17,4 +17,9 @@ data:extend{
 		type = 'int-setting',
 		minimum_value = 1,
 		default_value = conf.gui_signals_update_interval },
+	{ order = '04',
+		setting_type = 'startup',
+		name = 'gui-textbox-edit-history',
+		type = 'bool-setting',
+		default_value = conf.code_history_enabled },
 }

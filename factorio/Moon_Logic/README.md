@@ -34,9 +34,14 @@ Note that red/green input tables are always available in the environment too, fo
 
 - GUI Signals Update Interval
 
-    Interval in game ticks (60 ticks = 1 second at 1x game speed) between updating signal table in GUI.
-    Only relevant when combinator code/signals GUI window is actually open.
-    Higher values will give better performance, but you might not notice some signals flapping on/off there, if they do that in-between updates. Default is 1, i.e. update on every tick.
+Interval in game ticks (60 ticks = 1 second at 1x game speed) between updating signal table in the UI.
+Only relevant when main combinator UI window is actually open. Default is 1 - update signal side-window on every tick.
+With higher values, signals flapping on/off synced to that interval will be impossible to notice there.
+
+- Enable Code Editing History
+
+Toggles between smooth and pleasant editing or undo/redo buttons on top working in-between saves.
+If you don't use these buttons to undo minor changes (they still keep history of saved code), be sure to uncheck this.
 
 UI hotkeys can also be customized in the Settings - Controls game menu.
 

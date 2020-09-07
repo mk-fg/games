@@ -115,6 +115,7 @@ local function code_error_highlight(text, line_err)
 	if type(line_err) == 'string'
 		then line_err = line_err:match(':(%d+):') end
 	text = text:gsub(err_icon_sub_clear, '%1')
+	text = text:match('^(.-)%s*$') -- strip trailing newlines/spaces
 	line_err = tonumber(line_err)
 	if not line_err then return text end
 	local _, line_count = text:gsub('([^\n]*)\n?','')
@@ -125,7 +126,7 @@ local function code_error_highlight(text, line_err)
 		n = n + 1
 		if n == line_err
 			then line = line:gsub('^(.+)$', err_icon_sub_add) end
-		result = result..line..'\n'
+		if n < line_count or line ~= '' then result = result..line..'\n' end
 	end
 	return result
 end
@@ -149,11 +150,28 @@ local function set_history_btns_state(gui_t, mlc)
 end
 
 local function preset_help_tooltip(code)
-	if not code
-		then code = '-- [ left-click to save script here ] --'
-		else code = code:match('^%s*(.-)%s*$')..
-			'\n-- [ left-click - load, right-click - clear ] --' end
-	return code
+	if not code then
+		return '-- [ [color=#ffe6c0]left-click[/color] to save script here ] --'..
+			'\nLines prefixed with "-- desc:" in the code will be used for preset tooltip'..
+			(', if any, first %s code lines otheriwse.'):format(conf.code_tooltip_lines)
+	end
+	-- Collect/use lines tagged with "-- desc: ..." prefix
+	local desc = (code:match('^%s*--%s*desc:%s*(.-)%s*\n') or '')..'\n'
+	for line in code:gmatch('\n%s*--%s*desc:%s*(.-)%s*\n') do desc = desc..line..'\n' end
+	desc = desc:match('^%s*(.-)%s*$')
+	if desc == '' then -- use few lines from the top of the code
+		local n = conf.code_tooltip_lines
+		for line in code:match('^%s*(.-)%s*$'):gmatch('([^\n]*)\n?') do
+			n = n - 1
+			desc = desc..line..'\n'
+			if n <= 0 then break end
+		end
+	end
+	desc = '-- [[font=default-bold]'..
+		' [color=#ffe6c0]left-click[/color] - [color=#73d875]load[/color],'..
+		' [color=#ffe6c0]right-click[/color] - [color=#ff2a55]clear[/color] [/font]] --\n'..
+		desc:match('^%s*(.-)%s*$')
+	return desc
 end
 
 local function create_gui(player, entity)
@@ -325,10 +343,11 @@ function guis.history_restore(gui_t, mlc, offset)
 end
 
 function guis.save_code(uid, code)
-	local gui_t = global.guis[uid]
-	if not gui_t then return end
+	local gui_t, mlc = global.guis[uid], global.combinators[uid]
+	if not (gui_t and mlc) then return end
 	local clean_code = code_error_highlight(code or gui_t.mlc_code.text)
 	gui_t.mlc_code.text = clean_code
+	guis.history_insert(gui_t, mlc, clean_code)
 	load_code_from_gui(clean_code, uid)
 end
 
@@ -362,7 +381,13 @@ function guis.on_gui_click(ev)
 	local preset_n = tonumber(el_id:match('^mlc%-preset%-(%d+)$'))
 	local rmb = defines.mouse_button_type.right
 
-	if el_id == 'mlc-code' then gui_t.code_focused = true -- disables hotkeys
+	if el_id == 'mlc-code' then
+		if not gui_t.code_focused then
+			-- Removing rich-text tags also screws with the cursor position, so try to avoid it
+			local clean_code = code_error_highlight(gui_t.mlc_code.text)
+			if clean_code ~= gui_t.mlc_code.text then gui_t.mlc_code.text = clean_code end
+		end
+		gui_t.code_focused = true -- disables hotkeys and repeating cleanup above
 
 	elseif el_id == 'mlc-save' then guis.save_code(uid)
 	elseif el_id == 'mlc-commit' then guis.save_code(uid); guis.close(uid)
