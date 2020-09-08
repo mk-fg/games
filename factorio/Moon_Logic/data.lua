@@ -94,7 +94,7 @@ data:extend{
 	-- Recipe
 	{ type = 'recipe',
 		name = 'mlc',
-		enabled = 'false',
+		enabled = false,
 		ingredients = {
 			{'arithmetic-combinator', 4},
 			{'decider-combinator', 2},

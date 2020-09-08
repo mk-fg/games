@@ -535,8 +535,8 @@ end
 script.on_event(defines.events.on_gui_opened, function(ev)
 	if not ev.entity then return end
 	local player = game.players[ev.player_index]
-	if not (player.opened ~= nil and player.opened.name == 'mlc') then return end
 	local e = player.opened
+	if not (e and e.name == 'mlc') then return end
 	if not global.combinators[e.unit_number] then
 		player.opened = nil
 		return player.print( 'BUG: Moon Logic Combinator #'..

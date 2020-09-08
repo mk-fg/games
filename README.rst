@@ -170,6 +170,11 @@ Easy to fix with mods though, which are one of the best parts of the game.
 
   Compatibility update and fixes for a simple circuit network on/off button mod.
 
+- `Color Combinator Lamp Posts
+  <https://mods.factorio.com/mod/Color_Combinator_Lamp_Posts>`_
+
+  Adds small always-on smart lamp posts with built-in color selection on click.
+
 - `Burner Drill 4x4 Area
   <https://mods.factorio.com/mod/Burner_Drill_4x4_Area>`_
 

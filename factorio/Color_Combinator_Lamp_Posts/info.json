@@ -1,0 +1,9 @@
+{
+	"name": "Color_Combinator_Lamp_Posts",
+	"version": "0.0.1",
+	"factorio_version": "1.0",
+	"dependencies": ["base >= 1.0"],
+	"title": "Color Combinator Lamp Posts",
+	"author": "mk-fg",
+	"description": "Adds small always-on smart lamp posts with built-in color selection on click."
+}
