@@ -6,12 +6,14 @@ local function help_window_toggle(pn, toggle_on)
 	local gui_exists = player.gui.screen['mlc-help']
 	if gui_exists and not toggle_on then return gui_exists.destroy()
 	elseif toggle_on == false then return end
+	local dw, dh, dsf = player.display_resolution.width,
+		player.display_resolution.height, 1 / player.display_scale
 
 	local gui = player.gui.screen.add{ type='frame',
 		name='mlc-help', caption='Moon Logic Combinator Info', direction='vertical' }
-	gui.location = {math.max(50, player.display_resolution.width - 800), 20}
+	gui.location = {math.max(50, (dw - 800) * dsf), 20 * dsf}
 	local scroll = gui.add{type='scroll-pane',  name='mlc-help-scroll', direction='vertical'}
-	scroll.style.maximal_height = player.display_resolution.height - 200
+	scroll.style.maximal_height = (dh - 200) * dsf
 	local lines = {
 		'Combinator has separate input and output leads, but note that you can connect them.',
 		' ',
@@ -94,12 +96,14 @@ local function vars_window_switch_or_toggle(pn, uid, toggle_on)
 		elseif not toggle_on then return gui_exists.destroy() end
 	elseif toggle_on == false then return end -- force off toggle
 
+	local dw, dh, dsf = player.display_resolution.width,
+		player.display_resolution.height, 1 / player.display_scale
 	global.guis_player[gui_k] = uid
 	local gui = player.gui.screen.add{ type='frame',
 		name='mlc-vars', caption='', direction='vertical' }
-	gui.location = {math.max(50, player.display_resolution.width - 800), 45}
+	gui.location = {math.max(50, (dw - 800) * dsf), 45 * dsf}
 	local scroll = gui.add{type='scroll-pane',  name='mlc-vars-scroll', direction='vertical'}
-	scroll.style.maximal_height = player.display_resolution.height - 300
+	scroll.style.maximal_height = (dh - 300) * dsf
 	local tb = scroll.add{type='text-box', name='mlc-vars-box', text=''}
 	tb.style.width = conf.gui_vars_line_px
 	tb.read_only, tb.selectable, tb.word_wrap = true, false, true
@@ -178,7 +182,9 @@ local function create_gui(player, entity)
 	local uid = entity.unit_number
 	local mlc = global.combinators[uid]
 	local mlc_err = mlc.err_parse or mlc.err_run
-	local max_height = player.display_resolution.height - 350
+	local dw, dh, dsf = player.display_resolution.width,
+		player.display_resolution.height, 1 / player.display_scale
+	local max_height = (dh - 350) * dsf
 
 	-- Main frame
 	local el_map, el = {} -- map is to check if el belonds to this gui
@@ -197,7 +203,7 @@ local function create_gui(player, entity)
 				('Moon Logic [%s] - %s {}, %s {}, out {}, var {}, delay (int)')
 				:format(uid, conf.red_wire_name, conf.green_wire_name) },
 		{top_padding=1, right_padding=4, bottom_padding=4, left_padding=4} )
-	gui.location = {20, 150} -- doesn't work from initial props
+	gui.location = {20 * dsf, 150 * dsf} -- doesn't work from initial props
 
 	-- Main table
 	local mt = elc(gui, {type='table', column_count=2, name='mt', direction='vertical'})
