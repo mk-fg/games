@@ -1,6 +1,5 @@
 
-
--- ----- Open combinator instead of lamp -----
+-- ----- Misc events -----
 
 script.on_event(defines.events.on_gui_opened, function(ev)
 	local player = game.players[ev.player_index]
@@ -9,6 +8,14 @@ script.on_event(defines.events.on_gui_opened, function(ev)
 	local cclp = global.cclps[e.unit_number]
 	if not cclp then return end
 	player.opened = cclp.core
+end)
+
+script.on_event(defines.events.on_entity_settings_pasted, function(ev)
+	local e1, e2 = ev.source, ev.destination
+	if not (e1.name == 'cclp' and e2.name == 'cclp') then return end
+	local cb1 = global.cclps[e1.unit_number].core.get_or_create_control_behavior()
+	local cb2 = global.cclps[e2.unit_number].core.get_or_create_control_behavior()
+	cb2.enabled, cb2.parameters = cb1.enabled, cb1.parameters
 end)
 
 
@@ -80,14 +87,6 @@ local function strict_mode_enable()
 	strict_mode = true
 end
 
-local function init_recipes(with_reset)
-	for _, force in pairs(game.forces) do
-		if with_reset then force.reset_recipes() end
-		if force.technologies['optics'].researched
-			then force.recipes['cclp'].enabled = true end
-	end
-end
-
 script.on_load(function() strict_mode_enable() end)
 
 script.on_init(function()
@@ -98,6 +97,4 @@ end)
 script.on_configuration_changed(function(data)
 	strict_mode_enable()
 	global.cclps = global.cclps or {}
-	local update = data.mod_changes and data.mod_changes[script.mod_name]
-	if update then init_recipes(update.old_version) end
 end)

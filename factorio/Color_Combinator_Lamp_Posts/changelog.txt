@@ -1,3 +1,13 @@
+
+---------------------------------------------------------------------------------------------------
+Version: 0.0.2
+Date: 2020-09-08
+  Features:
+    - Copy-paste combinator parameter via the usual shift-clicks.
+
+  Bugfixes:
+    - Remove forgotten code bit enabling recipe if only optics is researched.
+
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.1
 Date: 2020-09-08
