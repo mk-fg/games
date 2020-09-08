@@ -4,9 +4,54 @@ local sounds = require('__base__/prototypes/entity/demo-sounds')
 local function png(name) return ('__Color_Combinator_Lamp_Posts__/art/%s.png'):format(name) end
 
 
+-- Klonan's Expanded Color Lamps settings
+
+local conf, extra_colors = settings.startup
+
+if conf['cclp-add-extra-colors'].value then
+	local function RGB(r,g,b) return {r = r/255, g = g/255, b = b/255} end
+	local lamp = data.raw.lamp['small-lamp']
+
+	data:extend{
+		{ type = 'item-subgroup',
+			name = 'virtual-signal-color-extra',
+			group = 'signals',
+			order = 'dz' } }
+
+	extra_colors = table.deepcopy(lamp.signal_to_color_mapping)
+	for n, sig in ipairs{
+			-- Non-default mappings for default signals
+			{type='virtual', name='signal-white', color = RGB(255, 255, 255)},
+			{type='virtual', name='signal-grey', color = RGB(136, 136, 136)},
+			{type='virtual', name='signal-black', color = RGB(34, 34, 34)},
+
+			-- Mappings for new signals
+			{type='virtual', name='signal-light-grey', color = RGB(228, 228, 228)},
+			{type='virtual', name='signal-orange', color = RGB(229, 149, 0)},
+			{type='virtual', name='signal-brown', color = RGB(160, 106, 66)},
+			{type='virtual', name='signal-light-green', color = RGB(148, 224, 68)},
+			{type='virtual', name='signal-light-blue', color = RGB(0, 131, 199)},
+			{type='virtual', name='signal-light-purple', color = RGB(207, 110, 228)},
+			{type='virtual', name='signal-dark-purple', color = RGB(130, 0, 128)} } do
+		table.insert(extra_colors, sig)
+		if data.raw['virtual-signal'][sig.name] then goto skip end
+		data:extend{
+			{ type = 'virtual-signal',
+				name = sig.name,
+				icons = {{icon='__base__/graphics/icons/signal/signal_grey.png', tint=sig.color}},
+				icon_size = 64, icon_mipmaps = 4,
+				subgroup = 'virtual-signal-color-extra',
+				order = ('dz[colors]-[%02d%s]'):format(n, sig.name) } }
+	::skip:: end
+
+	-- Add extra colors to regular lamps as well
+	lamp.signal_to_color_mapping = extra_colors
+end
+
+
 -- Entities
 
-local cclp = table.deepcopy(data.raw['lamp']['small-lamp'])
+local cclp = table.deepcopy(data.raw.lamp['small-lamp'])
 
 cclp.name = 'cclp'
 cclp.icon = png('cclp-icon')
@@ -53,25 +98,20 @@ cclp.picture_on =
 		shift = util.by_pixel(0, -27.5),
 		scale = 0.3 }
 
--- light = {intensity = 0.9, size = 40, color = {r=1.0, g=1.0, b=1.0}}
--- light_when_colored = {intensity = 1, size = 6, color = {r=1.0, g=1.0, b=1.0}}
--- glow_size = 6
--- glow_color_intensity = 0.135
-
--- cclp.signal_to_color_mapping = {
--- 	{type='virtual', name='signal-red', color={r=1,g=0,b=0}},
--- 	{type='virtual', name='signal-green', color={r=0,g=1,b=0}},
--- 	{type='virtual', name='signal-blue', color={r=0,g=0,b=1}},
--- 	{type='virtual', name='signal-yellow', color={r=1,g=1,b=0}},
--- 	{type='virtual', name='signal-pink', color={r=1,g=0,b=1}},
--- 	{type='virtual', name='signal-cyan', color={r=0,g=1,b=1}} }
-
 local cclp_wire_shadow = util.by_pixel(32, 5)
 cclp.circuit_wire_connection_point = {
 	wire={red=util.by_pixel(9.5, -18.5), green=util.by_pixel(6.5, -16.5)},
 	shadow={red=cclp_wire_shadow, green=cclp_wire_shadow} }
 cclp.circuit_connector_sprites = nil
 cclp.circuit_wire_max_distance = 6
+
+-- Color/intensity/radius settings
+local cclp_r, cclp_v = conf['cclp-light-radius'].value, conf['cclp-light-intensity'].value
+cclp.light = {intensity=cclp_v, size=cclp_r, color={r=1.0, g=1.0, b=1.0}}
+cclp.light_when_colored = {intensity=cclp_v, size=cclp_r, color={r=1.0, g=1.0, b=1.0}}
+cclp.glow_size, cclp.glow_color_intensity = cclp_r, conf['cclp-color-intensity'].value
+cclp.glow_render_mode = 'additive' -- additive or multiplicative
+if extra_colors then cclp.signal_to_color_mapping = extra_colors end
 
 data:extend{cclp}
 
