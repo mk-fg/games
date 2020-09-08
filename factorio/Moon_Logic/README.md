@@ -4,6 +4,8 @@ Mod code uses things which are likely to desync mp games, and I only test single
 
 --------------------
 
+--------------------
+
 ## Description
 
 Adds Moon Logic Combinator that runs Lua code that can read red/green wire signal inputs and set outputs.
@@ -14,11 +16,13 @@ I.e. no syntax highlighting, code formatting, binding to factorio events, bluepr
 General principle is that it's not a replacement for Vim/Emacs or some IDE, but just a window where you paste some Lua code/logic or type/edit a couple of lines.
 And not a mod development framework either - only a combinator to convert circuit network inputs to outputs, nothing more.
 
-Mostly created because I like using those Lua combinators, and all mods for them seem to be broken and abandoned at the moment.
+Mostly created because I like using such Lua combinators myself, and all other mods for them seemed to be broken and abandoned atm.
 Fixing/maintaining these is much easier without few thousand lines of extra complexity in there.
 
 "Moon Logic" Combinator is because it's programmed in Lua - "moon" in portugese (as Lua itself originates in Brazil).
 
+
+--------------------
 
 --------------------
 
@@ -36,15 +40,17 @@ Note that red/green input tables are always available in the environment too, fo
 
 Interval in game ticks (60 ticks = 1 second at 1x game speed) between updating signal table in the UI.
 Only relevant when main combinator UI window is actually open. Default is 1 - update signal side-window on every tick.
-With higher values, signals flapping on/off synced to that interval will be impossible to notice there.
+Note that with higher interval values, signals flapping on/off synced to it will be impossible to notice there.
 
 - Enable Code Editing History
 
-Toggles between smooth and pleasant editing or undo/redo buttons on top working in-between saves.
-If you don't use these buttons to undo minor changes (they still keep history of saved code), be sure to uncheck this.
+Toggles between smooth and pleasant editing or undo/redo buttons on top working for all non-saved code changes.
+If you don't use these buttons to undo minor changes (they still keep history of saved changes), be sure to uncheck this.
 
 UI hotkeys can also be customized in the Settings - Controls game menu.
 
+
+--------------------
 
 --------------------
 
@@ -53,7 +59,11 @@ UI hotkeys can also be customized in the Settings - Controls game menu.
 Lua is a very simple and easy-to-use programming language, which [fits entirely on a couple pages](http://lua-users.org/files/wiki_insecure/users/thomasl/luarefv51.pdf).
 This mod allows using it to script factorio circuit network logic directly from within the game.
 
-Example code:
+----------
+
+**-- Trivial one-liner examples:**
+
+----------
 
 - Set constant output signal value: `out.wood = 1`
 
@@ -63,8 +73,11 @@ Example code:
 
 - Don't update counter on every single [game tick](https://wiki.factorio.com/Time#Ticks): `out.wood = out.wood + 1; delay = 60`
 
-- Control any number of things at once:
+----------
 
+**-- Control any number of things at once:**
+
+----------
 ```
 local our_train = 17 -- hover over train to find out its ID number
 local train_loaded, train_unloaded -- locals get forgotten between runs
@@ -101,12 +114,52 @@ end
 
 ```
 
-What is all this dark magic? See [Lua 5.2 Reference Manual](https://www.lua.org/manual/5.2/). I also like [quick pdf reference here](http://lua-users.org/files/wiki_insecure/users/thomasl/luarefv51single.pdf).
+As comments in the code might suggest already, it's a train station automation example.
+
+----------
+
+**-- Toy example - 7-segment lamp display for a ticking 0-9 counter:**
+
+----------
+```
+local number_segments = {
+  'ABCDEF', 'BC', 'ABDEG', 'ABCDG', 'BCFG',
+  'ACDFG', 'ACDEFG', 'ABC', 'ABCDEFG', 'ABCDFG' }
+out, var.a = {}, (var.a or 0) % 10 + 1
+for c in number_segments[var.a]:gmatch('.') do out['signal-'..c] = 1 end
+delay = 60
+```
+
+![Moon Logic ticker GIF](https://e.var.nz/factorio-moon-logic-ticker.cwc9p3ne69sn6.gif)
+
+Blueprint for lamp segments used in the above example (A-F go clockwise from top, G is the middle one),
+for "Import String" button in the shortcut bar at the bottom of the screen:
+
+```
+0eNrVmN1qrDAQx99lrm1x1MTVi8L57EOUZXF3056ARolx6bLk3WtW2u7JacCAHsiNMPmYxB8z/xm9wL4
+eWCe5UFBegB9a0UP5dIGev4iqNmPq3DEogSvWQASiaozVN1Vd39VV04GOgIsje4US9TYCJhRXnE1ersZ
+5J4Zmz+S44Kv9EXRtP25phTnNuMF7EsEZyoTck9H7eCcl23q3Z3+qE2+lWXbg8jBwtRvnjh97n7ns1e6
+fm5+4VMM48nn4dcXdN5ic96oybx8bo+kqWSlzBjyAnuYFO5gTeuMSzUOy4+3b8dFKdPSXneqt1jdj7wS
+SeQTi8AigRYA4CKTzCCThE8gdBLJZBIp3APmqAH4vCIBYADB2ECB+BGgwBGwZyBwA6LwkSP9PDHxfkEB
+ux0DiQJB7IqDBIEgtBNRBYOOXBcWqAH4tKYSxHQSuclh4NgSbVRk8rsrAlQgYe/YE4UAoLAabmfKI6Ck
+O6+bGjyXjwi4R6GoTMPHslMKJC2oxsOME0cUk9dLMNA5GM+3UQGduZH5ykeKqDH4umRt25UTXRwQSv8I
+REoTMhuDqH5D6CURIEMhslfTsI1eWhEVLBX4dCdto+hlT3vy7ieDEZH+9c7LBLM+KnOYYU0K1fgMg+xdn
+```
+
+(adapted from [this post in the old LuaCombinator forum thread](https://forums.factorio.com/viewtopic.php?p=394048#p394048))
+
+----------
+
+**-- What is all this dark magic?**
+
+See [Lua 5.2 Reference Manual](https://www.lua.org/manual/5.2/). I also like [quick pdf reference here](http://lua-users.org/files/wiki_insecure/users/thomasl/luarefv51single.pdf).
 
 Runtime errors in the code will raise global alert on the map, set "mlc-error" output on the combinator (can catch these on Programmable Speakers), and highlight the line where it happened. Syntax errors are reported on save immediately. See in-game help window for some extra debugging options.
 
 Regular combinators are best for simple things, as they work ridiculously fast on every tick. Fancy programmable ones are no replacement for them.
 
+
+--------------------
 
 --------------------
 
@@ -117,6 +170,8 @@ Regular combinators are best for simple things, as they work ridiculously fast o
 
 Big thanks to [ixu](https://mods.factorio.com/user/ixu) and [completion](https://mods.factorio.com/user/completion) for testing the mod extensively and reporting dozens of bugs here.
 
+
+--------------------
 
 --------------------
 
@@ -152,6 +207,7 @@ Big thanks to [ixu](https://mods.factorio.com/user/ixu) and [completion](https:/
     - [LuaCombinator 2](https://mods.factorio.com/mod/LuaCombinator2) by [OwnlyMe](https://mods.factorio.com/user/OwnlyMe)
 
         Great mod on which Sandboxed LuaCombinator above was based itself. Long-deprecated by now.
+        I think this one is also based off [Patched LuaCombinator](https://mods.factorio.com/mod/LuaCombinator) and the original [LuaCombinator](https://forums.factorio.com/viewtopic.php?f=93&t=15352) mods, but not sure.
 
 
 - Other programmable logic combinator mods, in no particular order:
@@ -183,3 +239,10 @@ Big thanks to [ixu](https://mods.factorio.com/user/ixu) and [completion](https:/
 
 
 - [Github repo link](https://github.com/mk-fg/games/tree/master/factorio/Moon_Logic)
+
+
+--------------------
+
+--------------------
+
+If you like this mod and want to support it, buy yourself a coffee or something, idk.
