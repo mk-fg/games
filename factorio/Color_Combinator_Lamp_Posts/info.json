@@ -1,6 +1,6 @@
 {
 	"name": "Color_Combinator_Lamp_Posts",
-	"version": "0.0.2",
+	"version": "0.0.3",
 	"factorio_version": "1.0",
 	"dependencies": ["base >= 1.0"],
 	"title": "Color Combinator Lamp Posts",

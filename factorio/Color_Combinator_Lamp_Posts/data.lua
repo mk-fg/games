@@ -76,21 +76,35 @@ cclp.circuit_wire_max_distance = 6
 data:extend{cclp}
 
 
-do
+do -- cclp-core hidden combinator, includes item to be copied to blueprints
 	local invisible_sprite = {filename=png('invisible'), width=1, height=1}
-	local wire_conn = {wire={red={0, 0}, green={0, 0}}, shadow={red={0, 0}, green={0, 0}}}
-	data:extend{{
-		type = 'constant-combinator',
-		name = 'cclp-core',
-		flags = {'placeable-off-grid'},
-		collision_mask = {},
-		item_slot_count = 1,
-		circuit_wire_max_distance = 3,
-		sprites = invisible_sprite,
-		activity_led_sprites = invisible_sprite,
-		activity_led_light_offsets = {{0, 0}, {0, 0}, {0, 0}, {0, 0}},
-		circuit_wire_connection_points = {wire_conn, wire_conn, wire_conn, wire_conn},
-		draw_circuit_wires = false } }
+	local wire_conn = cclp.circuit_wire_connection_point
+	data:extend{
+
+		{ type = 'constant-combinator',
+			name = 'cclp-core',
+			icon = png('cclp-core-icon'),
+			icon_size = 64,
+			flags = {'placeable-neutral', 'player-creation', 'placeable-off-grid', 'hide-alt-info'},
+			selectable_in_game = false,
+			collision_mask = {'layer-11'},
+			item_slot_count = 1,
+			circuit_wire_max_distance = 3,
+			sprites = invisible_sprite,
+			activity_led_sprites = invisible_sprite,
+			activity_led_light_offsets = {{0, 0}, {0, 0}, {0, 0}, {0, 0}},
+			circuit_wire_connection_points = {wire_conn, wire_conn, wire_conn, wire_conn},
+			draw_circuit_wires = false },
+
+		{ type = 'item',
+			name = 'cclp-core',
+			icon = png('cclp-core-icon'),
+			icon_size = 64,
+			subgroup = 'circuit-network',
+			order = 'zzzzzzz',
+			place_result = 'cclp-core',
+			stack_size = 50,
+			flags = {'hidden'} } }
 end
 
 
@@ -106,14 +120,16 @@ data:extend{
 			{'copper-cable', 2}
 		},
 		result = 'cclp' },
+
 	{ type = 'item',
 		name = 'cclp',
 		icon = png('cclp-icon'),
 		icon_size = 64,
-		subgroup = "circuit-network",
-		order = "a[light]-b[cclp]",
-		place_result = "cclp",
+		subgroup = 'circuit-network',
+		order = 'a[light]-b[cclp]',
+		place_result = 'cclp',
 		stack_size = 50 },
+
 	{ type = 'technology',
 		name = 'cclp',
 		icon_size = 128,

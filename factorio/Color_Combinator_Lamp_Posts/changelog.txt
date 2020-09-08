@@ -1,5 +1,14 @@
 
 ---------------------------------------------------------------------------------------------------
+Version: 0.0.3
+Date: 2020-09-08
+  Features:
+    - Support saving lamp settings to blueprints.
+
+  Bugfixes:
+    - Fix on_gui_opened check for equipment grid and other GUIs.
+
+---------------------------------------------------------------------------------------------------
 Version: 0.0.2
 Date: 2020-09-08
   Features:
