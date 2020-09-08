@@ -106,7 +106,7 @@ cclp.circuit_connector_sprites = nil
 cclp.circuit_wire_max_distance = 6
 
 -- Color/intensity/radius settings
-local cclp_r, cclp_v = conf['cclp-light-radius'].value, conf['cclp-light-intensity'].value
+local cclp_r, cclp_v = conf['cclp-glow-radius'].value, conf['cclp-glow-intensity'].value
 cclp.light = {intensity=cclp_v, size=cclp_r, color={r=1.0, g=1.0, b=1.0}}
 cclp.light_when_colored = {intensity=cclp_v, size=cclp_r, color={r=1.0, g=1.0, b=1.0}}
 cclp.glow_size, cclp.glow_color_intensity = cclp_r, conf['cclp-color-intensity'].value

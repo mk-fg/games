@@ -8,14 +8,14 @@ Mod settings (startup tab):
 
     Adds extra row of lamp color "virtual signals" to pick from, which can be used with regular lamps as well.
 
-- Lamp Post light radius
+- Lamp Post glow radius
 
-    Radius for lamp post light, when any signal is set on it. Default: 6. 0 - disabled.
+    Radius for lamp post glow, when any signal is set on it. Default: 6. 0 - disabled.
 
-- Lamp Post light intensity
+- Lamp Post glow intensity
 
-    Light intensity value for lamp posts, in 0 (no light) - 1.0 (bright glow) range, when any signal is set on it. Default: 0.9.
+    Glow intensity value for lamp posts, in 0 (no light) - 1.0 (bright) range. Default: 0.9.
 
 - Lamp Post color intensity
 
-    Lamp post light color intensity, from 0 (white) to 1.0 (full color). Does not affect color of the lamp itself. Default: 0.135.
+    Lamp post glow color intensity, from 0 (white) to 1.0 (full color). Does not affect color of the lamp itself. Default: 0.135.

@@ -1,9 +1,9 @@
 
 ---------------------------------------------------------------------------------------------------
-Version: 0.0.4
+Version: 0.0.5
 Date: 2020-09-08
   Features:
-    - Add options to add a row of extra colors and configure lamp posts' glow parameters.
+    - Add mod settings to add a row of extra colors and configure lamp posts' glow parameters.
 
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.3
