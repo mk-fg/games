@@ -68,15 +68,6 @@ local function sandbox_game_print(...)
 	game.print(msg)
 end
 
-local sandbox_api_proxy_env -- mp desync
-local function sandbox_api_proxy(tbl, k)
-	if not sandbox_api_proxy_env then sandbox_api_proxy_env = {
-		game=game, script=script, remote=remote, commands=commands,
-		settings=settings, rcon=rcon, rendering=rendering, global=global, defines=defines } end
-	if not k then return sandbox_api_proxy_env end
-	return sandbox_api_proxy_env[k]
-end
-
 -- This env gets modified on ticks, which might cause mp desyncs
 local sandbox_env_base = {
 	_init = false,
@@ -250,10 +241,10 @@ local function mlc_init(e)
 		sandbox_env_base.game = {
 			tick=game.tick, log=mlc_log,
 			print=sandbox_game_print, print_color=game.print }
+		sandbox_env_base._api = { game=game, script=script,
+			remote=remote, commands=commands, settings=settings,
+			rcon=rcon, rendering=rendering, global=global, defines=defines }
 		sandbox_env_pairs_mt_iter[cn_input_signal_get] = true
-		sandbox_env_base._api = setmetatable(
-			{_iter=sandbox_api_proxy}, {__index=sandbox_api_proxy} )
-		sandbox_env_pairs_mt_iter[sandbox_api_proxy] = true
 		sandbox_env_base._init = true
 	end
 

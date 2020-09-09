@@ -1,6 +1,6 @@
 
 ---------------------------------------------------------------------------------------------------
-Version: 0.0.33
+Version: 0.0.34
 Date: 2020-09-09
   Features:
     - Secret feature: re-introduce access to factorio apis under "_api" global in env.
