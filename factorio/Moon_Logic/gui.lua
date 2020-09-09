@@ -18,7 +18,7 @@ local function help_window_toggle(pn, toggle_on)
 		'Combinator has separate input and output leads, but note that you can connect them.',
 		' ',
 		'Special variables available/handled in Lua environment:',
-		'  [color=#ffe6c0]uid[/color] (int) -- globally-unique number of this combinator.',
+		'  [color=#ffe6c0]uid[/color] (uint) -- globally-unique number of this combinator.',
 		('  [color=#ffe6c0]%s[/color] {signal-name=value, ...} -- signals in the %s network (read-only).')
 			:format(conf.red_wire_name, conf.red_wire_name),
 		'    Any keys queried there are always numbers, returns 0 for missing signal.',
@@ -32,6 +32,9 @@ local function help_window_toggle(pn, toggle_on)
 		'    so must be set on every individual run if you want to delay the next one.',
 		'  [color=#ffe6c0]var[/color] {} -- table to easily store values between code runs (per-mlc globals work too).',
 		'  [color=#ffe6c0]debug[/color] (bool) -- set to true to print debug info about next code run to factorio log.',
+		'  [color=#ffe6c0]ota_update_from_uid[/color] (uint) -- copy code from another combinator with this uid.',
+		'    Gets reset after code runs. Ignored if MLC with that uid (number in a window header) does not exist.',
+		'    Note that only code is updated, while persistent lua environment and outputs stay the same.',
 		' ',
 		'Factorio APIs available, aside from general Lua stuff:',
 		'  [color=#ffe6c0]game.tick[/color] -- read-only int for factorio game tick, to measure time intervals.',

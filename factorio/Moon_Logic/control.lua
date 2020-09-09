@@ -193,17 +193,21 @@ end
 
 local function mlc_update_led(mlc, mlc_env)
 	-- This should set state in a way that doesn't actually produce any signals
-	-- Combinator is not considered 'active', as it ends up with 0 value
+	-- Combinator is not considered 'active', as it ends up with 0 value, unless it's mlc-error
 	-- It's possible to have it output value and cancel it out, but shows-up on ALT-display
+	-- First constant on the combinator encodes its uid value, to copy code from in blueprints
 	if mlc.state == mlc_env._state then return end
 	local st, cb = mlc.state, mlc.e.get_or_create_control_behavior()
 	if not (cb and cb.valid) then return end
-	local op, a, b, out = '*', 0, 0
+
+	local op, a, b, out = '*', mlc_env._uid, 0
+	-- uid is uint, signal is int (signed), so must be negative if >=2^31
+	if a >= 0x80000000 then a = a - 0x100000000 end
 	if not st then op = '*'
-	elseif st == 'run' then op = '+'
+	elseif st == 'run' then op = '%'
 	elseif st == 'sleep' then op = '-'
-	elseif st == 'no-power' then op, b = '^', 1
-	elseif st == 'error' then op, a, b, out = '%', 1, 2, mlc_err_sig end -- show with ALT
+	elseif st == 'no-power' then op = '^'
+	elseif st == 'error' then op, b, out = '+', 1 - a, mlc_err_sig end -- shown with ALT
 	cb.parameters = {parameters={
 		operation=op, first_signal=nil, second_signal=nil,
 		first_constant=a, second_constant=b, output_signal=out }}
@@ -327,7 +331,18 @@ end
 local function on_built(ev)
 	local e = ev.created_entity or ev.entity -- latter for revive event
 	if not (e.valid and e.name == 'mlc') then return end
-	global.combinators[e.unit_number] = {e=e, core=bootstrap_core(e)}
+	local mlc = {e=e, core=bootstrap_core(e)}
+	global.combinators[e.unit_number] = mlc
+
+	-- Copy combinator settings from the original one when blueprinted
+	local uid_src = e.get_or_create_control_behavior()
+		.parameters.parameters.first_constant or 0
+	if uid_src < 0 then uid_src = uid_src + 0x100000000 end -- int -> uint conversion
+	if uid_src ~= 0 then
+		local mlc_src = global.combinators[uid_src]
+		if mlc_src then mlc.code = mlc_src.code else
+			mlc.code = ('-- Moon Logic [%s] is unavailable for OTA code update'):format(uid_src) end
+	end
 end
 
 script.on_event(defines.events.on_built_entity, on_built, mlc_filter)
@@ -522,6 +537,12 @@ function run_moon_logic_tick(mlc, mlc_env, tick)
 
 	if dbg then dbg('--- debug-run end [tick=%s] ---', tick) end -- debug
 	mlc_update_led(mlc, mlc_env)
+
+	if mlc.vars.ota_update_from_uid then
+		local mlc_src = global.combinators[mlc.vars.ota_update_from_uid]
+		if mlc_src then guis.save_code(mlc_env._uid, mlc_src.code) end
+		mlc.vars.ota_update_from_uid = nil
+	end
 end
 
 script.on_event(defines.events.on_tick, on_tick)

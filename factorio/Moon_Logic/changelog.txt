@@ -1,5 +1,13 @@
 
 ---------------------------------------------------------------------------------------------------
+Version: 0.0.35
+Date: 2020-09-09
+  Features:
+    - Combinator code can now be copied from the original one when blueprinted,
+      but only if original one still exists at the time when new one is placed by a robot.
+    - Add "ota_update_from_uid" lua env var support to copy code from another mlc.
+
+---------------------------------------------------------------------------------------------------
 Version: 0.0.34
 Date: 2020-09-09
   Features:
