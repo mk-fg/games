@@ -1,6 +1,6 @@
 {
    "name" : "Switch_Button-1_0",
-   "version" : "0.1.15",
+   "version" : "0.1.16",
    "factorio_version" : "1.0",
    "dependencies" : ["base >= 1.0.0"],
    "title" : "Switch Button by GalactusX31 updated for 1.0",

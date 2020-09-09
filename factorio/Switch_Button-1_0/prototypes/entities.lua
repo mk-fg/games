@@ -4,6 +4,7 @@ local switchbutton = table.deepcopy(data.raw['constant-combinator']['constant-co
 switchbutton.name = 'switchbutton'
 switchbutton.icon = '__Switch_Button-1_0__/graphics/Switch_Button_OFF.png'
 switchbutton.icon_size = 40
+switchbutton.icon_mipmaps = 1
 switchbutton.item_slot_count = 1
 switchbutton.minable.result = 'switchbutton'
 
