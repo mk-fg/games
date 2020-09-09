@@ -43,7 +43,57 @@ function tdc(object)
 end
 
 
--- ----- Sandboxing and control network inputs code -----
+-- ----- Circuit network controls -----
+
+local function cn_wire_signals(e, wire_type)
+	local res, cn = {}, e.get_or_create_control_behavior()
+		.get_circuit_network(wire_type, defines.circuit_connector_id.combinator_input)
+	for _, sig in pairs(cn and cn.signals or {}) do res[sig.signal.name] = sig.count end
+	return res
+end
+
+local function cn_input_signal(wenv, wire_type, k)
+	local signals = wenv._cache
+	if wenv._cache_tick ~= game.tick then
+		signals = cn_wire_signals(wenv._e, wire_type)
+		wenv._cache, wenv._cache_tick = signals, game.tick
+	end
+	if k then signals = signals[k] end
+	return signals
+end
+
+local function cn_input_signal_get(wenv, k)
+	local v = cn_input_signal(wenv, defines.wire_type[wenv._wire], k) or 0
+	if wenv._debug then wenv._debug[conf.get_wire_label(wenv._wire)..'['..k..']'] = v end
+	return v
+end
+local function cn_input_signal_set(wenv, k, v)
+	error(( 'Attempt to set value to input wire:'..
+		' %s[%s] = %s' ):format(conf.get_wire_label(wenv._wire), k, v), 2)
+end
+
+local function cn_input_signal_iter(wenv)
+	local signals = cn_input_signal(wenv, defines.wire_type[wenv._wire])
+	if wenv._debug then
+		local sig_fmt = conf.get_wire_label(wenv._wire)..'[%s]'
+		for sig, v in pairs(signals) do wenv._debug[sig_fmt:format(sig)] = v or 0 end
+	end
+	return signals
+end
+
+local function cn_input_signal_table_serialize(wenv)
+	return {__wire_inputs=conf.get_wire_label(wenv._wire)}
+end
+
+local function cn_output_table_value(out, k) return rawget(out, k) or 0 end
+local function cn_output_table_replace(out, new_tbl)
+	-- Note: validation for sig_names/values is done when output table is used later
+	for sig, v in pairs(out) do out[sig] = nil end
+	for sig, v in pairs(new_tbl or {}) do out[sig] = v end
+end
+
+
+-- ----- Sandbox base -----
 
 local sandbox_env_pairs_mt_iter = {}
 local function sandbox_env_pairs(tbl) -- allows to iterate over red/green ro-tables
@@ -111,56 +161,9 @@ local sandbox_env_base = {
 		lshift = bit32.lshift , rrotate = bit32.rrotate , rshift = bit32.rshift }
 }
 
+-- ----- MLC update processing -----
+
 local mlc_err_sig = {type='virtual', name='mlc-error'}
-
-
-local function cn_wire_signals(e, wire_type)
-	local res, cn = {}, e.get_or_create_control_behavior()
-		.get_circuit_network(wire_type, defines.circuit_connector_id.combinator_input)
-	for _, sig in pairs(cn and cn.signals or {}) do res[sig.signal.name] = sig.count end
-	return res
-end
-
-local function cn_input_signal(wenv, wire_type, k)
-	local signals = wenv._cache
-	if wenv._cache_tick ~= game.tick then
-		signals = cn_wire_signals(wenv._e, wire_type)
-		wenv._cache, wenv._cache_tick = signals, game.tick
-	end
-	if k then signals = signals[k] end
-	return signals
-end
-
-local function cn_input_signal_get(wenv, k)
-	local v = cn_input_signal(wenv, defines.wire_type[wenv._wire], k) or 0
-	if wenv._debug then wenv._debug[conf.get_wire_label(wenv._wire)..'['..k..']'] = v end
-	return v
-end
-local function cn_input_signal_set(wenv, k, v)
-	error(( 'Attempt to set value to input wire:'..
-		' %s[%s] = %s' ):format(conf.get_wire_label(wenv._wire), k, v), 2)
-end
-
-local function cn_input_signal_iter(wenv)
-	local signals = cn_input_signal(wenv, defines.wire_type[wenv._wire])
-	if wenv._debug then
-		local sig_fmt = conf.get_wire_label(wenv._wire)..'[%s]'
-		for sig, v in pairs(signals) do wenv._debug[sig_fmt:format(sig)] = v or 0 end
-	end
-	return signals
-end
-
-local function cn_input_signal_table_serialize(wenv)
-	return {__wire_inputs=conf.get_wire_label(wenv._wire)}
-end
-
-local function cn_output_table_value(out, k) return rawget(out, k) or 0 end
-local function cn_output_table_replace(out, new_tbl)
-	-- Note: validation for sig_names/values is done when output table is used later
-	for sig, v in pairs(out) do out[sig] = nil end
-	for sig, v in pairs(new_tbl or {}) do out[sig] = v end
-end
-
 
 local function mlc_update_output(mlc, output)
 	-- Note: uses invisible mlc.core combinator to set signal outputs
@@ -221,6 +224,9 @@ local function mlc_update_code(mlc, mlc_env, lua_env)
 	end
 	mlc_update_led(mlc, mlc_env)
 end
+
+
+-- ----- MLC (+ sandbox) init / remove -----
 
 local function mlc_log(...) log(...) end -- to avoid logging func code
 

@@ -118,15 +118,15 @@ As comments in the code might suggest already, it's a train station automation e
 
 ----------
 
-**-- Toy example - 7-segment lamp display for a ticking 0-9 counter:**
+**-- Toy example - 7-segment digit display for a ticking 0-9 counter:**
 
 ----------
 ```
-local number_segments = {
+local digit_segments = { -- segments to light up for 0, 1, 2, 3, ...
   'ABCDEF', 'BC', 'ABDEG', 'ABCDG', 'BCFG',
   'ACDFG', 'ACDEFG', 'ABC', 'ABCDEFG', 'ABCDFG' }
-out, var.a = {}, (var.a or 0) % 10 + 1
-for c in number_segments[var.a]:gmatch('.') do out['signal-'..c] = 1 end
+out, var.n = {}, (var.n or 0) % 10 + 1
+for c in digit_segments[var.n]:gmatch('.') do out['signal-'..c] = 1 end
 delay = 60
 ```
 
