@@ -46,19 +46,19 @@ end
 -- ----- Sandboxing and control network inputs code -----
 
 local sandbox_env_pairs_mt_iter = {}
-function sandbox_env_pairs(tbl) -- allows to iterate over red/green ro-tables
+local function sandbox_env_pairs(tbl) -- allows to iterate over red/green ro-tables
 	local mt = getmetatable(tbl)
 	if mt and sandbox_env_pairs_mt_iter[mt.__index] then tbl = tbl._iter(tbl) end
 	return pairs(tbl)
 end
 
-function sandbox_clean_table(tbl, apply_func)
+local function sandbox_clean_table(tbl, apply_func)
 	local tbl_clean = {}
 	for k, v in sandbox_env_pairs(tbl) do tbl_clean[k] = v end
 	if apply_func then return apply_func(tbl_clean) else return tbl_clean end
 end
 
-function sandbox_game_print(...)
+local function sandbox_game_print(...)
 	local args, msg = table.pack(...), ''
 	for _, arg in ipairs(args) do
 		if msg ~= '' then msg = msg..' ' end
@@ -66,6 +66,15 @@ function sandbox_game_print(...)
 		msg = msg..(tostring(arg or 'nil') or '[value]')
 	end
 	game.print(msg)
+end
+
+local sandbox_api_proxy_env -- mp desync
+local function sandbox_api_proxy(tbl, k)
+	if not sandbox_api_proxy_env then sandbox_api_proxy_env = {
+		game=game, script=script, remote=remote, commands=commands,
+		settings=settings, rcon=rcon, rendering=rendering, global=global, defines=defines } end
+	if not k then return sandbox_api_proxy_env end
+	return sandbox_api_proxy_env[k]
 end
 
 -- This env gets modified on ticks, which might cause mp desyncs
@@ -237,11 +246,14 @@ local function mlc_init(e)
 	local mlc_env, mlc = Combinators[uid], global.combinators[uid]
 
 	if not sandbox_env_base._init then
-		-- This gotta cause mp desyncs, +1 metatable layer should probably be used instead
+		-- This is likely to cause mp desyncs
 		sandbox_env_base.game = {
-			tick=game.tick, log=mlc_log, remote=remote,
+			tick=game.tick, log=mlc_log,
 			print=sandbox_game_print, print_color=game.print }
 		sandbox_env_pairs_mt_iter[cn_input_signal_get] = true
+		sandbox_env_base._api = setmetatable(
+			{_iter=sandbox_api_proxy}, {__index=sandbox_api_proxy} )
+		sandbox_env_pairs_mt_iter[sandbox_api_proxy] = true
 		sandbox_env_base._init = true
 	end
 

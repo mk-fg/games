@@ -1,5 +1,13 @@
 
 ---------------------------------------------------------------------------------------------------
+Version: 0.0.33
+Date: 2020-09-09
+  Features:
+    - Secret feature: re-introduce access to factorio apis under "_api" global in env.
+      Unlike with combinator input/output values, it's easy to break the game through this by mistake,
+      so I'd suggest never using it, unless you absolutely know what you are doing.
+
+---------------------------------------------------------------------------------------------------
 Version: 0.0.31
 Date: 2020-09-08
   Bugfixes:
