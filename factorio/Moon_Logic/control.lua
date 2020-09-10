@@ -661,7 +661,10 @@ end
 
 local function update_signal_types_table()
 	global.signals = {}
-	for name, _ in pairs(game.virtual_signal_prototypes) do global.signals[name] = 'virtual' end
+	for name, sig in pairs(game.virtual_signal_prototypes) do
+		if sig.subgroup.name == 'virtual-signal-special' then goto skip end -- anything/everything/each
+		global.signals[name] = 'virtual'
+	::skip:: end
 	for name, _ in pairs(game.item_prototypes) do global.signals[name] = 'item' end
 	for name, _ in pairs(game.fluid_prototypes) do global.signals[name] = 'fluid' end
 end
