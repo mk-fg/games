@@ -58,7 +58,10 @@ local function cn_input_signal(wenv, wire_type, k)
 		signals = cn_wire_signals(wenv._e, wire_type)
 		wenv._cache, wenv._cache_tick = signals, game.tick
 	end
-	if k then signals = signals[k] end
+	if k then
+		if not global.signals[k] then error('Unknown signal name: '..k, 3) end
+		signals = signals[k]
+	end
 	return signals
 end
 

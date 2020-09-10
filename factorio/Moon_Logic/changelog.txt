@@ -1,7 +1,10 @@
 
 ---------------------------------------------------------------------------------------------------
-Version: 0.0.36
+Version: 0.0.37
 Date: 2020-09-10
+  Changes:
+    - Querying unknown input signal names now raises errors instead of returning 0.
+
   Bugfixes:
     - Fix crash when trying to set signal-anything or signal-everything on the outputs.
 
