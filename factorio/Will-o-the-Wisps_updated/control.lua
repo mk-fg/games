@@ -1097,8 +1097,10 @@ function Init.state_tick()
 				force.recipes['alien-flora-sample'].enabled = true
 				force.recipes['wisp-detector'].enabled = true
 			end
-			if force.technologies['solar-energy'].researched
-				then force.recipes['UV-lamp'].enabled = true end
+			for _, tech in ipairs{'solar-energy', 'deadlock-solar-energy-1'} do
+				tech = force.technologies[tech]
+				if tech and tech.researched then force.recipes['UV-lamp'].enabled = true end
+			end
 			if force.technologies['combat-robotics'].researched
 				then force.recipes['wisp-drone-blue-capsule'].enabled = true end
 		end
