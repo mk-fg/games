@@ -74,6 +74,7 @@ Technologies:
 
     - [Clockwork](https://mods.factorio.com/mod/Clockwork) - extends nights, and longer nights = more shinies!
     - [Time Tools](https://mods.factorio.com/mods/binbinhfr/TimeTools) - UI clock and speed settings plus time/darkness-tracking combinators.
+    - [Wildfire](https://mods.factorio.com/mod/Wildfire) - can make things a lot more "interesting" at nights.
     - [Diplomacy](https://mods.factorio.com/mod/diplomacy) and [Rampant](https://mods.factorio.com/mod/Rampant) - for [emergent game faction dynamics and challenge](https://forums.factorio.com/viewtopic.php?p=377032#p377032).
     - [Catmod-Reborn](https://mods.factorio.com/mod/Catmod-Reborn) - have cats chase shiny orbs of tuna.
 
