@@ -1,5 +1,11 @@
 
 ---------------------------------------------------------------------------------------------------
+Version: 0.0.2
+Date: 2020-09-30
+  Changes:
+    - Change wildfire force to be "wildfire", so that other mods can distinguish it from player/neutral actions easily.
+
+---------------------------------------------------------------------------------------------------
 Version: 0.0.1
 Date: 2020-09-30
   Features:

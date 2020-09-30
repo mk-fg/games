@@ -17,8 +17,6 @@ local function strict_mode_enable()
 end
 
 
-local function reset_tree_entities() global.surface_trees = nil end
-
 local function update_tree_entities()
 	local st = {}
 	for _, p in pairs(game.get_filtered_entity_prototypes{{filter='type', type='tree'}}) do
@@ -27,7 +25,6 @@ local function update_tree_entities()
 	::skip:: end
 	global.surface_trees = st
 end
-
 
 local function update_surface_bounds(ev)
 	-- Updates known map bounds on new chunk generation
@@ -97,8 +94,9 @@ end
 
 
 local function catch_fire(pos)
+	if not game.forces.wildfire then game.create_force('wildfire') end
 	game.surfaces.nauvis.create_entity{
-		name='fire-flame-on-tree', position=pos, force='neutral' }
+		name='fire-flame-on-tree', position=pos, force='wildfire' }
 end
 
 
@@ -198,7 +196,7 @@ end
 
 commands.add_command('wf', run_wf_cmd(), run_wf_cmd)
 
-script.on_configuration_changed(function(data) reset_tree_entities() end)
+script.on_configuration_changed(function(data) global.surface_trees = nil end)
 script.on_init(function() strict_mode_enable() end)
 script.on_load(function() strict_mode_enable() end)
 

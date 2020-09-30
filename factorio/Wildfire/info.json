@@ -1,6 +1,6 @@
 {
 	"name": "Wildfire",
-	"version": "0.0.1",
+	"version": "0.0.2",
 	"factorio_version": "1.0",
 	"dependencies": ["base >= 1.0"],
 	"title": "Wildfire",
