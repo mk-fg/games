@@ -175,6 +175,10 @@ Easy to fix with mods though, which are one of the best parts of the game.
 
   Adds small always-on smart lamp posts with built-in color selection on click.
 
+- `Wildfire <https://mods.factorio.com/mod/Wildfire>`_
+
+  Mod that starts forest fires on the map randomly.
+
 - `Burner Drill 4x4 Area
   <https://mods.factorio.com/mod/Burner_Drill_4x4_Area>`_
 

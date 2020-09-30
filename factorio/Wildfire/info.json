@@ -1,0 +1,9 @@
+{
+	"name": "Wildfire",
+	"version": "0.0.1",
+	"factorio_version": "1.0",
+	"dependencies": ["base >= 1.0"],
+	"title": "Wildfire",
+	"author": "mk-fg",
+	"description": "Makes trees self-ignite sometimes, but balanced not to burn the whole map."
+}
