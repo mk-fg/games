@@ -96,8 +96,7 @@ local function find_fire_position()
 	return spark_pos
 end
 
-
-local function catch_fire(pos)
+local function create_wildfire(pos)
 	if not game.forces.wildfire then game.create_force('wildfire') end
 	game.surfaces.nauvis.create_entity{
 		name='fire-flame-on-tree', position=pos, force='wildfire' }
@@ -155,7 +154,7 @@ local function run_wf_cmd(cmd)
 			if pos then break end
 		end
 		if pos then
-			catch_fire(pos)
+			create_wildfire(pos)
 			if args[3] then
 				if args[3] ~= 'tag' then return usage() end
 				if not global.tags then global.tags = {} end
@@ -164,14 +163,15 @@ local function run_wf_cmd(cmd)
 					do table.insert( global.tags,
 						player.force.add_chart_tag(game.surfaces.nauvis, tag) ) end
 			end
-		else wfp(( 'spark: failed to find random'..
-			' position that passed all checks (n=%s)' ):format(n_max)) end
+		else wfp(( 'spark: failed to find random position'..
+			' that passed all checks (n=%s)' ):format(n_max)) end
 
 	elseif cmd == 'tag' then
 		local tag_clear, tag_here, tag_sub
 		if args[2] then
 			if args[2] == 'clear' then tag_clear = true
 			elseif args[2] == 'here' then tag_here = true
+			elseif args[2] == 'sub' then tag_sub = true
 			else return usage() end end
 		if args[3] then
 			if args[3] == 'sub' then tag_sub = true
@@ -205,24 +205,25 @@ local function check_time(ev)
 	if not global.spark_tick then
 		global.spark_tick = ev.tick + conf.spark_interval +
 			math.random(-conf.spark_interval_jitter, conf.spark_interval_jitter)
-		global.spark_check_limit = conf.check_limit
 	end
 	if ev.tick < global.spark_tick then return end
 
-	global.spark_check_limit = global.spark_check_limit - 1
-	if global.spark_check_limit >= 0 then
-		local pos = find_fire_position()
-		if not pos then return end
-		catch_fire(pos)
-	end
-
-	global.spark_tick, global.spark_check_limit = nil
+	global.spark_tick = nil
+	local pos = find_fire_position()
+	if pos then create_wildfire(pos) end
 end
 
 
 commands.add_command('wf', run_wf_cmd(), run_wf_cmd)
 
-script.on_configuration_changed(function(data) global.surface_trees = nil end)
+script.on_configuration_changed(function(data)
+	global.surface_trees = nil -- in case mods change trees
+
+	global.surface_bounds = nil -- ver < 0.0.4
+	if global.spark_check_limit -- ver < 0.0.5
+		then global.spark_tick = nil end
+end)
+
 script.on_init(function() strict_mode_enable() end)
 script.on_load(function() strict_mode_enable() end)
 

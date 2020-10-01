@@ -8,14 +8,17 @@ conf.spark_interval_jitter = 22 * 60 * 60
 conf.check_interval = 3 * 60
 conf.check_radius = 4 * 32
 suff.check_radius = 2
-conf.check_limit = 10
 
 conf.check_sample_n = 5
 conf.check_sample_offset = 12 * 32
 
 conf.min_green_trees = 400
+suff.min_green_trees = 2
 conf.max_dead_trees = 500
+suff.max_dead_trees = 2
 conf.green_dead_balance = 2
+suff.green_dead_balance = 2
+
 -- End of mods-settings-options
 -- DONT FORGET TO UPDATE LOCALE AFTER CHANGING OPTION SUFFIX
 

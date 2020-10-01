@@ -1,11 +1,18 @@
 
 ---------------------------------------------------------------------------------------------------
+Version: 0.0.5
+Date: 2020-10-01
+  Changes:
+    - Remove wildfire retries, so that chance of these will fall-off once dead trees start getting sampled.
+  Fixes:
+    - Fix some missing settings and translation string suffixes.
+
+---------------------------------------------------------------------------------------------------
 Version: 0.0.4
 Date: 2020-10-01
   Features:
-    - Add more console commands to chat and reveal map.
-  Changes:
-    - Increase tree-check radius by almost 5x after some basic testing.
+    - Add more console commands to chart and reveal map.
+    - Use faster and smarter sampling algorithm for picking wildfire location.
 
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.3

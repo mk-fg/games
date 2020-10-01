@@ -27,12 +27,6 @@ data:extend{
 		type = 'int-setting',
 		minimum_value = 1,
 		name = 'check_radius' },
-	conf.s{
-		order = '23',
-		setting_type = 'startup',
-		type = 'int-setting',
-		minimum_value = 1,
-		name = 'check_limit' },
 
 	conf.s{
 		order = '31',
