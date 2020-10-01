@@ -37,17 +37,30 @@ data:extend{
 	conf.s{
 		order = '31',
 		setting_type = 'startup',
+		type = 'int-setting',
+		minimum_value = 0,
+		name = 'check_sample_n' },
+	conf.s{
+		order = '32',
+		setting_type = 'startup',
+		type = 'int-setting',
+		minimum_value = 1,
+		name = 'check_sample_offset' },
+
+	conf.s{
+		order = '41',
+		setting_type = 'startup',
 		minimum_value = 1,
 		type = 'int-setting',
 		name = 'min_green_trees' },
 	conf.s{
-		order = '32',
+		order = '42',
 		setting_type = 'startup',
 		minimum_value = 0,
 		type = 'int-setting',
 		name = 'max_dead_trees' },
 	conf.s{
-		order = '33',
+		order = '43',
 		setting_type = 'startup',
 		type = 'double-setting',
 		minimum_value = 0,

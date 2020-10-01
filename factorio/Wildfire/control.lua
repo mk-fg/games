@@ -16,6 +16,17 @@ local function strict_mode_enable()
 	strict_mode = true
 end
 
+local function debug_player_pos()
+	for _, p in ipairs(game.connected_players) do return p.position end
+end
+
+local function debug_place_tag(p, text)
+	if not global.tags then global.tags = {} end
+	local tag = {position=p, icon={type='virtual', name='signal-dot'}, text=text}
+	for _, p in ipairs(game.connected_players)
+		do table.insert(global.tags, p.force.add_chart_tag(game.surfaces.nauvis, tag)) end
+end
+
 
 local function update_tree_entities()
 	local st = {}
@@ -26,36 +37,13 @@ local function update_tree_entities()
 	global.surface_trees = st
 end
 
-local function update_surface_bounds(ev)
-	-- Updates known map bounds on new chunk generation
-	if not global.surface_bounds then
-		global.surface_bounds = {
-			x1=0, x2=0, y1=0, y2=0,
-			surface=game.surfaces.nauvis.index }
-	end
-	local p = global.surface_bounds
-	if ev.surface.index ~= p.surface then return end
-	local p1, p2 = ev.area.left_top, ev.area.right_bottom
-	p.x1, p.x2 = math.min(p.x1, p1.x), math.max(p.x2, p2.x)
-	p.y1, p.y2 = math.min(p.y1, p2.y), math.max(p.y2, p1.y)
-end
-
-local function rescan_surface_bounds()
-	local p, p1, p2 = global.surface_bounds
-	for c in game.surfaces.nauvis.get_chunks() do
-		p1, p2 = c.area.left_top, c.area.right_bottom
-		p.x1, p.x2 = math.min(p.x1, p1.x), math.max(p.x2, p2.x)
-		p.y1, p.y2 = math.min(p.y1, p2.y), math.max(p.y2, p1.y)
-	end
-end
-
 
 local function find_random_pos()
 	local p = game.surfaces.nauvis.get_random_chunk()
 	return {x=p.x*32 + 16, y=p.y*32 + 16}
 end
 
-local function check_spark_pos_balance(p)
+local function check_spark_pos_balance(p, subsample, subsample_debug)
 	local s = game.surfaces.nauvis
 	if not global.surface_trees then update_tree_entities() end
 	local trees = s.find_entities_filtered{
@@ -66,9 +54,29 @@ local function check_spark_pos_balance(p)
 		if e.tree_stage_index == e.tree_stage_index_max
 			then c_dead = c_dead + 1 else c_green = c_green + 1 end
 	end
-	if c_green < conf.min_green_trees or c_dead > conf.max_dead_trees
+	if (not subsample and c_green < conf.min_green_trees)
+			or c_dead > conf.max_dead_trees
 			or not (c_dead == 0 or (c_green / c_dead) > conf.green_dead_balance)
 		then trees = nil end
+
+	if not subsample and trees and conf.check_sample_n then
+		-- Pick and run same algo on points around the initial one
+		local a, ad = math.random() * 2 * math.pi, 2 * math.pi / conf.check_sample_n
+		local r, ps, st, sg, sd = conf.check_sample_offset
+		for n = 1, conf.check_sample_n do
+			ps = {x=p.x + r * math.cos(a), y=p.y + r * math.sin(a)}
+			st, sg, sd = check_spark_pos_balance(ps, true)
+			if subsample_debug then
+				debug_place_tag( ps, ('%s [%s %s %s]')
+					:format(n, #(st or {}) > 0 and 'pass' or 'fail', sg, sd) )
+			end
+			c_dead = c_dead + sd
+			if c_dead > conf.max_dead_trees then st = nil end
+			if not st then break end
+			a = a + ad
+		end
+		if not st then trees = nil end
+	end
 
 	return trees, c_green, c_dead
 end
@@ -81,13 +89,10 @@ local function find_fire_position()
 	-- Top-level func that runs all checks above in proper sequence
 	local spark_pos = find_random_pos()
 	if not spark_pos then return end
-
 	local valid_trees = check_spark_pos_balance(spark_pos)
 	if not valid_trees then return end
-
 	spark_pos = pick_random_tree_pos(valid_trees)
 	if not spark_pos then return end
-
 	return spark_pos
 end
 
@@ -101,11 +106,12 @@ end
 
 local wf_cmd_help = [[
 watch - on/off toggle for revealing charted map chunks every check_interval (mod setting).
-chart n - chart n chunks around player(s), to test fire-starting on or visualize radius.
-spark [n] [tag] - Make n (default=1) attempt(s) to find spark position and ignite it.
-... Adding last "tag" parameter will add tag label at that position on the map.
-tag [clear] - Make one attempt to find spark-area and label its center without fire.
-... "clear" will remove map tags added by this mod instead.
+chart n - generate/reveal up to n tiles around player(s), to test fire-starting on or to visualize radius.
+spark [n] [tag] - Make n (default=1) attempt(s) to find wildfire start position and ignite it.
+    "tag" parameter at the end will add tag label at that position on the map.
+tag [here | clear] [sub] - Make one attempt to find spark-area and label it without fire.
+    "here" - check/tag player's position, "clear" will remove all map tags added by this mod.
+    "sub" - also put labels at all sampled points around center, if such sampling is enabled.
 ]]
 
 local function run_wf_cmd(cmd)
@@ -153,7 +159,7 @@ local function run_wf_cmd(cmd)
 			if args[3] then
 				if args[3] ~= 'tag' then return usage() end
 				if not global.tags then global.tags = {} end
-				local tag = {position={pos.x, pos.y}, icon={type='item', name='wood'}, text='spark'}
+				local tag = {position=pos, icon={type='item', name='wood'}, text='spark'}
 				for _, player in ipairs(game.connected_players)
 					do table.insert( global.tags,
 						player.force.add_chart_tag(game.surfaces.nauvis, tag) ) end
@@ -162,20 +168,27 @@ local function run_wf_cmd(cmd)
 			' position that passed all checks (n=%s)' ):format(n_max)) end
 
 	elseif cmd == 'tag' then
+		local tag_clear, tag_here, tag_sub
 		if args[2] then
-			if args[2] ~= 'clear' then return usage() end
+			if args[2] == 'clear' then tag_clear = true
+			elseif args[2] == 'here' then tag_here = true
+			else return usage() end end
+		if args[3] then
+			if args[3] == 'sub' then tag_sub = true
+			else return usage() end end
+		if tag_clear then
 			for _, tag in ipairs(global.tags) do if tag.valid then tag.destroy() end end
 			global.tags = nil
 			return
 		end
-		local pos = find_random_pos()
+		local pos
+		if tag_here then pos = debug_player_pos() else pos = find_random_pos() end
 		if not pos then return end
-		local trees, c_green, c_dead = check_spark_pos_balance(pos)
+		local trees, c_green, c_dead = check_spark_pos_balance(pos, nil, tag_sub)
 		if not global.tags then global.tags = {} end
 		local spark = ('spark=%s [green=%s dead=%s]')
 			:format(trees and 'yes' or 'no', c_green, c_dead)
-		local tag = { position={pos.x, pos.y},
-			icon={type='item', name='wood'}, text=spark }
+		local tag = {position=pos, icon={type='item', name='wood'}, text=spark}
 		for _, player in ipairs(game.connected_players)
 			do table.insert( global.tags,
 				player.force.add_chart_tag(game.surfaces.nauvis, tag) ) end
