@@ -50,10 +50,9 @@ local function rescan_surface_bounds()
 end
 
 
-local function find_random_pos(bounds)
-	local p = global.surface_bounds
-	if not p then return end
-	return {x=math.random(p.x1, p.x2), y=math.random(p.y1, p.y2)}
+local function find_random_pos()
+	local p = game.surfaces.nauvis.get_random_chunk()
+	return {x=p.x*32 + 16, y=p.y*32 + 16}
 end
 
 local function check_spark_pos_balance(p)
@@ -80,7 +79,7 @@ end
 
 local function find_fire_position()
 	-- Top-level func that runs all checks above in proper sequence
-	local spark_pos = find_random_pos(global.surface_bounds)
+	local spark_pos = find_random_pos()
 	if not spark_pos then return end
 
 	local valid_trees = check_spark_pos_balance(spark_pos)
@@ -101,7 +100,8 @@ end
 
 
 local wf_cmd_help = [[
-scan - Scan all chunks on the map for fire zone bounds.
+watch - on/off toggle for revealing charted map chunks every check_interval (mod setting).
+chart n - chart n chunks around player(s), to test fire-starting on or visualize radius.
 spark [n] [tag] - Make n (default=1) attempt(s) to find spark position and ignite it.
 ... Adding last "tag" parameter will add tag label at that position on the map.
 tag [clear] - Make one attempt to find spark-area and label its center without fire.
@@ -114,22 +114,33 @@ local function run_wf_cmd(cmd)
 	local player = game.players[cmd.player_index]
 	local function usage()
 		player.print('--- Usage: /wf [command...]')
-		player.print('Supported subcommands:')
+		player.print('Supported wildfire-mod subcommands:')
 		for line in wf_cmd_help:gmatch('%s*%S.-\n') do player.print('  '..line:sub(1, -2)) end
 		player.print('[use /clear command to clear long message outputs like above]')
 	end
 	if not cmd.parameter or cmd.parameter == '' then return usage() end
+
+	local function wfp(msg) player.print('Wildfire :: '..msg) end
 	if not player.admin then
-		player.print('ERROR: all wf-commands are only available to admin player')
+		wfp('ERROR: all wf-commands are only available to admin player')
 		return
 	end
 	local args = {}
 	cmd.parameter:gsub('(%S+)', function(v) table.insert(args, v) end)
 	cmd = args[1]
 
-	if cmd == 'scan' then
-		rescan_surface_bounds()
-		player.print(('Spark zone: %s'):format(serpent.line(global.surface_bounds)))
+	if cmd == 'watch' then
+		global.debug_watch = not global.debug_watch and true or nil
+		wfp( ('Reveal map mode: %s')
+			:format(global.debug_watch and 'enabled' or 'disabled') )
+
+	elseif cmd == 'chart' then
+		local r, x, y = tonumber(args[2] or 1) or 1
+		wfp(('Charting radius: %s'):format(r))
+		for _, p in ipairs(game.connected_players) do
+			x, y = p.position.x, p.position.y
+			p.force.chart(p.surface, {{x - r, y - r}, {x + r, y + r}})
+		end
 
 	elseif cmd == 'spark' then
 		local n_max, pos = tonumber(args[2] or 1) or 1
@@ -147,7 +158,7 @@ local function run_wf_cmd(cmd)
 					do table.insert( global.tags,
 						player.force.add_chart_tag(game.surfaces.nauvis, tag) ) end
 			end
-		else player.print(( 'spark: failed to find random'..
+		else wfp(( 'spark: failed to find random'..
 			' position that passed all checks (n=%s)' ):format(n_max)) end
 
 	elseif cmd == 'tag' then
@@ -157,25 +168,27 @@ local function run_wf_cmd(cmd)
 			global.tags = nil
 			return
 		end
-		local pos = find_random_pos(global.surface_bounds)
+		local pos = find_random_pos()
 		if not pos then return end
 		local trees, c_green, c_dead = check_spark_pos_balance(pos)
-		if not trees then trees = {} end
 		if not global.tags then global.tags = {} end
-		local tag = {
-			position={pos.x, pos.y}, icon={type='item', name='wood'},
-			text=('green=%s dead=%s total=%s'):format(c_green, c_dead, #trees) }
+		local spark = ('spark=%s [green=%s dead=%s]')
+			:format(trees and 'yes' or 'no', c_green, c_dead)
+		local tag = { position={pos.x, pos.y},
+			icon={type='item', name='wood'}, text=spark }
 		for _, player in ipairs(game.connected_players)
 			do table.insert( global.tags,
 				player.force.add_chart_tag(game.surfaces.nauvis, tag) ) end
-		player.print(( 'tag: pos={x=%s, y=%s} trees=%s'..
-			' [green=%s dead=%s]' ):format(pos.x, pos.y, #trees, c_green, c_dead))
+		wfp(('tag: pos={x=%s, y=%s} %s'):format(pos.x, pos.y, spark))
 
 	else return usage() end
 end
 
 
 local function check_time(ev)
+	if global.debug_watch then
+		for _, p in ipairs(game.connected_players) do p.force.chart_all() end end
+
 	if not global.spark_tick then
 		global.spark_tick = ev.tick + conf.spark_interval +
 			math.random(-conf.spark_interval_jitter, conf.spark_interval_jitter)
@@ -190,7 +203,7 @@ local function check_time(ev)
 		catch_fire(pos)
 	end
 
-	global.spark_tick, global.check_bounds = nil
+	global.spark_tick, global.spark_check_limit = nil
 end
 
 
@@ -201,4 +214,3 @@ script.on_init(function() strict_mode_enable() end)
 script.on_load(function() strict_mode_enable() end)
 
 script.on_nth_tick(conf.check_interval, check_time)
-script.on_event(defines.events.on_chunk_generated, update_surface_bounds)

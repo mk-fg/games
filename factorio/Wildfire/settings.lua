@@ -2,55 +2,55 @@ local conf = require('config')
 
 data:extend{
 
-	{ order = '11',
+	conf.s{
+		order = '11',
 		setting_type = 'startup',
-		name = 'wf-spark-interval',
 		type = 'int-setting',
 		minimum_value = 60,
-		default_value = conf.spark_interval },
-	{ order = '12',
+		name = 'spark_interval' },
+	conf.s{
+		order = '12',
 		setting_type = 'startup',
-		name = 'wf-spark-interval-jitter',
 		type = 'int-setting',
 		minimum_value = 0,
-		default_value = conf.spark_interval_jitter },
+		name = 'spark_interval_jitter' },
 
-	{ order = '21',
+	conf.s{
+		order = '21',
 		setting_type = 'startup',
-		name = 'wf-check-interval',
 		type = 'int-setting',
 		minimum_value = 1,
-		default_value = conf.check_interval },
-	{ order = '22',
+		name = 'check_interval' },
+	conf.s{
+		order = '22',
 		setting_type = 'startup',
-		name = 'wf-check-radius',
 		type = 'int-setting',
 		minimum_value = 1,
-		default_value = conf.check_radius },
-	{ order = '23',
+		name = 'check_radius' },
+	conf.s{
+		order = '23',
 		setting_type = 'startup',
-		name = 'wf-check-limit',
 		type = 'int-setting',
 		minimum_value = 1,
-		default_value = conf.check_limit },
+		name = 'check_limit' },
 
-	{ order = '31',
+	conf.s{
+		order = '31',
 		setting_type = 'startup',
-		name = 'wf-min-green-trees',
 		minimum_value = 1,
 		type = 'int-setting',
-		default_value = conf.min_green_trees },
-	{ order = '32',
+		name = 'min_green_trees' },
+	conf.s{
+		order = '32',
 		setting_type = 'startup',
-		name = 'wf-max-dead-trees',
 		minimum_value = 0,
 		type = 'int-setting',
-		default_value = conf.max_dead_trees },
-	{ order = '33',
+		name = 'max_dead_trees' },
+	conf.s{
+		order = '33',
 		setting_type = 'startup',
-		name = 'wf-green-dead-balance',
 		type = 'double-setting',
 		minimum_value = 0,
-		default_value = conf.green_dead_balance },
+		name = 'green_dead_balance' },
 
 }

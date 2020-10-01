@@ -1,5 +1,19 @@
 
 ---------------------------------------------------------------------------------------------------
+Version: 0.0.4
+Date: 2020-10-01
+  Features:
+    - Add more console commands to chat and reveal map.
+  Changes:
+    - Increase tree-check radius by almost 5x after some basic testing.
+
+---------------------------------------------------------------------------------------------------
+Version: 0.0.3
+Date: 2020-10-01
+  Fixes:
+    - Fix radius/limit values being swapped in config.lua, making fires never start on new games. Oops.
+
+---------------------------------------------------------------------------------------------------
 Version: 0.0.2
 Date: 2020-09-30
   Changes:

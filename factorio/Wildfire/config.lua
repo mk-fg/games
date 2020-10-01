@@ -1,5 +1,7 @@
-local conf = {}
+local conf, suff = {}, {}
 
+-- Options that have corresponding mod settings
+-- "suff" changes mod setting name to reset its value for players
 conf.spark_interval = 24 * 60 * 60
 conf.spark_interval_jitter = 22 * 60 * 60
 
@@ -10,19 +12,28 @@ conf.check_limit = 10
 conf.min_green_trees = 500
 conf.max_dead_trees = 700
 conf.green_dead_balance = 20
+-- End of mods-settings-options
+-- DONT FORGET TO UPDATE LOCALE AFTER CHANGING OPTION SUFFIX
 
+local conf_settings_map, s = {}
+for k, v in pairs(conf) do
+	s = 'wf-'..k:gsub('_', '-')
+	if suff[k] then s = s..'-v'..tostring(suff[k]) end
+	conf_settings_map[s] = k
+end
+conf.sm, conf.ms = conf_settings_map, {}
+for s, k in pairs(conf.sm) do conf.ms[k] = s end
+
+function conf.s(props)
+	local k = props.name
+	props.name = conf.ms[k]
+	props.default_value = conf[k]
+	return props
+end
 
 function conf.update_from_settings()
-	conf.spark_interval = settings.startup['wf-spark-interval'].value
-	conf.spark_interval_jitter = settings.startup['wf-spark-interval-jitter'].value
-
-	conf.check_interval = settings.startup['wf-check-interval'].value
-	conf.check_limit = settings.startup['wf-check-radius'].value
-	conf.check_radius = settings.startup['wf-check-limit'].value
-
-	conf.min_green_trees = settings.startup['wf-min-green-trees'].value
-	conf.max_dead_trees = settings.startup['wf-max-dead-trees'].value
-	conf.green_dead_balance = settings.startup['wf-green-dead-balance'].value
+	for s, k in pairs(conf.sm)
+		do conf[k] = settings.startup[s].value end
 end
 
 return conf
