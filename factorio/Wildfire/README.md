@@ -46,3 +46,5 @@ Also check out "/wf" console command (run it to get more info), which allows to 
 - Conflicting mods
 
     - [Clean Tree Burning](https://mods.factorio.com/mod/Clean_Tree_Burning) - do not use this one, as it will negate balancing checks made here
+
+- [Mod github repository](https://github.com/mk-fg/games/tree/master/factorio/Wildfire)
