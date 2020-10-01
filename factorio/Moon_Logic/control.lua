@@ -301,12 +301,12 @@ local function mlc_init(e)
 	return mlc_env
 end
 
-local function mlc_remove(uid, keep_entities)
+local function mlc_remove(uid, keep_entities, to_be_mined)
 	guis.close(uid)
 	if not keep_entities then
 		local mlc = global.combinators[uid] or {}
 		if mlc.core and mlc.core.valid then mlc.core.destroy() end
-		if mlc.e and mlc.e.valid then mlc.e.destroy() end
+		if not to_be_mined and mlc.e and mlc.e.valid then mlc.e.destroy() end
 	end
 	Combinators[uid], CombinatorEnv[uid], global.combinators[uid], global.guis[uid] = nil
 end
@@ -333,7 +333,7 @@ end
 
 local function on_built(ev)
 	local e = ev.created_entity or ev.entity -- latter for revive event
-	if not (e.valid and e.name == 'mlc') then return end
+	if not e.valid then return end
 	local mlc = {e=e, core=bootstrap_core(e)}
 	global.combinators[e.unit_number] = mlc
 
@@ -366,12 +366,11 @@ end
 
 script.on_event(defines.events.on_entity_settings_pasted, on_entity_settings_pasted)
 
-local function on_destroyed(ev)
-	if ev.entity.name == 'mlc' then mlc_remove(ev.entity.unit_number) end
-end
+local function on_destroyed(ev) mlc_remove(ev.entity.unit_number) end
+local function on_mined(ev) mlc_remove(ev.entity.unit_number, nil, true) end
 
-script.on_event(defines.events.on_pre_player_mined_item, on_destroyed, mlc_filter)
-script.on_event(defines.events.on_robot_pre_mined, on_destroyed, mlc_filter)
+script.on_event(defines.events.on_pre_player_mined_item, on_mined, mlc_filter)
+script.on_event(defines.events.on_robot_pre_mined, on_mined, mlc_filter)
 script.on_event(defines.events.on_entity_died, on_destroyed, mlc_filter)
 script.on_event(defines.events.script_raised_destroy, on_destroyed, mlc_filter)
 
