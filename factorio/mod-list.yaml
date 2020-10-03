@@ -2,16 +2,26 @@ mods:
   - enabled: true
     name: base
   - enabled: true
-    name: 200_Inventory_Size
+    name: ArmouredBiters
   - enabled: true
+    name: Biter_Detector_Sentinel_Combinator
+  - enabled: false
     name: Bottleneck
   - enabled: true
     name: bullet-trails
   - enabled: true
     name: Burner_Drill_4x4_Area
+  - enabled: false
+    name: Catmod-Reborn
   - enabled: true
     name: Circuit_Power_Measurement_Combinator
   - enabled: true
+    name: Clockwork
+  - enabled: true
+    name: Color_Combinator_Lamp_Posts
+  - enabled: true
+    name: Command_and_Conquer_RedAlert_Sounds
+  - enabled: false
     name: ConfigUnderLengths
   - enabled: true
     name: Configurable_Roboport_Range
@@ -20,42 +30,42 @@ mods:
   - enabled: true
     name: even-distribution
   - enabled: true
-    name: far-reach
+    name: factoryplanner
   - enabled: true
-    name: FasterStart
+    name: flib
+  - enabled: false
+    name: GhostScanner
   - enabled: true
-    name: 'Flow Control'
+    name: ixuBottleneck
   - enabled: true
-    name: InserterFuelLeech
+    name: Krastorio2
   - enabled: true
-    name: Lane-Balancer
+    name: Moon_Logic
   - enabled: true
-    name: laserlines
+    name: nixie-tubes
   - enabled: true
-    name: laser_fix
+    name: Op2_announcer
   - enabled: true
-    name: Longer_Days_and_Nights
-  - enabled: true
-    name: LuaCombinator2
-  - enabled: true
-    name: MushroomCloud
-  - enabled: true
-    name: pushbutton
-  - enabled: true
-    name: ReducedResearchX
-  - enabled: true
-    name: SantasNixieTubeDisplay
+    name: SchallUncraft
   - enabled: true
     name: 'Side Inserters'
   - enabled: true
+    name: signalstrings
+  - enabled: true
+    name: Soundpack-alerts-and-sirens
+  - enabled: true
     name: 'Squeak Through'
   - enabled: true
-    name: stdlib
+    name: Switch_Button-1_0
+  - enabled: false
+    name: themightygugi_longreach
   - enabled: true
     name: TimeTools
   - enabled: true
     name: Vehicle_Cruise_Control
   - enabled: true
     name: WideChests
+  - enabled: true
+    name: Wildfire
   - enabled: true
     name: Will-o-the-Wisps_updated

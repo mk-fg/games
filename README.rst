@@ -210,9 +210,6 @@ Easy to fix with mods though, which are one of the best parts of the game.
 - mod-list.yaml - list of mods from when I last played (should include base game
   version number) and backed it up.
 
-- blueprints.yaml - misc blueprints I came up with, esp. for defence units or
-  stuff like circuit logic parts.
-
 - lua-combinator-code.txt - some code snippets for lua combinator mod(s) mentioned above.
 
 - doomeer-factorio-calc.index.html - replacement index.html for online `doomeer/factorio`_
@@ -222,19 +219,19 @@ Easy to fix with mods though, which are one of the best parts of the game.
 
 Useful companion links for the game:
 
-- http://doomeer.com/factorio/ - production chain calculator, simpliest.
+- http://doomeer.com/factorio/ - production chain calculator, simpliest one.
 - https://rubyruy.github.io/factorio-calc/ - same as above, but found it harder to use.
 - https://kirkmcdonald.github.io/calc.html - also rates-calculator, with belts and power.
-- https://dddgamer.github.io/factorio-cheat-sheet/ - good cheatsheet for numbers/ratios.
+- https://factoriocheatsheet.com/ - good cheatsheet for numbers/ratios.
 
-Best use for production chain calculators (that I've found) is to know in
-advance how much basic resources (like copper and steel) to put into main belts
-for some desired output level, and how many assemblers/throughput it'd require.
+`Factory Planner`_ and similar mods do a good enough job with in-game GUIs and
+data these days, so above calculators aren't really necessary, even with non-modded game.
 
 .. _Factorio: http://factorio.com/
 .. _doomeer/factorio: http://github.com/doomeer/factorio/
 .. _doomeer/factorio#75: https://github.com/doomeer/factorio/issues/75
 .. _LuaCombinator 2 mod: https://mods.factorio.com/mod/LuaCombinator2
+.. _Factory Planner: https://mods.factorio.com/mod/factoryplanner
 
 
 `Surviving Mars`_

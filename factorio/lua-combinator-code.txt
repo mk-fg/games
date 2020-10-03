@@ -1,70 +1,61 @@
-
-alarm-interval:
-
--- repeats incoming signal as pulse with specified interval, for e.g. speakers
-
-local net, sig = rednet, 'kr-attention_1'
-local t_check, t_pulse = 180, 300
-if (output[sig] or 0) == 0 then
-	if (net[sig] or 0) > 0
-		then delay, output[sig] = 1, net[sig] -- start pulse
-		else delay, output[sig] = t_check end
-else delay, output[sig] = t_pulse end -- end pulse
+---------- Code snippets for https://mods.factorio.com/mod/Moon_Logic mod ----------
 
 
-count-shortage-pulse:
+TLN - train transfer between logistic networks:
 
--- checks sig_check count (red) for < sig_thresh every t_check ticks
--- on triggering, sends single-pulse sig_pulse alarm and sleeps for t_pulse ticks
--- useful for triggering alarm siren when some production line fails
+-- TLN Requester/Unloader - activated by a flipping a switch to 1, flipping to 0 deactivates unload
+-- MLC with input from provider chest and request-switch and output to filter-inserter
+-- MLC on the other side will set logistic request and load stuff into train
+-- Interface is always-increasing signal numbers, negated on the
+--  other end by a memory combinator connected to filter-inserter arm
+-- Inprecise - can unload more than was requested, but assumption is one outstanding req anyway
+-- Test request: _api.global.tln = {core={changed=true, count={wood=5}, unload={wood=5}}}
 
-local net, sig_pulse = rednet, 'signal-A'
-local sig_check, sig_thresh = 'solid-fuel', 10
-local t_pulse, t_check = 60 * 60 * 2, 60 * 2
+delay, out = 1 * 60, {}
+local ss, sd, sw, sw_check_delay = red, 'core', 'signal-S', 9
+if ss[sw] == 0 and var.sw ~= 0 then var.unload = nil; var.sw = 0 end -- stop unload here
+for k, v in pairs(var.unload or {}) do out[k] = v - ss[k] end
 
-if output[sig_pulse] then delay, output[sig_pulse] = t_pulse
-elseif (net[sig_check] or 0) < sig_thresh then output[sig_pulse] = 1
-else delay = t_check end
+local mag, mag_count = 'armor-piercing-rifle-magazine', 50
+if ss[mag] < mag_count then out[mag] = 1 end
 
+var.sw_check = ((var.sw_check or 0) + 1) % sw_check_delay
+if var.switch_check ~= 0 then return end -- checked way less frequently than unloading status
+if (var.sw or 0) == 0 and ss[sw] ~= var.sw -- 0->1 flip - send request and enable unload
+	then var.sw = ss[sw] else return end
+local req_n, req_str, req_src = 1, 'logistic-chest-requester=1 inserter=3 UV-lamp=1'..
+	' long-handed-inserter=1 medium-electric-pole=1 stone-wall=28 gun-turret=4 laser-turret=1'
+req_str:gsub('(%S+)=(%d+)', function(k, v) req_src[k] = tonumber(v) * req_n end)
+if not _api.global.tln then _api.global.tln = {} end
+if not _api.global.tln[sd] then _api.global.tln[sd] = {_count={}} end
+local req, req_count = _api.global.tln[sd], req.count
+for k, v in pairs(req_src) do req_count[k] = (req_count[k] or 0) + v end
+req.changed, var.unload, var.tln = true, req, _api.global.tln[sd]
 
-battery-low-pulse:
+0eNqdU9tqwzAM/ZWgZ6c0l7ZbvmHsaXsaJbix2goSO9hOWCn+99nOCuloadlLiC3p6Jwj+Qy7dsBek7R
+QnUGgaTT1lpSECj5lq7gwCVnsTGJVwpNeq5EE6qQ5orHAgBolDVRfZzB0kLwNKPbUoy8PZT5D8i6curY
+B5/OlwG+oMsceVrTqQMZSk8Zeac+NoRHTC4UZWv4E2p5aizolaVDbq+rCbRmgtGQJJynxcKrl0O18ZpV
+diWDQK0OTRWfw9Wm2XDM4+Z/VYuVhBWlspnjOwPtjtWrrHR75SEqHIq7JHjv02mofFhHMhMCetLHhzlg
+eJlK8ZmXBwGBIm90vGageNf8dVArOxU5yahyxsvDRKOaKSASztj45vxP1ZjgX7PzjQf70WG75Uy5Wc4e
+eZOp9b0g3A9npeIdacXfGt6gU11QeD+tCoVMCa7WvZ8Zn/9aSRy1+7+KSVrNXyKDlO/R7DB9v78kQn2C
+UMqI2E8+XrNyUr5v1xi/eau3cD6HvRtA=
 
--- same as count-shortage-pulse but for triggering on battery discharge
--- triggers on acc_n_ignore < net[acc_sig] < acc_n_alarm before idle_hour
--- hour signal is from timetools mod combinator
+-- TLN Supplier - MLC connected to filter-insterter arm
+-- Must be balanced by a memory combinator counting negated arm pulses on other wire
+-- Requester chest can also be connected to same inputs as the filter arm
 
-local net, sig_pulse, idle_hour = rednet, 'signal-red', 4
-local acc_sig, acc_n_alarm, acc_n_ignore = 'signal-B', 20, 10
-local t_pulse, t_idle, t_check = 60 * 60 * 3, 60 * 60 * 10, 60 * 60 * 1
+delay = 5 * 60
+local sd = 'core'
+local req_set = (_api.global.req or {})[sd] or {}
+if not req_set.changed then return end
+out, req_set.changed = req_set.count
 
-if net['signal-clock-hour'] < idle_hour and net[acc_sig] then
-	if output[sig_pulse] then delay, output[sig_pulse] = t_pulse
-	elseif net[acc_sig] < acc_n_alarm and net[acc_sig] > acc_n_ignore
-		then output[sig_pulse] = 1 else delay = t_check end
-else delay = t_idle end
-
-
-cargo-limit:
-
--- emits filter/enable signal to control inserters up to some cargo limit (green input)
-
-local net, sig_train, delay = greennet, 'signal-T', 60
-local at, an = 'chemical-science-pack', 450
-if net[sig_train] and (net[at] or 0) < an
-  then output[at] = 1 else output[at] = nil end
-
-
-cargo-wagon-balance:
-
--- emits filter signals to control inserters to load two goods up to limit (green input)
--- only enables filters when auto-train is stopped
-
-local net, sig_train, delay = greennet, 'signal-T', 60
-local at, an = 'plastic-bar', 950
-local bt, bn = 'sulfur', 450
-
-output[at], output[bt] = nil
-if net[sig_train] then
-  if (net[at] or 0) < an then output[at] = 1 end
-  if (net[bt] or 0) < bn then output[bt] = 1 end
-end
+0eNrFVcFu2zAM/RVDx0EuqjhOWn/D0MOw29AZis0kxGzJleSgWeB/H2WtjdPYTbodejEgiXzke4+WDmx
+VtdAYVI5lB1aCLQw2DrViGfsGTy1YZyN0UNtIqjKqtCxtBM+ycJGsdUtpnGGhlWXZjwOzuFGy8khu3wB
+B+EyKULL2K2nQbWtwWMSFrleopNOGdYSgSnhmmej4RYy6KgYZsysyKr1B29fcEpvYBFYwLJxcAbPGipJ
+iVBbMafa8e+QMlEOHEHToF/tctfWKIjNx0j1njbYYND4wyo/v0puUsz31sSRUUtMZXeUr2ModkkAUdVQ
+up+Oyz7b+YI3GOr9nnfQeJvcioXIWfNhg/5Yz3YCRf639ybpQSUHxijXzHwPlkALSakaRaIoWXVh2j13
+nBXvDcnbB5xHe88B6cZNSNyWa0Eyo+HEVzgzcoXEt7bw2FiJikMXW+3emkjhV6Qtl6tY17YexR9QV/rM
+xAOqivvzkODmXn096Jd7H6kf1mibEhMnJP5u8fGvy4pNMjj/H5fTo2/8YML98r414MHu5YMKvNqb7S/F
+al5DrdT6QSEzwvOau4GcijLFKJ6/ZETLilMzlkXqP2rFfA7LMtzLMiqMGiagzLVxPfvrvSkbMpanbgTF
+IPdFkFr9o+n5Df8bD05MNHmfOKrkCGk32/etDZNumqbBXhyBsuDPvxHw5v18uluJ2kS667g8WsLSy
