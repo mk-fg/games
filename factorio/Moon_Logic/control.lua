@@ -75,6 +75,11 @@ local function cn_input_signal_set(wenv, k, v)
 		' %s[%s] = %s' ):format(conf.get_wire_label(wenv._wire), k, v), 2)
 end
 
+local function cn_input_signal_len(wenv)
+	local n, sigs = 0, cn_input_signal(wenv, defines.wire_type[wenv._wire])
+	for sig, c in pairs(sigs) do if c ~= 0 then n = n + 1 end end
+	return n
+end
 local function cn_input_signal_iter(wenv)
 	local signals = cn_input_signal(wenv, defines.wire_type[wenv._wire])
 	if wenv._debug then
@@ -88,6 +93,11 @@ local function cn_input_signal_table_serialize(wenv)
 	return {__wire_inputs=conf.get_wire_label(wenv._wire)}
 end
 
+local function cn_output_table_len(out) -- rawlen won't skip 0 and doesn't work anyway
+	local n = 0
+	for k, v in pairs(out) do if v ~= 0 then n = n + 1 end end
+	return n
+end
 local function cn_output_table_value(out, k) return rawget(out, k) or 0 end
 local function cn_output_table_replace(out, new_tbl)
 	-- Note: validation for sig_names/values is done when output table is used later
@@ -272,12 +282,13 @@ local function mlc_init(e)
 
 	local env_ro = { -- sandbox_env_base + mlc_env proxies
 		uid = mlc_env._uid,
-		out = setmetatable(mlc_env._out, {__index=cn_output_table_value}),
+		out = setmetatable( mlc_env._out,
+			{__index=cn_output_table_value, __len=cn_output_table_len} ),
 		red = setmetatable(env_wire_red, {
-			__serialize=cn_input_signal_table_serialize,
+			__serialize=cn_input_signal_table_serialize, __len=cn_input_signal_len,
 			__index=cn_input_signal_get, __newindex=cn_input_signal_set }),
 		green = setmetatable(env_wire_green, {
-			__serialize=cn_input_signal_table_serialize,
+			__serialize=cn_input_signal_table_serialize, __len=cn_input_signal_len,
 			__index=cn_input_signal_get, __newindex=cn_input_signal_set }) }
 	env_ro[conf.red_wire_name] = env_ro.red
 	env_ro[conf.green_wire_name] = env_ro.green
