@@ -801,7 +801,7 @@ local function on_built_entity(event)
 	elseif e.name == 'wisp-purple' then
 		local surface, pos = e.surface, e.position
 		e.destroy()
-		local wisp =  wisp_create(wisp_spore_proto_name(), surface, pos)
+		wisp_create(wisp_spore_proto_name(), surface, pos)
 	else wisp_init(e) end
 end
 

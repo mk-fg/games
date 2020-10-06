@@ -58,4 +58,7 @@ wisp_purple_harmless.name = 'wisp-purple-harmless'
 wisp_purple_harmless.duration = conf.wisp_ttl['wisp-purple-harmless'] * 12
 wisp_purple_harmless.fade_away_duration = conf.wisp_ttl['wisp-purple-harmless'] * 6
 
+wisp_purple_harmless.action = nil
+wisp_purple_harmless.action_cooldown = nil
+
 data:extend{wisp_purple_harmless}

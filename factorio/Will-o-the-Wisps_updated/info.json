@@ -1,6 +1,6 @@
 {
 	"name": "Will-o-the-Wisps_updated",
-	"version": "0.3.7",
+	"version": "0.3.8",
 	"factorio_version": "1.0",
 	"dependencies": ["base >= 1.0"],
 	"title": "Will-o'-the-Wisps updated",
