@@ -47,29 +47,31 @@ function changes.set_corrosion_resistance()
 	end end
 end
 
-function changes.set_electric_immunity()
-	-- Set resistance to wisps' electric attacks to rails, so that they'd ignore them
-	local electric_immunity = {type='electric', decrease=0, percent=100}
+
+function changes.set_ectoplasm_immunity()
+	-- Set resistance to wisps' ectoplasm attacks to rails/belts, so that they'd ignore them, hopefully
+	local ectoplasm_immunity = {type='ectoplasm', decrease=0, percent=100}
 	local immune_categories = utils.t('straight-rail curved-rail')
 
-	local function set_electric_immunity(proto)
+	local function set_ectoplasm_immunity(proto)
 		if proto.resistances then
 			for n, resist in pairs(proto.resistances) do
-				if resist.type == 'electric' then
+				if resist.type == 'ectoplasm' then
 					table.remove(proto.resistances, n); break
 			end end
 		elseif proto.max_health and proto.max_health > 0 then
 			proto.resistances = {}
 		else goto skip end
-		table.insert(proto.resistances, electric_immunity)
+		table.insert(proto.resistances, ectoplasm_immunity)
 	::skip:: end
 
 	for cat_name, cat in pairs(data.raw) do
 		if immune_categories[cat_name] then
 			for proto_name, proto in pairs(cat) do
-				set_electric_immunity(proto)
+				set_ectoplasm_immunity(proto)
 	end end end
 end
+
 
 function changes.update_tech_recipes()
 	local function add_tech_unlock(tech, recipe)

@@ -1,5 +1,15 @@
 
 ---------------------------------------------------------------------------------------------------
+Version: 0.3.9
+Date: 2020-10-17
+  Features:
+    - Updated wisp beam graphics from the old and slightly broken ones.
+
+  Changes:
+    - Changed wisp beam damage type from electric to ectoplasm, for adding special resistances.
+    - Removed some redundant components from wisp detector recipe, shouldn't break production lines.
+
+---------------------------------------------------------------------------------------------------
 Version: 0.3.8
 Date: 2020-10-06
   Bugfixes:

@@ -31,8 +31,7 @@ data:extend{
 		ingredients = {
 			{'constant-combinator', 1},
 			{'advanced-circuit', 3},
-			{'wood', 9},
-			{'alien-flora-sample', 3},
+			{'alien-flora-sample', 1},
 		},
 		result = 'wisp-detector',
 		enabled = false },

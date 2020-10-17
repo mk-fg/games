@@ -54,7 +54,7 @@ data:extend{{
 				type = 'direct',
 				action_delivery = {
 					type = 'beam',
-					beam = 'wisp-orange-beam',
+					beam = 'wisp-beam-red',
 					max_length = 5,
 					duration = 200,
 					source_offset = {0.0, 0.0} } } },

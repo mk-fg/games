@@ -195,7 +195,7 @@ Big thanks to [ixu](https://mods.factorio.com/user/ixu) and [completion](https:/
 
     - [Time Series Graphs](https://mods.factorio.com/mod/timeseries) - time-series monitoring/graphing system for your network.
 
-    - [RadioNetwork](https://mods.factorio.com/mod/RadioNetwork) - to control everything from afar.
+    - [RadioNetwork](https://mods.factorio.com/mod/RadioNetwork), [Factorio LAN](https://mods.factorio.com/mod/Factorio-LAN), etc - to link remote networks together and control things from afar.
 
 
 - This mod base/predecessors:
