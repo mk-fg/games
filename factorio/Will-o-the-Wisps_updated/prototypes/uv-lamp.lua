@@ -3,7 +3,6 @@ local sounds = require('__base__/prototypes/entity/demo-sounds')
 
 -- Regular lamp: light={ intensity=0.9 size=40 } colored={ intensity=1 size=6 }
 local uv_light = {intensity=0.3, size=5, color={r=0.8, g=0.1, b=0.9, a=0.2}}
-local function shift(dx, dy) return {dx / 64, dy / 64} end
 
 data:extend{{
 
@@ -55,7 +54,7 @@ data:extend{{
 		width = 67,
 		height = 58,
 		priority = 'high',
-		shift = {0, 0},
+		shift = util.by_pixel(0, 5),
 	},
 	picture_on = {
 		axially_symmetrical = false,
@@ -65,104 +64,11 @@ data:extend{{
 		width = 62,
 		height = 62,
 		priority = 'high',
-		shift = {-0.015625,-0.1875},
+		shift = util.by_pixel(-0.5, -1),
 	},
 
-	circuit_connector_sprites = {
-		blue_led_light_offset = shift(11, 28),
-		red_green_led_light_offset = shift(10, 21),
-		led_light = {intensity = 0.8, size = 0.9},
-		led_blue = {
-			filename = '__base__/graphics/entity/circuit-connector/hr-ccm-universal-04e-blue-LED-on-sequence.png',
-			frame_count = 32,
-			width = 60,
-			height = 60,
-			line_length = 8,
-			priority = 'low',
-			scale = 0.5,
-			shift = shift(9, 9),
-		},
-		led_blue_off = {
-			filename = '__base__/graphics/entity/circuit-connector/hr-ccm-universal-04f-blue-LED-off-sequence.png',
-			frame_count = 32,
-			width = 46,
-			height = 44,
-			line_length = 8,
-			priority = 'low',
-			scale = 0.5,
-			shift = shift(9, 9),
-		},
-		led_green = {
-			filename = '__base__/graphics/entity/circuit-connector/hr-ccm-universal-04h-green-LED-sequence.png',
-			frame_count = 32,
-			width = 48,
-			height = 46,
-			line_length = 8,
-			priority = 'low',
-			scale = 0.5,
-			shift = shift(9, 9),
-		},
-		led_red = {
-			filename = '__base__/graphics/entity/circuit-connector/hr-ccm-universal-04i-red-LED-sequence.png',
-			frame_count = 32,
-			width = 48,
-			height = 46,
-			line_length = 8,
-			priority = 'low',
-			scale = 0.5,
-			shift = shift(9, 9),
-		},
-		connector_main = {
-			filename = '__base__/graphics/entity/circuit-connector/hr-ccm-universal-04a-base-sequence.png',
-			frame_count = 32,
-			width = 52,
-			height = 50,
-			line_length = 8,
-			priority = 'low',
-			scale = 0.5,
-			shift = shift(9, 11),
-		},
-		connector_shadow = {
-			draw_as_shadow = true,
-			filename = '__base__/graphics/entity/circuit-connector/hr-ccm-universal-04b-base-shadow-sequence.png',
-			frame_count = 32,
-			width = 62,
-			height = 46,
-			line_length = 8,
-			priority = 'low',
-			scale = 0.5,
-			shift = shift(12, 14),
-		},
-		wire_pins = {
-			filename = '__base__/graphics/entity/circuit-connector/hr-ccm-universal-04c-wire-sequence.png',
-			frame_count = 32,
-			width = 62,
-			height = 58,
-			line_length = 8,
-			priority = 'low',
-			scale = 0.5,
-			shift = shift(9, 9),
-		},
-		wire_pins_shadow = {
-			draw_as_shadow = true,
-			filename = '__base__/graphics/entity/circuit-connector/hr-ccm-universal-04d-wire-shadow-sequence.png',
-			frame_count = 32,
-			width = 70,
-			height = 56,
-			line_length = 8,
-			priority = 'low',
-			scale = 0.5,
-			shift = shift(19, 17),
-		}
-	},
-
-	circuit_wire_connection_point = {
-		shadow = {
-			green = shift(34, 33),
-			red = shift(49, 30) },
-		wire = {
-			green = shift(31, 27),
-			red = shift(28, 12) } },
+	circuit_wire_connection_point = circuit_connector_definitions.lamp.points,
+	circuit_connector_sprites = circuit_connector_definitions.lamp.sprites,
 	circuit_wire_max_distance = 9,
 
 }}

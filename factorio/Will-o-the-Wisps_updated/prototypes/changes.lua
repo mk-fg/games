@@ -52,6 +52,8 @@ function changes.set_ectoplasm_immunity()
 	-- Set resistance to wisps' ectoplasm attacks to rails/belts, so that they'd ignore them, hopefully
 	local ectoplasm_immunity = {type='ectoplasm', decrease=0, percent=100}
 	local immune_categories = utils.t('straight-rail curved-rail')
+	-- Similar transport infra categories: transport-belt underground-belt pipe pipe-to-ground
+	-- These are still affected, same as electric poles, to have wisps be a nuisance to non-rail long-range infra
 
 	local function set_ectoplasm_immunity(proto)
 		if proto.resistances then
