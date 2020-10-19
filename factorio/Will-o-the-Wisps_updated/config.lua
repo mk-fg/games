@@ -9,7 +9,7 @@ local ticks_gameday = 417 * ticks_sec
 -- Disables aggression between wisps and player factions.
 conf.peaceful_wisps = false
 conf.peaceful_defences = true
-conf.peaceful_spores = false
+conf.peaceful_spores = true
 
 -- Max number of wisps on the map
 conf.wisp_death_retaliation_radius = 96
@@ -126,6 +126,9 @@ conf.wisp_near_player_radius = 16
 --  spawned near each player in wisp_near_player_radius.
 -- E.g. 0.02 = 2 per each 100+ trees.
 conf.wisp_near_player_percent = 0.01
+
+-- Chance on top of wisp_chance_func() for red wisp to spawn on exploded cliffs
+conf.wisp_cliff_spawn_chance = 0.20
 
 -- How often to update chunk players/pollution spread
 conf.chunk_rescan_spread_interval = 3 * ticks_gameday

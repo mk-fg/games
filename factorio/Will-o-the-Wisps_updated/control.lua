@@ -387,6 +387,11 @@ local function wisp_create_at_random(name, near_entity, angry_chance)
 	return e
 end
 
+local function wisp_create_on_cliff(cliff)
+	if math.random() > conf.wisp_cliff_spawn_chance then return end
+	wisp_create_at_random('wisp-red', cliff, conf.wisp_red_disturbed_angry_chance)
+end
+
 
 ------------------------------------------------------------
 -- Routine tasks to run periodically from on_tick handlers
@@ -828,8 +833,14 @@ local function on_chunk_generated(event)
 	zones.reset_chunk_area(event.surface, event.area)
 end
 
+local function on_player_change(event)
+	if not InitState then return end
+	if not InitState.configured then Init.state_tick() end -- new game cutscene before ticks
+	-- With on_player_changed_force, old force doesn't get any changes
+	wisp_player_aggression_set(game.players[event.player_index].force)
+end
+
 local function on_drone_placed(event)
-	if not (InitState and InitState.configured) then return end
 	local surface = game.players[event.player_index].surface
 	local drones = surface.find_entities_filtered{
 		name='wisp-drone-blue', area=utils.get_area(1, event.position) }
@@ -845,11 +856,19 @@ local function on_drone_placed(event)
 	::skip:: end
 end
 
-local function on_player_change(event)
-	if not InitState then return end
-	if not InitState.configured then Init.state_tick() end -- new game cutscene before ticks
-	-- With on_player_changed_force, old force doesn't get any changes
-	wisp_player_aggression_set(game.players[event.player_index].force)
+local function on_drone_or_cliff_explosive_capsule(event)
+	if not (InitState and InitState.configured) then return end
+	if event.item.name == 'wisp-drone-blue-capsule' then return on_drone_placed(event) end
+	if event.item.name == 'cliff-explosives' then
+		local cliff = game.players[event.player_index].surface
+			.find_entities_filtered{type='cliff', name='cliff', position=event.position, radius=3}
+		if cliff then return wisp_create_on_cliff(cliff[1]) end
+	end
+end
+
+local function on_robot_cliff_explosive(event)
+	if not (InitState and InitState.configured) then return end
+	wisp_create_on_cliff(event.cliff)
 end
 
 
@@ -1191,9 +1210,10 @@ script.on_event(defines.events.script_raised_revive, on_built_entity, on_built_e
 script.on_event(defines.events.on_entity_damaged, on_red_wisp_damaged, on_red_wisp_damaged_filter)
 
 script.on_event(defines.events.on_chunk_generated, on_chunk_generated)
-script.on_event(defines.events.on_player_used_capsule, on_drone_placed)
 script.on_event(defines.events.on_player_created, on_player_change)
 script.on_event(defines.events.on_player_changed_force, on_player_change)
+script.on_event(defines.events.on_player_used_capsule, on_drone_or_cliff_explosive_capsule)
+script.on_event(defines.events.on_pre_robot_exploded_cliff, on_robot_cliff_explosive)
 
 script.on_event(defines.events.on_runtime_mod_setting_changed, Init.settings)
 

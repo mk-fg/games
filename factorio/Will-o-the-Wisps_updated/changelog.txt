@@ -1,5 +1,14 @@
 
 ---------------------------------------------------------------------------------------------------
+Version: 0.3.12
+Date: 2020-10-20
+  Features:
+    - Spawn red wisps on destroyed cliffs as well occasionally, as they are rocks too.
+
+  Changes:
+    - Disable purple wisps' damage by default. This should not affect existing games, I think.
+
+---------------------------------------------------------------------------------------------------
 Version: 0.3.10
 Date: 2020-10-19
   Features:
