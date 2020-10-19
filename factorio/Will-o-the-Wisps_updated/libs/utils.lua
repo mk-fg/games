@@ -108,6 +108,34 @@ function utils.match_word(s, word)
 		or s:match('[%W]'..word..'[%W]')
 end
 
+function utils.rate_limit_tb_parse(str_spec)
+	-- Format: rate_a[/rate_b][:burst] (default burst=1)
+	-- Returns <=0 for invalid values
+	local s, burst = str_spec:match('^([0-9/]+):(%d*)$')
+	if not s then s, burst = str_spec, '' end
+	if (burst or ''):len() == 0 then burst = 1 end
+	local a, b = s:match('^(%d+)/(.+)$')
+	if not a then a, b = s, 1 end
+	return { burst=tonumber(burst) or -1,
+		rate=(tonumber(a) or 0) / (tonumber(b) or -1) }
+end
+
+function utils.rate_limit_tb(s, val)
+	-- Usage: tbf(state[, tokens=1]) -> { nil || delay_ticks }
+	-- state = { rate={ N/tick, 1/60 = 1 per 60 ticks, etc },
+	--   burst=max-token-count[, tokens=current-token-count, tick] }
+	val, s.tick, s.tokens = val or 1, game.tick, math.min(
+		s.burst, (s.tokens or s.burst) + (game.tick - (s.tick or 0)) * s.rate )
+	if s.tokens >= val then
+		s.tokens = s.tokens - val
+		val = nil
+	else
+		if s.negative_tokens then s.tokens = s.tokens - val end
+		val = (val - s.tokens) / s.rate -- delay until token will be available
+	end
+	return val
+end
+
 function utils.map(t, func)
 	if type(t) ~= 'table' then t, func = func, t end
 	if not func then return t

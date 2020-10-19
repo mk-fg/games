@@ -47,6 +47,11 @@ data:extend{
 		minimum_value = 0,
 		maximum_value = 1.0,
 		default_value = conf.wisp_red_damage_replication_factor },
+	{ order = '0080',
+		setting_type = 'runtime-global',
+		name = 'wisp-red-replication-tbf',
+		type = 'string-setting',
+		default_value = conf.wisp_red_damage_replication_tbf },
 
 	{ order = '0110',
 		setting_type = 'runtime-global',

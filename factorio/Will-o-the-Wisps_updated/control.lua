@@ -18,6 +18,7 @@ local zones = require('libs/zones')
 local conf, Init, InitState
 local Wisps, WispDrones, WispCongregations, UVLights, Detectors -- sets
 local WispAttackEntities -- temporary set of aggressive wisp entities
+local WispReplicationTBF -- token-bucket rate-limiting state for red wisp replication
 local MapStats, WorkSteps, WorkSets, WorkChecks
 
 
@@ -812,15 +813,12 @@ local function on_red_wisp_damaged(event)
 	-- This does not seem to trigger on every hit, according to my testing,
 	--  as that should make them unkillable with factor > 0.5, yet it does not.
 	-- Note: event.entity might be dead here already, hence not valid
-	local factor = conf.wisp_red_damage_replication_factor
-	-- Lower replication factor on fire to avoid massive replication there
-	-- 0.2/3 works ok, but would work differently with different base factor
-	if event.damage_type.name == 'fire' then factor = factor / 3 end
 	if not (
 			event.damage_type.name ~= 'uv' -- from uv lamps
 			and event.final_damage_amount > 0
-			and utils.pick_chance(factor) )
+			and utils.pick_chance(conf.wisp_red_damage_replication_factor) )
 		then return end
+	if utils.rate_limit_tb(WispReplicationTBF) then return end
 	wisp_create('wisp-red', event.entity.surface, event.entity.position)
 end
 
@@ -981,6 +979,21 @@ function Init.settings(event)
 	knob = key_update('wisp-biter-aggression', 'wisp_biter_aggression')
 	if knob then wisp_biter_aggression_set() end
 
+	knob = key_update('wisp-red-replication-tbf', 'wisp_red_damage_replication_tbf')
+	if knob or not WispReplicationTBF then
+		WispReplicationTBF = utils.rate_limit_tb_parse(conf.wisp_red_damage_replication_tbf)
+		if WispReplicationTBF.rate <= 0 or WispReplicationTBF.burst <= 0 then
+			for _, p in ipairs(game.connected_players) do
+				if p.admin then
+					p.print( ( 'ERROR: Failed to parse valid "rate[:burst}"'..
+							' values from "%s" spec, using default "%s" instead' ):format(
+						conf.wisp_red_damage_replication_tbf, conf.wisp_red_damage_replication_tbf_fallback ) )
+			end end
+			WispReplicationTBF = utils.rate_limit_tb_parse(conf.wisp_red_damage_replication_tbf_fallback)
+		end
+		utils.log('   - parsed tbf spec: rate=%s burst=%s', WispReplicationTBF.rate, WispReplicationTBF.burst)
+	end
+
 	key_update('wisp-death-retaliation-radius', 'wisp_death_retaliation_radius')
 	key_update('wisp-aggro-on-player-only', 'wisp_aggro_on_player_only')
 	key_update('wisp-aggression-factor', 'wisp_aggression_factor')
@@ -1016,6 +1029,8 @@ function Init.globals()
 	::skip:: end
 	if not global.conf then global.conf = {} end
 	for k, v in pairs(conf_base) do global.conf[k] = v end
+	if not global.wisp_replication_tbf then global.wisp_replication_tbf =
+		utils.rate_limit_tb_parse(conf_base.wisp_red_damage_replication_tbf) end
 	zones.init_globals(global.zones)
 end
 
@@ -1039,6 +1054,7 @@ function Init.refs()
 	WispCongregations = global.wisp_congregations
 	UVLights, Detectors = global.uv_lights, global.detectors
 	WispAttackEntities = global.wisp_attack_entities
+	WispReplicationTBF = global.wisp_replication_tbf
 	MapStats, WorkSteps = global.map_stats, global.work_steps
 	WorkSets = { detectors=Detectors,
 		uv=UVLights, recongregate=WispCongregations,
