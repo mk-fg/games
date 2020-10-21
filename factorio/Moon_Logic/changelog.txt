@@ -1,5 +1,11 @@
 
 ---------------------------------------------------------------------------------------------------
+Version: 0.0.41
+Date: 2020-10-21
+  Features:
+    - Print invalid signals stuck in "out" table on the right of the GUI window instead of hiding them.
+
+---------------------------------------------------------------------------------------------------
 Version: 0.0.40
 Date: 2020-10-06
   Features:

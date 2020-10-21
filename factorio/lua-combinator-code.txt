@@ -20,17 +20,17 @@ local mag, mag_count = 'armor-piercing-rifle-magazine', 50
 if ss[mag] < mag_count then out[mag] = 1 end
 
 var.sw_check = ((var.sw_check or 0) + 1) % sw_check_delay
-if var.switch_check ~= 0 then return end -- checked way less frequently than unloading status
+if var.sw_check ~= 0 then return end -- checked way less frequently than unloading status
 if (var.sw or 0) == 0 and ss[sw] ~= var.sw -- 0->1 flip - send request and enable unload
 	then var.sw = ss[sw] else return end
-local req_n, req_str, req_src = 1, 'logistic-chest-requester=1 inserter=3 UV-lamp=1'..
+local req_n, req_src, req_str = 1, {}, 'logistic-chest-requester=1 inserter=3 UV-lamp=1'..
 	' long-handed-inserter=1 medium-electric-pole=1 stone-wall=28 gun-turret=4 laser-turret=1'
 req_str:gsub('(%S+)=(%d+)', function(k, v) req_src[k] = tonumber(v) * req_n end)
 if not _api.global.tln then _api.global.tln = {} end
-if not _api.global.tln[sd] then _api.global.tln[sd] = {_count={}} end
-local req, req_count = _api.global.tln[sd], req.count
-for k, v in pairs(req_src) do req_count[k] = (req_count[k] or 0) + v end
-req.changed, var.unload, var.tln = true, req, _api.global.tln[sd]
+if not _api.global.tln[sd] then _api.global.tln[sd] = {count={}} end
+local req = _api.global.tln[sd]
+for k, v in pairs(req_src) do req.count[k] = (req.count[k] or 0) + v end
+req.changed, var.unload = true, req.count
 
 0eNqdU9tqwzAM/ZWgZ6c0l7ZbvmHsaXsaJbix2goSO9hOWCn+99nOCuloadlLiC3p6Jwj+Qy7dsBek7R
 QnUGgaTT1lpSECj5lq7gwCVnsTGJVwpNeq5EE6qQ5orHAgBolDVRfZzB0kLwNKPbUoy8PZT5D8i6curY
@@ -46,7 +46,7 @@ UMqI2E8+XrNyUr5v1xi/eau3cD6HvRtA=
 
 delay = 5 * 60
 local sd = 'core'
-local req_set = (_api.global.req or {})[sd] or {}
+local req_set = (_api.global.tln or {})[sd] or {}
 if not req_set.changed then return end
 out, req_set.changed = req_set.count
 

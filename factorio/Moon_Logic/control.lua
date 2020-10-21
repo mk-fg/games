@@ -26,7 +26,7 @@ local function tc(src)
 	return t
 end
 
-function tdc(object)
+local function tdc(object)
 	-- Deep-copy of lua table, from factorio util.lua
 	local lookup_table = {}
 	local function _copy(object)
@@ -408,9 +408,9 @@ local function signal_icon_tag(sig)
 end
 
 local function update_signals_in_guis()
-	local gui_flow, label, mlc, cb, sig
+	local gui_flow, label, mlc, mlc_out, cb, sig
 	for uid, gui_t in pairs(global.guis) do
-		mlc = global.combinators[uid], Combinators[uid]
+		mlc = global.combinators[uid]
 		if not (mlc and mlc.e.valid) then mlc_remove(uid); goto skip end
 		gui_flow = gui_t.signal_pane
 		if gui_flow then gui_flow.clear() end
@@ -424,14 +424,23 @@ local function update_signals_in_guis()
 					label.style.font_color = color
 		end end end
 		cb = mlc.core.get_control_behavior()
+		mlc_out = tc((Combinators[uid] or {})._out or {})
 		for _, cbs in pairs(cb and cb.parameters.parameters or {}) do
 			sig = cbs.signal.name
-			if sig and cbs.count ~= 0 then
-				label = signal_icon_tag(sig)
-				gui_flow.add{ type='label', name='out-'..sig,
-					caption=('[out] %s %s = %s'):format(label, sig, cbs.count) }
-		end end
-		gui_t.mlc_errors.caption = format_mlc_err_msg(global.combinators[uid]) or ''
+			if sig then
+				mlc_out[sig] = nil
+				if cbs.count ~= 0 then
+					label = signal_icon_tag(sig)
+					gui_flow.add{ type='label', name='out-'..sig,
+						caption=('[out] %s %s = %s'):format(label, sig, cbs.count) }
+		end end end
+		for sig, val in pairs(mlc_out) do -- show remaining invalid signals
+			val = serpent.line(val, {compact=true, nohuge=false})
+			if val:len() > 8 then val = val:sub(1, 8)..'+' end
+			gui_flow.add{ type='label', name='out_err-'..sig,
+				caption=('[color=#ce9f7f][out-invalid] %s = %s[/color]'):format(sig, val) }
+		end
+		gui_t.mlc_errors.caption = format_mlc_err_msg(mlc) or ''
 	::skip:: end
 end
 
@@ -454,37 +463,7 @@ local function alert_clear(mlc_env)
 	mlc_env._alert = nil
 end
 
-local function on_tick(ev)
-	local tick = ev.tick
-	if sandbox_env_base.game then sandbox_env_base.game.tick = tick end
-
-	for uid, mlc in pairs(global.combinators) do
-		local mlc_env = Combinators[uid]
-		if not mlc_env then mlc_env = mlc_init(mlc.e) end
-		if not (mlc_env and mlc.e.valid and mlc.core.valid)
-			then mlc_remove(uid); goto skip end
-
-		local err_msg = format_mlc_err_msg(mlc)
-		if err_msg then
-			if tick % conf.logic_alert_interval == 0
-				then alert_about_mlc_error(mlc_env, err_msg) end
-			goto skip -- suspend combinator logic until errors are addressed
-		elseif mlc_env._alert then alert_clear(mlc_env) end
-
-		if tick >= (mlc.next_tick or 0) and mlc_env._func then
-			run_moon_logic_tick(mlc, mlc_env, tick)
-			for _, p in ipairs(game.connected_players)
-				do guis.vars_window_update(p.index, uid) end
-			if mlc.err_run then guis.update_error_highlight(uid, mlc, mlc.err_run) end
-		end
-	::skip:: end
-
-	if next(global.guis)
-			and game.tick % conf.gui_signals_update_interval == 0
-		then update_signals_in_guis() end
-end
-
-function run_moon_logic_tick(mlc, mlc_env, tick)
+local function run_moon_logic_tick(mlc, mlc_env, tick)
 	-- Runs logic of the specified combinator, reading its input and setting outputs
 	local out_tick, out_diff = mlc.next_tick, tc(mlc_env._out)
 	local dbg = mlc.vars.debug and function(fmt, ...)
@@ -556,6 +535,36 @@ function run_moon_logic_tick(mlc, mlc_env, tick)
 		if mlc_src then guis.save_code(mlc_env._uid, mlc_src.code) end
 		mlc.vars.ota_update_from_uid = nil
 	end
+end
+
+local function on_tick(ev)
+	local tick = ev.tick
+	if sandbox_env_base.game then sandbox_env_base.game.tick = tick end
+
+	for uid, mlc in pairs(global.combinators) do
+		local mlc_env = Combinators[uid]
+		if not mlc_env then mlc_env = mlc_init(mlc.e) end
+		if not (mlc_env and mlc.e.valid and mlc.core.valid)
+			then mlc_remove(uid); goto skip end
+
+		local err_msg = format_mlc_err_msg(mlc)
+		if err_msg then
+			if tick % conf.logic_alert_interval == 0
+				then alert_about_mlc_error(mlc_env, err_msg) end
+			goto skip -- suspend combinator logic until errors are addressed
+		elseif mlc_env._alert then alert_clear(mlc_env) end
+
+		if tick >= (mlc.next_tick or 0) and mlc_env._func then
+			run_moon_logic_tick(mlc, mlc_env, tick)
+			for _, p in ipairs(game.connected_players)
+				do guis.vars_window_update(p.index, uid) end
+			if mlc.err_run then guis.update_error_highlight(uid, mlc, mlc.err_run) end
+		end
+	::skip:: end
+
+	if next(global.guis)
+			and game.tick % conf.gui_signals_update_interval == 0
+		then update_signals_in_guis() end
 end
 
 script.on_event(defines.events.on_tick, on_tick)
