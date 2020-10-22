@@ -13,7 +13,8 @@ data:extend{
 		name = 'UV-lamp',
 		icon = '__Will-o-the-Wisps_updated__/graphics/icons/uv-lamp.png',
 		icon_size = 32,
-		subgroup = 'circuit-network',
+		subgroup = mods.SchallCircuitGroup
+			and 'circuit-visual' or 'circuit-network',
 		order = 'a[light]-a[uv-lamp]',
 		place_result = 'UV-lamp',
 		stack_size = 50 },
@@ -22,7 +23,8 @@ data:extend{
 		name = 'wisp-detector',
 		icon = '__Will-o-the-Wisps_updated__/graphics/icons/wisp-detector.png',
 		icon_size = 32,
-		subgroup = 'circuit-network',
+		subgroup = mods.SchallCircuitGroup
+			and 'circuit-combinator' or 'circuit-network',
 		place_result='wisp-detector',
 		order = 'b[combinators]-c[wisp-detector]',
 		stack_size= 50 },

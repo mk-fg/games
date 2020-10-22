@@ -1,5 +1,11 @@
 
 ---------------------------------------------------------------------------------------------------
+Version: 0.0.6
+Date: 2020-10-22
+  Features:
+    - Add optional dependency on Schall Circuit Group mod, adding these lamps to its tab, if also installed.
+
+---------------------------------------------------------------------------------------------------
 Version: 0.0.5
 Date: 2020-09-08
   Features:

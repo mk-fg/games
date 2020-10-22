@@ -1,5 +1,11 @@
 
 ---------------------------------------------------------------------------------------------------
+Version: 0.3.13
+Date: 2020-10-22
+  Features:
+    - Add optional dependency on Schall Circuit Group mod, adding uv-lamp/combinator to its tab, if also installed.
+
+---------------------------------------------------------------------------------------------------
 Version: 0.3.12
 Date: 2020-10-20
   Features:

@@ -39,7 +39,8 @@ data:extend{
 		name = 'sentinel-combinator',
 		icon = '__Biter_Detector_Sentinel_Combinator__/art/sentinel-combinator-icon.png',
 		icon_size = 64,
-		subgroup = 'circuit-network',
+		subgroup = mods.SchallCircuitGroup
+			and 'circuit-combinator' or 'circuit-network',
 		place_result = 'sentinel-combinator',
 		order = 'd[other]-c[sentinel-combinator]',
 		stack_size = 50
@@ -49,7 +50,8 @@ data:extend{
 		name = 'sentinel-alarm',
 		icon = '__Biter_Detector_Sentinel_Combinator__/art/sentinel-alarm-icon.png',
 		icon_size = 64,
-		subgroup = 'circuit-network',
+		subgroup = mods.SchallCircuitGroup
+			and 'circuit-combinator' or 'circuit-network',
 		place_result = 'sentinel-alarm',
 		order = 'd[other]-c[sentinel-alarm]',
 		stack_size = 100

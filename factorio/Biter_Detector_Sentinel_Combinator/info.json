@@ -1,8 +1,8 @@
 {
 	"name": "Biter_Detector_Sentinel_Combinator",
-	"version": "0.0.10",
+	"version": "0.0.11",
 	"factorio_version": "1.0",
-	"dependencies": ["base >= 0.18.0"],
+	"dependencies": ["base >= 0.18.0", "? SchallCircuitGroup"],
 	"title": "Biter Detector Sentinel Combinator",
 	"author": "mk-fg",
 	"description": "Adds Sentinel Alarm and Combinator buildings that detect biters within configurable range, sending signals to connected circuit network."

@@ -165,7 +165,8 @@ data:extend{
 		name = 'cclp',
 		icon = png('cclp-icon'),
 		icon_size = 64,
-		subgroup = 'circuit-network',
+		subgroup = mods.SchallCircuitGroup
+			and 'circuit-visual' or 'circuit-network',
 		order = 'a[light]-b[cclp]',
 		place_result = 'cclp',
 		stack_size = 50 },

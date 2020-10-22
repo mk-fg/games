@@ -1,8 +1,8 @@
 {
    "name" : "Switch_Button-1_0",
-   "version" : "0.1.16",
+   "version" : "0.1.17",
    "factorio_version" : "1.0",
-   "dependencies" : ["base >= 1.0.0"],
+   "dependencies" : ["base >= 1.0.0", "? SchallCircuitGroup"],
    "title" : "Switch Button by GalactusX31 updated for 1.0",
    "author" : "GalactusX31",
    "homepage" : "https://mods.factorio.com/mod/Switch_Button",

@@ -1,30 +1,37 @@
+
+---------------------------------------------------------------------------------------------------
+Version: 0.0.11
+Date: 2020-10-22
+  Features:
+    - Add optional dependency on Schall Circuit Group mod, adding these combinators to its tab, if also installed.
+
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.10
-Date: 30. 08. 2020
+Date: 2020-08-30
   Internals:
     - Handle script_raised_built/revive events, for compatibility with mods that might create these combinators that way.
 
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.9
-Date: 19. 08. 2020
+Date: 2020-08-19
   Fixes:
     - Fix bug introduced in 0.0.7 where Alarm won't read R signal from wires when in its default off state.
 
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.8
-Date: 19. 08. 2020
+Date: 2020-08-19
   Internals:
     - Bump compatibility info to Factorio 1.0.
 
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.7
-Date: 12. 08. 2020
+Date: 2020-08-12
   Internals:
     - Cleanup, use get_merged_signal() instead of iteration, as latter is not needed there.
 
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.6
-Date: 12. 08. 2020
+Date: 2020-08-12
   Features:
     - Add Sentinel Alarm tower for simplier "enemy approaching" detection signals.
   Changes:
@@ -33,19 +40,19 @@ Date: 12. 08. 2020
 
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.5
-Date: 11. 08. 2020
+Date: 2020-08-11
   Fixes:
     - Fix force check condition in surface.find_units().
 
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.4
-Date: 11. 08. 2020
+Date: 2020-08-11
   Changes:
     - Namespace settings knobs' names, to avoid potential conflicts. This will reset mod settings!
 
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.3
-Date: 11. 08. 2020
+Date: 2020-08-11
   Changes:
     - Use surface.find_units() which only detects mobile units, for better performance and less noise.
   Fixes:
@@ -53,7 +60,7 @@ Date: 11. 08. 2020
 
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.2
-Date: 11. 08. 2020
+Date: 2020-08-11
   Features:
     - Add "Require Radar" option to make detectors more compact and suitable as triggers.
   Fixes:
@@ -62,7 +69,7 @@ Date: 11. 08. 2020
 
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.1
-Date: 11. 08. 2020
+Date: 2020-08-11
   Features:
     - Initial release, based on Circuit Power Measurement Combinator code.
     - Only basic "does not immediately crash" testing, still need to play with it myself.
