@@ -166,6 +166,7 @@ Regular combinators are best for simple things, as they work ridiculously fast o
 ## Known Issues and quirks
 
 - Hotkeys for save/undo/redo/etc don't work when code textbox is focused, you need to press Esc or otherwise unfocus it first.
+- Cursor position when clicking on the code box can be weird and unintiutive - just click again if you don't see it on the spot.
 - Combinator code (latest version) will only be copied to a blueprint-placed ones while original one exists, and not stored in exported blueprint strings.
 
 Big thanks to [ixu](https://mods.factorio.com/user/ixu) and [completion](https://mods.factorio.com/user/completion) for testing the mod extensively and reporting dozens of bugs here.
