@@ -203,7 +203,7 @@ local function wisp_incident_labels(q, remove)
 				text=('[%s] %s (n=%s)'):format(utils.fmt_ticks(inc.ts), inc.t, inc.n) }
 			for _, player in ipairs(game.connected_players) do
 				if inc.tags[player.force.name] and inc.tags[player.force.name].valid then goto skip end
-				inc.tags[player.force.name] = player.force.add_chart_tag(player.surface, tag)
+				inc.tags[player.force.name] = player.force.add_chart_tag(InitState.surface, tag)
 			::skip:: end
 		else
 			for k, tag in pairs(inc.tags)
@@ -507,10 +507,11 @@ local tasks_monolithic = {
 			local players, p = game.connected_players
 			for _ = 1, #players do
 				pos_player = math.random(1, #players)
-				p = players[pos_player].character
-				if p then break end
+				p = players[pos_player]
+				if p and p.valid then p = p.character end
+				if p and p.valid and p.surface.index == surface.index then break else p = nil end
 			end
-			if not (p and p.valid) then pos_player = nil end
+			if not p then pos_player = nil end
 			if pos_player then
 				pos, force_name, cmd = p.position, p.force.name,
 					{type=defines.command.go_to_location, destination_entity=p}
