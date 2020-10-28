@@ -79,4 +79,9 @@ Having too many and/or too long-range detectors might impact performance on scan
     - [Armoured Biters](https://mods.factorio.com/mod/ArmouredBiters) - additional biter types for that "other aliens" category.
     - [Will-o'-the-Wisps updated](https://mods.factorio.com/mod/Will-o-the-Wisps_updated) - hostile ones trigger Alarm towers, but combinator doesn't count them.
 
+
+- To measure distances easily, use the awesome [Tape Measure mod](https://mods.factorio.com/mod/tape_measure_tool).
+
+    Do note that tool only measures dx/dy, while radial distance is sqrt(dx^2 + dy^2).
+
 - [Github repository for this mod](https://github.com/mk-fg/games/tree/master/factorio/Biter_Detector_Sentinel_Combinator)
