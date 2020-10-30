@@ -1,6 +1,7 @@
 **Important: This mod should probably cause desyncs in multiplayer games**
 Mod code uses things which are likely to desync mp games, and I only test singleplayer, so it's highly unlikely that it will "just work" in mp.
 
+&nbsp;
 
 --------------------
 
@@ -21,6 +22,7 @@ Fixing/maintaining these is much easier without few thousand lines of extra comp
 
 "Moon Logic" Combinator is because it's programmed in Lua - "moon" in portugese (as Lua itself originates in Brazil).
 
+&nbsp;
 
 --------------------
 
@@ -49,6 +51,7 @@ If you don't use these buttons to undo minor changes (they still keep history of
 
 UI hotkeys can also be customized in the Settings - Controls game menu.
 
+&nbsp;
 
 --------------------
 
@@ -58,6 +61,7 @@ UI hotkeys can also be customized in the Settings - Controls game menu.
 
 Lua is a very simple and easy-to-use programming language, which [fits entirely on a couple pages](http://lua-users.org/files/wiki_insecure/users/thomasl/luarefv51.pdf).
 This mod allows using it to script factorio circuit network logic directly from within the game.
+&nbsp;
 
 ----------
 
@@ -72,6 +76,7 @@ This mod allows using it to script factorio circuit network logic directly from 
 - Ever-increasing output counter: `out.wood = out.wood + 1`
 
 - Don't update counter on every single [game tick](https://wiki.factorio.com/Time#Ticks): `out.wood = out.wood + 1; delay = 60`
+&nbsp;
 
 ----------
 
@@ -115,6 +120,7 @@ end
 ```
 
 As comments in the code might suggest already, it's a train station automation example.
+&nbsp;
 
 ----------
 
@@ -147,6 +153,7 @@ REoTMhuDqH5D6CURIEMhslfTsI1eWhEVLBX4dCdto+hlT3vy7ieDEZH+9c7LBLM+KnOYYU0K1fgMg+xd
 ```
 
 (adapted from [this post in the old LuaCombinator forum thread](https://forums.factorio.com/viewtopic.php?p=394048#p394048))
+&nbsp;
 
 ----------
 
@@ -158,6 +165,7 @@ Runtime errors in the code will raise global alert on the map, set "mlc-error" o
 
 Regular combinators are best for simple things, as they work ridiculously fast on every tick. Fancy programmable ones are no replacement for them.
 
+&nbsp;
 
 --------------------
 
@@ -171,6 +179,7 @@ Regular combinators are best for simple things, as they work ridiculously fast o
 
 Big thanks to [ixu](https://mods.factorio.com/user/ixu) and [completion](https://mods.factorio.com/user/completion) for testing the mod extensively and reporting dozens of bugs here.
 
+&nbsp;
 
 --------------------
 
@@ -185,31 +194,35 @@ Big thanks to [ixu](https://mods.factorio.com/user/ixu) and [completion](https:/
 
         Kinda like [Pushbutton](https://mods.factorio.com/mod/pushbutton), but signal is persistent, not just pulse, which is easier to work with from any kind of delayed checks.
         Works from anywhere on the (radar-covered) map by default, and can be flipped by simple left-click or E key.
+        &nbsp;
 
     - [Nixie Tubes](https://mods.factorio.com/mod/nixie-tubes) - a nice display for signal values.
 
         [Integrated Circuitry](https://mods.factorio.com/mod/integratedCircuitry) has even more display options and a neat wire support posts.
+        &nbsp;
 
     - [Schall Virtual Signal](https://mods.factorio.com/mod/SchallVirtualSignal) - adds a bunch more extra signals to use on the net.
 
         They might not be very descriptive - mostly just more numbers - but there are a lot of them!
+        &nbsp;
 
     - [Time Series Graphs](https://mods.factorio.com/mod/timeseries) - time-series monitoring/graphing system for your network.
 
     - [RadioNetwork](https://mods.factorio.com/mod/RadioNetwork), [Factorio LAN](https://mods.factorio.com/mod/Factorio-LAN), etc - to link remote networks together and control things from afar.
-
+    &nbsp;
 
 - This mod base/predecessors:
 
     - [Sandboxed LuaCombinator](https://mods.factorio.com/mod/SandboxedLuaCombinator) by [IWTDU](https://mods.factorio.com/user/IWTDU)
 
         Mod that this code was initially from. See changelog for an up-to-date list of differences. Seem to be abandoned atm (2020-08-31).
+        &nbsp;
 
     - [LuaCombinator 2](https://mods.factorio.com/mod/LuaCombinator2) by [OwnlyMe](https://mods.factorio.com/user/OwnlyMe)
 
         Great mod on which Sandboxed LuaCombinator above was based itself. Long-deprecated by now.
         I think this one is also based off [Patched LuaCombinator](https://mods.factorio.com/mod/LuaCombinator) and the original [LuaCombinator](https://forums.factorio.com/viewtopic.php?f=93&t=15352) mods, but not sure.
-
+        &nbsp;
 
 - Other programmable logic combinator mods, in no particular order:
 
@@ -218,17 +231,20 @@ Big thanks to [ixu](https://mods.factorio.com/user/ixu) and [completion](https:/
         Unfortunately quite buggy, never worked right for me, and way-way overcomplicated, exposing pretty much whole factorio Lua modding API instead of simple inputs-and-outputs sandbox for in-game combinator logic. Seem to be abandoned at the moment (2020-08-31).
 
         There's also [LuaCombinator 3 Fixed](https://mods.factorio.com/mod/LuaCombinator3_fixed), which probably works better with current factorio and other mods.
+        &nbsp;
 
     - [fCPU](https://mods.factorio.com/mod/fcpu) - simple cpu emulator, allowing to code logic in custom assembly language.
 
         Actually takes in-game ticks to run its assembly instructions for additional challenge.
         Stands somewhere in-between gate/cmos logic of vanilla factorio and high-level scripting like Lua here.
         Has great documentation, including in-game one.
+        &nbsp;
 
     - [Improved Combinator](https://mods.factorio.com/mod/ImprovedCombinator) - factorio combinator combinator.
 
         Combines operations of any number of factorio combinators into one processing pipeline.
         Nice to save space and make vanilla simple combinator logic more tidy, without the confusing mess of wires.
+        &nbsp;
 
     - [Advanced Combinator](https://mods.factorio.com/mod/advanced-combinator) - like Improved Combinator, but allows more advanced logic.
 
@@ -237,7 +253,7 @@ Big thanks to [ixu](https://mods.factorio.com/user/ixu) and [completion](https:/
     - [Programmable Controllers](https://mods.factorio.com/mod/programmable-controllers) - adds whole toolkit of components to build von Neumann architecture machine.
 
         Kinda like fCPU and MicroController as a starting point, but with extensible architecture, power management and peripherals.
-
+        &nbsp;
 
 - [Github repo link](https://github.com/mk-fg/games/tree/master/factorio/Moon_Logic)
 

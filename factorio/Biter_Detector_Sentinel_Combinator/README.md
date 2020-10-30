@@ -11,6 +11,7 @@ Adds Sentinel Alarm and Sentinel Combinator devices, which can be used to detect
 
     Test-run mode: T signal can be set (to non-0 value) on alarm combinator to have it activate on (any) player within range instead.
     Can be used to test distance and connected systems' reaction by player(s) pretending to be a biter, or maybe to prank them with a train.
+    &nbsp;
 
 - Sentinel Combinator
 
@@ -26,6 +27,7 @@ Adds Sentinel Alarm and Sentinel Combinator devices, which can be used to detect
     Any other signals can be set on the combinator freely as well, it shouldn't touch them.
 
     Uses biter icons from vanilla game for virtual signals, with two special ones for "other" and "total".
+    &nbsp;
 
 Difference between the two is that Alarm is a simplier on/off detector for when anything dangerous is in range,
 while Combinator sends which types of biters are in range and their exact count.
@@ -38,6 +40,7 @@ Both detectors can be built after unlocking Circuit Network technology, located 
 
 Mod settings allow to change update intervals and some workload parameters.
 
+&nbsp;
 
 --------------------
 
@@ -53,18 +56,18 @@ It's easy to do by adding arithmetic combinator with "memory" in-between alarm/s
 
 Having too many and/or too long-range detectors might impact performance on scans, but didn't test by how much. Alarms use simplier find_nearest_enemy() scans. If you are concerned about this when using many detectors, check "show-time-usage" in Shift-F4 debug menu and numbers under "Script Update" there.
 
+&nbsp;
 
 --------------------
 
 ## Links
-
 
 - Similar Mods
 
     - [Networked Radar](https://mods.factorio.com/mod/folk-radar) - very similar mod for factorio 0.14 - 0.16.
     - [Radar signals](https://mods.factorio.com/mod/radar-signals) - more up-to-date fork of Networked Radar, somehow missed it before.
     - [Dragon Industries Factor-I/O](https://mods.factorio.com/mod/FactorIO) - includes biter count sensor, among many others.
-
+    &nbsp;
 
 - Programmable Speakers
 
@@ -72,16 +75,17 @@ Having too many and/or too long-range detectors might impact performance on scan
     - [Speaker Signals 2](https://mods.factorio.com/mod/speaker-signals-2) - nice alert icons for speakers.
     - [Command & Conquer ☭ Red Alert Sounds](https://mods.factorio.com/mod/Command_and_Conquer_RedAlert_Sounds) - to have voiced "Enemy Approaching" or "Base Under Attack" alerts on speakers.
     - [Op2 announcer](https://mods.factorio.com/mod/Op2_announcer) - another great voice-alarm pack.
+    &nbsp;
 
-
-- Detectable fauna
+- More fauna for detector'ing
 
     - [Armoured Biters](https://mods.factorio.com/mod/ArmouredBiters) - additional biter types for that "other aliens" category.
     - [Will-o'-the-Wisps updated](https://mods.factorio.com/mod/Will-o-the-Wisps_updated) - hostile ones trigger Alarm towers, but combinator doesn't count them.
-
+    &nbsp;
 
 - To measure distances easily, use the awesome [Tape Measure mod](https://mods.factorio.com/mod/tape_measure_tool).
 
     Do note that tool only measures dx/dy, while radial distance is sqrt(dx^2 + dy^2).
+    &nbsp;
 
 - [Github repository for this mod](https://github.com/mk-fg/games/tree/master/factorio/Biter_Detector_Sentinel_Combinator)
