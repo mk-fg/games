@@ -1,7 +1,7 @@
 
 ---------------------------------------------------------------------------------------------------
-Version: 0.1.17
-Date: 2020-10-22
+Version: 0.1.18
+Date: 2020-11-09
   Features:
     - Add optional dependency on Schall Circuit Group mod, adding switch to its tab, if also installed.
 

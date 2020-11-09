@@ -20,7 +20,7 @@ data:extend{
 		icon = '__Circuit_Power_Measurement_Combinator__/graphics/power-meter-combinator-icon.png',
 		icon_size = 32,
 		subgroup = mods.SchallCircuitGroup
-			and 'circuit-combinator' or 'circuit-network',
+			and 'circuit-input' or 'circuit-network',
 		place_result = 'power-meter-combinator',
 		order = 'd[other]-c[power-meter-combinator]',
 		stack_size = 50

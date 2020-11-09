@@ -24,7 +24,7 @@ data:extend{
 		icon = '__Will-o-the-Wisps_updated__/graphics/icons/wisp-detector.png',
 		icon_size = 32,
 		subgroup = mods.SchallCircuitGroup
-			and 'circuit-combinator' or 'circuit-network',
+			and 'circuit-input' or 'circuit-network',
 		place_result='wisp-detector',
 		order = 'b[combinators]-c[wisp-detector]',
 		stack_size= 50 },

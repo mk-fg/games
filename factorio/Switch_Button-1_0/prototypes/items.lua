@@ -6,7 +6,7 @@ data:extend{
     icon_size = 40,
     flags = {},
     subgroup = mods.SchallCircuitGroup
-      and 'circuit-combinator' or 'circuit-network',
+      and 'circuit-input' or 'circuit-network',
     place_result='switchbutton',
     order = 'b[combinators]-d[switchbutton]',
     stack_size = 50,
