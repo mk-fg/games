@@ -207,6 +207,14 @@ Easy to fix with mods though, which are one of the best parts of the game.
   | Does not change research time by default, as it's not a bottleneck anyway.
   | Based on simple "ReducedResearch" mod (~10 lines of lua), but with updated formula.
 
+- mod-portal-reverse-dep-check.py
+
+  Script to lookup what depends on specific mod using
+  `Factorio Mod Portal API <https://wiki.factorio.com/Mod_portal_API>`_.
+
+  | Does as much caching as possible to allow running repeated lookup.
+  | Run with -h/--help option to get usage info.
+
 - mod-list.yaml - list of mods from when I last played (should include base game
   version number) and backed it up.
 
