@@ -6,7 +6,7 @@ import os, sys, json, time, unicodedata
 
 
 p = ft.partial(print, flush=True)
-p_err = lambda s, *sx: p('ERROR: {s}', *sx, file=sys.stderr)
+p_err = lambda s, *sx: p(f'ERROR: {s}', *sx, file=sys.stderr)
 str_norm = lambda v: unicodedata.normalize('NFKC', v.strip()).casefold()
 
 
@@ -49,7 +49,7 @@ def main(args=None):
 		description=dd('''
 			List all mods on mods.factorio.com that depend on a specified mod.
 			This requires multiple API queries, results of which are cached in -c/--cache-file,
-				so that script can be stopped and resumed anytime without any meaningful extra work.'''))
+				for stopping/resuming anytime or running different lookups without any extra work.'''))
 
 	parser.add_argument('mod_slug',
 		help='Name of the mod (as presented in URL!) to lookup in other mods dependencies.')
@@ -64,7 +64,7 @@ def main(args=None):
 				repeated lookups will not query anything from the Mod Portal API.
 			Default: %(default)s'''))
 	group.add_argument('-u', '--cache-update', action='store_true',
-		help='Update mod list and any mods that changed versions.')
+		help='Update mod list and fetch info for new and updated mods.')
 
 	group = parser.add_argument_group('Fetch parameters')
 	group.add_argument('-d', '--api-req-delay',
@@ -72,7 +72,7 @@ def main(args=None):
 		help='Delay (in seconds) between API requests. Default: %(default)ss')
 	group.add_argument('-r', '--report-steps',
 		type=int, metavar='n', default=50,
-		help='Report progress after every 1/Nth of processed mods. Default: %(default)s')
+		help='Report progress after every 1/Nth of processed mods. 0 to disable. Default: %(default)s')
 
 	opts = parser.parse_args(sys.argv[1:] if args is None else args)
 
@@ -91,7 +91,8 @@ def main(args=None):
 			pn, n = page['pagination'], n + 1
 			if pn is None or pn['page'] >= pn['page_count']: break
 
-		n_max, n_report = len(mods), int(len(mods) / opts.report_steps) + 1
+		n_max = len(mods)
+		n_report = int(n_max / (opts.report_steps or 1/2**32)) + 1
 		for n, mod in enumerate(mods, 1):
 			if not n % n_report: p(f'-- done: {n} / {n_max}')
 			mod_name = mod['name']
@@ -110,13 +111,13 @@ def main(args=None):
 				p_err(f'No mod dependency info for mod, skipping it: {mod_title}')
 				continue
 			for dep in deps:
-				dep = str_norm(dep).lstrip('?!').strip()
-				if dep.startswith('(?)'): dep = dep[3:].strip()
-				for c in '><=': dep = dep.split(c)[0].strip()
-				if mod_slug == dep: break
+				mod_dep = str_norm(dep).lstrip('?!').strip()
+				if mod_dep.startswith('(?)'): mod_dep = mod_dep[3:].strip()
+				for c in '><=': mod_dep = mod_dep.split(c)[0].strip()
+				if mod_dep == mod_slug: break
 			else: continue
 			p( f'{mod_title}'
 				f'\n  url: https://mods.factorio.com/mod/{ulp.quote(mod_name)}'
-				f'\n  dependency: {dep}' )
+				f'\n  dependency: {dep}\n' )
 
 if __name__ == '__main__': sys.exit(main())

@@ -212,7 +212,7 @@ Easy to fix with mods though, which are one of the best parts of the game.
   Script to lookup what depends on specific mod using
   `Factorio Mod Portal API <https://wiki.factorio.com/Mod_portal_API>`_.
 
-  | Does as much caching as possible to allow running repeated lookup.
+  | Does as much caching as possible to allow running many lookups.
   | Run with -h/--help option to get usage info.
 
 - mod-list.yaml - list of mods from when I last played (should include base game
