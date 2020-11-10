@@ -299,12 +299,12 @@ let
 	info_fields_desc = {
 		dpu: 'Weapon Power * Accuracy / TU cost - rough "pure damage" estimate.',
 		quirks: 'Special attributes and modifiers that weapon has.' },
-	// dmg_types are partly hardcoded in RuleItem.h (enum ItemDamageType)
-	// Some are renamed in localization files, e.g. 0=NONE -> CHARM
+	// dmg_types are partly hardcoded in RuleDamageType.h (enum ItemDamageType)
+	// Some are renamed in localization files, e.g. 0=NONE -> CHARM, see also StatsForNerdsState.cpp
 	info_dmg_types = {
 		0: 'charm', 1: 'piercing', 2: 'burn', 3: 'concussive', 4: 'laser', 5: 'plasma', 6: 'daze', 7: 'cutting', 8: 'chem', 9: 'choke',
-		10: 'anti-e511', 11: 'bio', 12: 'electric', 13: 'emp', 14: 'warp', 15: 'mind', 16: 'heat', 17: 'cold' },
-	// From enum in RuleDamageType.h, described under DRT_ stuff
+		10: 'anti-e511', 11: 'bio', 12: 'electric', 13: 'emp', 14: 'warp', 15: 'mind', 16: 'stabbing', 17: 'heat', 18: 'cold' },
+	// From enum in RuleDamageType.h, described under DRT_ stuff in locale
 	info_random_types = {
 		0: 'vanilla', 1: '1d(x0-x2)', 2: '1d(x.5-x1.5)', 3: 'flat(x1)',
 		4: 'fire(5-10)', 5: 'no-dmg(x0)', 6: '2d(x0-x1)', 7: '1d(x.5-x2)' },
