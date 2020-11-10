@@ -273,6 +273,7 @@ let
 	state_defaults = Object.assign( {q: '', i: ''},
 		obj_tuples(map_entries(stats), d => [`a.${d.key}`, `${d.value}`]) ),
 	state_url_clear = {},
+	state_url_track_history = d3.set(['i', 'k']),
 	state = state_tracker(
 		[...(new window.URL(window.location.href)).searchParams.entries()]
 			.reduce((o, [k,v]) => { o[k] = url_dec(v); return o }, {}) )
@@ -280,12 +281,14 @@ let
 			let url = new window.URL(window.location.href)
 			if (v === state_defaults[k] || v === state_url_clear) url.searchParams.delete(k)
 			else url.searchParams.set(k, url_enc(v))
-			window.history[k === 'i' ? 'pushState' : 'replaceState'](history.state, document.title, url.href) })
+			window.history[ state_url_track_history.has(k) ?
+				'pushState' : 'replaceState' ](history.state, document.title, url.href) })
 
 let
 	items = data,
-	items_info = d3.set( (state('i') || '').split('.').filter(d => d.length > 0)
+	items_info_parse = line => d3.set( (line || '').split('.').filter(d => d.length > 0)
 		.map(d => ((d.startsWith('str_') || d.toUpperCase() in items) ? d : `str_${d}`).toUpperCase()) ),
+	items_info = items_info_parse(state('i') || ''),
 	items_battle = Object.values(data).filter(e => e.battleType),
 	// Added by json-cacher as e.g.: "STR_VERSION": {"type": "STR_VERSION", "value": "0.99J2"},
 	items_version = (items.STR_VERSION || {}).value || 'unknown'
@@ -693,8 +696,20 @@ let refresh = debounce(300, 'now', () => {
 			.enter().append('tr').merge(s)
 			.each((d, n, ns) => refresh_row(d3.select(ns[n]))))
 	document.getElementById('fields-weapons')
-		.style.min_height = `${document.getElementById('info').offsetHeight}px`
-})
+		.style.min_height = `${document.getElementById('info').offsetHeight}px` })
+
+let refresh_select = query => {
+	let items = items_battle.filter( e => e.name == query ||
+		e.name.includes(query) || e.name.toLowerCase().includes(query.toLowerCase()) ||
+		e.type == query || e.type.toLowerCase().includes(query.toLowerCase()) )
+	d3.select('#input-weapon-select')
+		.selectAll('option').data(items, d => d.type)
+		.call(s => s.exit().remove())
+		.call(s => s
+			.enter().append('option').attr('value', d => d.type).text(d => d.name)
+			.merge(s)
+				.sort(sort_by_func(d3.ascending, d => d.name))
+				.attr('selected', (d, n, ns) => { ns[n].selected = items_info.has(d.type) })) }
 
 
 let state_attrs = state.prefix('a.')
@@ -728,18 +743,7 @@ let form = d3.select('body').append('form')
 					let input = ns[n].value
 					state('q', input)
 					if (input.length <= 0) return
-					let items = items_battle.filter( e => e.name == input ||
-						e.name.includes(input) || e.name.toLowerCase().includes(input.toLowerCase()) ||
-						e.type == input || e.type.toLowerCase().includes(input.toLowerCase()) )
-					d3.select('#input-weapon-select')
-						.selectAll('option').data(items, d => d.type)
-						.call(s => s.exit().remove())
-						.call(s => s
-							.enter().append('option')
-								.attr('value', d => d.type).text(d => d.name)
-								.attr('selected', d => items_info.has(d.type) || null)
-							.merge(s)
-								.sort(sort_by_func(d3.ascending, d => d.name))) }))
+					refresh_select(input) }))
 				.call(fire_event('input'))
 			s.append('datalist').attr('id', 'input-weapon-datalist')
 				.call(s => items_battle.map(e => {
@@ -774,6 +778,13 @@ let form = d3.select('body').append('form')
 
 refresh()
 
+window.addEventListener('popstate', ev => {
+	// state_url_track_history elements refresh for back/forward buttons
+	let url_state = (new window.URL(window.location.href)).searchParams
+	items_info = items_info_parse(url_dec(url_state.get('i')))
+	refresh_select(d3.select('#input-weapon-search').node().value = url_dec(url_state.get('q')))
+	refresh() })
+
 
 let ticker_release,
 	ticker_show = ticker_release && localStorage.ticker !== ticker_release
@@ -781,6 +792,7 @@ let ticker_release,
 let tips = [
 	'Use search field at the top of the Weapons box to look for weapons and mark them for comparison.',
 	'CTRL/SHIFT + click/drag in Weapons list to pick many, as found + unselected items there are removed from table.',
+	'Browser history back/forward buttons can be used to undo/redo item picks or searches.',
 	'Use (SHIFT+)TAB to jump over stat input fields quickly.',
 	'Clicking table headers will sort on that column.',
 	'Reddish cells indicate that multiple alternatives (ammo types, modes) are available, click to cycle these.',
