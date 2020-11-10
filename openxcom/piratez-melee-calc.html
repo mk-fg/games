@@ -26,25 +26,25 @@ form input { height: 1.5em; border: 1px #ccc inset; margin: .2em; padding: .1em;
 form input:invalid { background: #fee; }
 
 form .stats { grid-area: stats; }
-form .stats input { width: 3.5em; }
+form .stats input { margin-left: .4em; width: 3.5em; }
 
-form .weapons {
-	grid-area: weapons;
-	display: grid;
-	grid-template-rows: 3em minmax(20em, auto);
-	grid-template-areas:
-		'search'
-		'list';
-}
-form .weapons .search { grid-area: search; }
-form .weapons .list { width: 100%; grid-area: list; height: auto; resize: vertical; }
+form .weapons { grid-area: weapons; }
+form .weapons div { height: 100%; display: flex; flex-direction: column; }
+form .weapons .search {
+	flex: 0; width: 100%;
+	margin: 0 0 .5em 0; padding: .5em; }
+form .weapons .list {
+	flex: 1; width: 100%; min-height: 20em;
+	padding: .5em; resize: vertical; }
 
 form .info { border-collapse: collapse; border-style: hidden; }
 form .info th, form .info td { height: 1.5em; border: 1px dotted #ccc; padding: .2em .5em; }
-form .info th { cursor: pointer; }
+form .info th { cursor: pointer; padding-left: .8em; transform: translateZ(0); } /* translateZ to parent :before floats */
 
-form .info th:hover { background: linear-gradient(to bottom, rgba(0,0,0,0) 0%,rgba(0,0,0,0.30) 100%); }
-form .info tbody tr:hover { background: linear-gradient(to bottom, rgba(0,0,0,0) 0%,rgba(0,0,0,0.10) 100%); }
+form .info th::before { content: ""; position: absolute; left: .1em; }
+form .info th:hover::before { content: "↓"; }
+form .info th:hover { background: linear-gradient(to bottom, #0000 0%, #0000 50%, #0004 100%); }
+form .info tbody tr:hover { background: linear-gradient(to bottom, #0000 0%, #0000 50%, #0002 100%); }
 form .info tbody tr:nth-child(odd) { background-color: #eee; }
 form .info tbody td.toggle {
 	color: #5d0914;
@@ -135,7 +135,7 @@ window.onload = () =>
 		document.body.innerHTML = `
 			<h2>ERROR: failed to load d3.js library [${err}]</h2>
 			<p>Check uMatrix/NoScript/adblocker setttings or download
-				<a href='${d3js_url}'>d3.v4.min.js</a> into same dir as this html.</p>`
+				<a href='${d3js_url}'>d3.v5.min.js</a> into same dir as this html.</p>`
 		return })
 	.then(d3_init => d3_init && xhr_load(data_url, 'application/json'))
 	.catch(err => {
@@ -280,7 +280,7 @@ let
 			let url = new window.URL(window.location.href)
 			if (v === state_defaults[k] || v === state_url_clear) url.searchParams.delete(k)
 			else url.searchParams.set(k, url_enc(v))
-			window.history.replaceState(history.state, document.title, url.href) })
+			window.history[k === 'i' ? 'pushState' : 'replaceState'](history.state, document.title, url.href) })
 
 let
 	items = data,
@@ -717,8 +717,8 @@ let form = d3.select('body').append('form')
 
 	.call(s => s
 		.append('fieldset').call(attrs({'class': 'weapons', id: 'fields-weapons'}))
-		.call(s => {
-			s.append('legend').text(`weapons [mod version: ${items_version}]`)
+		.call(s => s.append('legend').html(`weapons [mod&nbsp;version:&nbsp;${items_version}]`))
+		.append('div').call(s => { // needed for "height: 100%" of grid area - doesn't work on fieldset itself
 			s.append('input')
 				.call(attrs({ 'class': 'search', type: 'search',
 					title: 'Item Search Box - type in any part of item names or IDs here',

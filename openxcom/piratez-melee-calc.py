@@ -10,7 +10,7 @@ p_log = lambda fmt,*a,**k:\
 
 
 def parse_items(p_rul, p_lang=None, p_cqc=None):
-	items, item_list = dict(), yaml.load(pl.Path(p_rul).read_text())['items']
+	items, item_list = dict(), yaml.safe_load(pl.Path(p_rul).read_text())['items']
 	for item in item_list:
 		if item.get('delete'): continue
 		t = item.get('type')
@@ -19,7 +19,7 @@ def parse_items(p_rul, p_lang=None, p_cqc=None):
 			continue
 		items[t] = item
 
-	cqc = yaml.load(pl.Path(p_cqc).read_text())['items']
+	cqc = yaml.safe_load(pl.Path(p_cqc).read_text())['items']
 	for item in cqc:
 		t = item['type']
 		if t not in items:
@@ -34,7 +34,7 @@ def parse_items(p_rul, p_lang=None, p_cqc=None):
 
 	str_trans = dict()
 	for p in p_lang or list():
-		lang = yaml.load(pl.Path(p).read_text())
+		lang = yaml.safe_load(pl.Path(p).read_text())
 		if isinstance(lang, dict):
 			if 'en-US' in lang:
 				str_trans.update(lang['en-US'])
