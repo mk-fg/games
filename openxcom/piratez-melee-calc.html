@@ -654,6 +654,34 @@ let item_stats = d => {
 }
 
 
+let refresh = debounce(300, 'now', () => {
+	d3.select('#info').selectAll('tr')
+		.data(items_info.values().map(d => item_stats(items[d])), d => d.id)
+		.call(s => s.exit().remove())
+		.call(s => s
+			.enter().append('tr').merge(s)
+			.each((d, n, ns) => refresh_row(d3.select(ns[n]))))
+	document.getElementById('fields-weapons')
+		.style.min_height = `${document.getElementById('info').offsetHeight}px` }
+)
+
+let refresh_select = query => {
+	if (query !== undefined)
+		d3.select('#input-weapon-search').node().value = state('q', query)
+	else query = state('q')
+	let items = items_battle.filter( e => e.name == query ||
+		e.name.includes(query) || e.name.toLowerCase().includes(query.toLowerCase()) ||
+		e.type == query || e.type.toLowerCase().includes(query.toLowerCase()) )
+	d3.select('#input-weapon-select')
+		.selectAll('option').data(items, d => d.type)
+		.call(s => s.exit().remove())
+		.call(s => s
+			.enter().append('option').attr('value', d => d.type).text(d => d.name)
+			.merge(s)
+				.sort(sort_by_func(d3.ascending, d => d.name))
+				.attr('selected', (d, n, ns) => { ns[n].selected = items_info.has(d.type) }))
+}
+
 let refresh_row = (row, update) => {
 	let row_id = row.datum().id
 	if (update) row.datum(item_stats(items[row_id]))
@@ -677,7 +705,8 @@ let refresh_row = (row, update) => {
 						.on('click', (d, n, ns) => {
 							row.remove()
 							items_info.remove(row_id)
-							items_info_state_update() })
+							items_info_state_update()
+							refresh_select() })
 				if (d.key === 'weapon')
 					s.on('click', (d, n, ns) => {
 						item_stats_toggle('ammo', row_id)
@@ -687,29 +716,6 @@ let refresh_row = (row, update) => {
 						item_stats_toggle('mode', row_id)
 						refresh_row(row, true) }) }))
 }
-
-let refresh = debounce(300, 'now', () => {
-	d3.select('#info').selectAll('tr')
-		.data(items_info.values().map(d => item_stats(items[d])), d => d.id)
-		.call(s => s.exit().remove())
-		.call(s => s
-			.enter().append('tr').merge(s)
-			.each((d, n, ns) => refresh_row(d3.select(ns[n]))))
-	document.getElementById('fields-weapons')
-		.style.min_height = `${document.getElementById('info').offsetHeight}px` })
-
-let refresh_select = query => {
-	let items = items_battle.filter( e => e.name == query ||
-		e.name.includes(query) || e.name.toLowerCase().includes(query.toLowerCase()) ||
-		e.type == query || e.type.toLowerCase().includes(query.toLowerCase()) )
-	d3.select('#input-weapon-select')
-		.selectAll('option').data(items, d => d.type)
-		.call(s => s.exit().remove())
-		.call(s => s
-			.enter().append('option').attr('value', d => d.type).text(d => d.name)
-			.merge(s)
-				.sort(sort_by_func(d3.ascending, d => d.name))
-				.attr('selected', (d, n, ns) => { ns[n].selected = items_info.has(d.type) })) }
 
 
 let state_attrs = state.prefix('a.')
@@ -741,7 +747,6 @@ let form = d3.select('body').append('form')
 					id: 'input-weapon-search', name: 'weapon-search' }))
 				.on('input', debounce(300, 'last', (d, n, ns) => {
 					let input = ns[n].value
-					state('q', input)
 					if (input.length <= 0) return
 					refresh_select(input) }))
 				.call(fire_event('input'))
@@ -782,7 +787,7 @@ window.addEventListener('popstate', ev => {
 	// state_url_track_history elements refresh for back/forward buttons
 	let url_state = (new window.URL(window.location.href)).searchParams
 	items_info = items_info_parse(url_dec(url_state.get('i')))
-	refresh_select(d3.select('#input-weapon-search').node().value = url_dec(url_state.get('q')))
+	refresh_select(url_dec(url_state.get('q')))
 	refresh() })
 
 
