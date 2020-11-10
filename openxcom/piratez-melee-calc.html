@@ -1,35 +1,107 @@
 <!DOCTYPE html>
-<meta charset='utf-8'>
+<meta charset=utf-8>
+<meta name=color-scheme content='dark light'>
 <title>OXC X-PirateZ Calculator</title>
+
+
 <style>
+
+:root {
+	color-scheme: light dark;
+	--bg: #e0e2e0;
+	--bg-err: #fcc;
+	--bg-hl: #f2f2f2;
+	--bg-sel: #ccc;
+	--bg-border: #ccc;
+	--bg-border-form: #bbb;
+	--fg: #000;
+	--fg-hl: #5d0914;
+	--fg-hl-a: #5d091400;
+	--fg-hl-b: #5d091460;
+	--fg-grad-a: #0000;
+	--fg-grad-b: #0002;
+	--fg-grad-c: #0004; }
+.light-mode {
+	--bg: #e0e2e0;
+	--bg-err: #fcc;
+	--bg-hl: #f2f2f2;
+	--bg-sel: #ccc;
+	--bg-border: #ccc;
+	--bg-border-form: #bbb;
+	--fg: #000;
+	--fg-hl: #5d0914;
+	--fg-hl-a: #5d091400;
+	--fg-hl-b: #5d091460;
+	--fg-grad-a: #0000;
+	--fg-grad-b: #0002;
+	--fg-grad-c: #0004; }
+
+@media (prefers-color-scheme: dark) {
+	:root {
+		--bg: #002a36;
+		--bg-err: #470b11;
+		--bg-hl: #0b3a47;
+		--bg-sel: #1f7086;
+		--bg-border: #1f7086;
+		--bg-border-form: #14424e;
+		--fg: #65b46f;
+		--fg-hl: #b58d6f;
+		--fg-hl-a: #94664300;
+		--fg-hl-b: #94664360;
+		--fg-grad-a: #65b46f00;
+		--fg-grad-b: #65b46f22;
+		--fg-grad-c: #65b46f44; } }
+.dark-mode {
+	--bg: #002a36;
+	--bg-err: #470b11;
+	--bg-hl: #0b3a47;
+	--bg-sel: #1f7086;
+	--bg-border: #1f7086;
+	--bg-border-form: #14424e;
+	--fg: #65b46f;
+	--fg-hl: #b58d6f;
+	--fg-hl-a: #94664300;
+	--fg-hl-b: #946643a0;
+	--fg-grad-a: #65b46f00;
+	--fg-grad-b: #65b46f22;
+	--fg-grad-c: #65b46f44; }
+
 
 body {
 	margin: 0 auto;
 	padding: 1em;
 	max-width: 1300px;
-}
+	color: var(--fg);
+	background: var(--bg); }
 
 form {
-	border: outset 1px #ccc;
+	border: outset 1px var(--bg-border-form);
 	padding: .5em;
+	margin-bottom: 4em;
 	display: grid;
 	grid-template-columns: 30% 70%;
 	grid-template-rows: repeat(2, [row] auto);
 	grid-template-areas:
 		'stats stats'
 		'weapons info'
-		'tips tips';
-}
+		'tips tips'; }
+form fieldset { border-color: var(--bg-border-form); }
 
 form label { margin: .2em; display: inline-block; }
-form input { height: 1.5em; border: 1px #ccc inset; margin: .2em; padding: .1em; }
-form input:invalid { background: #fee; }
+form input, form select { color: var(--fg); background: var(--bg-hl); }
+form input { height: 1.5em; border: 1px var(--bg-border) inset; margin: .2em; padding: .1em; }
+form input:invalid { background: var(--bg-err); }
+form select[multiple] option:checked {
+	/* color and background-color seem to be ignored by browsers for these atm, this is a workaround */
+	color: var(--fg) !important; text-shadow: 1px 1px 0 var(--fg) !important;
+	background: var(--bg-sel) linear-gradient(to top, var(--bg-sel) 0%, var(--bg-sel) 100%) !important; }
+
 
 form .stats { grid-area: stats; }
 form .stats input { margin-left: .4em; width: 3.5em; }
 
 form .weapons { grid-area: weapons; }
-form .weapons div { height: 100%; display: flex; flex-direction: column; }
+form .weapons div { height: 100%; max-height: 40em; display: flex; flex-direction: column; }
 form .weapons .search {
 	flex: 0; width: 100%;
 	margin: 0 0 .5em 0; padding: .5em; }
@@ -38,31 +110,28 @@ form .weapons .list {
 	padding: .5em; resize: vertical; }
 
 form .info { border-collapse: collapse; border-style: hidden; }
-form .info th, form .info td { height: 1.5em; border: 1px dotted #ccc; padding: .2em .5em; }
+form .info th, form .info td { height: 1.5em; border: 1px dotted var(--bg-border); padding: .2em .5em; }
 form .info th { cursor: pointer; padding-left: .8em; transform: translateZ(0); } /* translateZ to parent :before floats */
 
 form .info th::before { content: ""; position: absolute; left: .1em; }
 form .info th:hover::before { content: "↓"; }
-form .info th:hover { background: linear-gradient(to bottom, #0000 0%, #0000 50%, #0004 100%); }
-form .info tbody tr:hover { background: linear-gradient(to bottom, #0000 0%, #0000 50%, #0002 100%); }
-form .info tbody tr:nth-child(odd) { background-color: #eee; }
-form .info tbody td.toggle {
-	color: #5d0914;
-	background: linear-gradient(
-		135deg, rgba(125,185,232,0) 0%,
-		rgba(100,41,47,0) 87%, rgba(96,19,19,0.38) 100% );
-}
+form .info tbody tr:hover { background: linear-gradient(to bottom, var(--fg-grad-a) 0%, var(--fg-grad-a) 50%, var(--fg-grad-b) 100%); }
+form .info th:hover { background: linear-gradient(to bottom, var(--fg-grad-a) 0%, var(--fg-grad-a) 50%, var(--fg-grad-c) 100%); }
+form .info tbody tr:nth-child(odd) { background-color: var(--bg-hl); }
 
-form .info .btn-remove { color: #5d0914; cursor: pointer; float: right; }
+form .info tbody td.toggle {
+	color: var(--fg-hl);
+	background: linear-gradient(135deg, var(--fg-hl-a) 0%, var(--fg-hl-a) 87%, var(--fg-hl-b) 100%); }
+form .info .btn-remove { color: var(--fg-hl); cursor: pointer; float: right; }
 
 form .tips { grid-area: tips; max-width: 55em; }
 
 
 /* CSS ticker for news or such */
+
 @keyframes ticker {
 	0% { transform: translate3d(0, 0, 0); visibility: visible; }
-	100% { transform: translate3d(-100%, 0, 0); }
-}
+	100% { transform: translate3d(-100%, 0, 0); } }
 .ticker-wrap * { cursor: default; }
 .ticker-wrap {
 	position: fixed;
@@ -72,10 +141,9 @@ form .tips { grid-area: tips; max-width: 55em; }
 	width: 100%;
 	overflow: hidden;
 	height: 4rem;
-	background-color: rgba(0, 0, 0, 0.8);
+	background-color: #000c;
 	padding-left: 100%;
-	box-sizing: content-box;
-}
+	box-sizing: content-box; }
 .ticker-wrap .ticker {
 	display: inline-block;
 	height: 4em;
@@ -86,21 +154,79 @@ form .tips { grid-area: tips; max-width: 55em; }
 	animation-iteration-count: infinite;
 	animation-timing-function: linear;
 	animation-name: ticker;
-	animation-duration: 30s;
-}
+	animation-duration: 30s; }
 .ticker-wrap .ticker .item {
 	display: inline-block;
 	padding: 0 2rem;
 	font-size: 2rem;
-	color: white;
-}
-form { margin-bottom: 4em; }
+	color: white; }
+
+
+/* Light/dark mode button */
+
+.btn-light {
+	cursor: default; position: fixed; bottom: 8px; right: 8px;
+	z-index: 10; opacity: 0.9; font-size: 15px;
+	background: var(--bg); padding: .7em .5em .5em .5em; border-radius: .8em; }
+.btn-light .icon.day { position: relative; width: 26px; height: 26px; top: -3px; margin: 0 7px; fill: #9caec0; }
+.btn-light .icon.night { position: relative; width: 26px; height: 26px; top: -3px; margin: 0 7px; fill: #9caec0; }
+.btn-light .icon { cursor: pointer; }
+.btn-light .toggle { display: none; }
+.btn-light .toggle, .btn-light .toggle:after, .btn-light .toggle:before, .btn-light .toggle *, .btn-light .toggle *:after,
+.btn-light .toggle *:before, .btn-light .toggle + .toggle-button { box-sizing: border-box; }
+.btn-light .toggle + .toggle-button {
+	outline: 0; display: inline-block; width: 4em; height: 2em;
+	position: relative; cursor: pointer; border: 2px solid #333; }
+.btn-light .toggle + .toggle-button:after,
+.btn-light .toggle + .toggle-button:before {
+	position: relative; display: block; content: "";
+	width: 50%; height: 100%; }
+.btn-light .toggle + .toggle-button:after { left: 0; }
+.btn-light .toggle + .toggle-button:before { display: none; }
+.btn-light .toggle:checked + .toggle-button:after { left: 50%; }
+.btn-light .toggle:checked + .toggle-button:after { left: 50%; }
+.btn-light .toggle + .toggle-button {
+	padding: 2px; transition: all .2s ease;
+	border: 2px solid rgba(156, 174, 192, 0.27); border-radius: 2em; }
+.btn-light .toggle + .toggle-button:after {
+	transition: all .2s ease; background: rgba(156, 174, 192, 0.27);
+	content: ""; border-radius: 1em; }
 
 </style>
 <body>
 
+<!-- Light/dark mode button  -->
+<div class=btn-light id=light-mode-switch>
+	<label for=btn-light-cb>
+		<svg class='icon night' viewBox='0 0 100 100'>
+			<path d='M96.76,66.458c-0.853-0.852-2.15-1.064-3.23-0.534c-6.063,2.991-12.858,4.571-19.655,4.571	C62.022,70.495,50.88,65.88,42.5,57.5C29.043,44.043,25.658,23.536,34.076,6.47c0.532-1.08,0.318-2.379-0.534-3.23	c-0.851-0.852-2.15-1.064-3.23-0.534c-4.918,2.427-9.375,5.619-13.246,9.491c-9.447,9.447-14.65,22.008-14.65,35.369	c0,13.36,5.203,25.921,14.65,35.368s22.008,14.65,35.368,14.65c13.361,0,25.921-5.203,35.369-14.65	c3.872-3.871,7.064-8.328,9.491-13.246C97.826,68.608,97.611,67.309,96.76,66.458z'>
+		</svg>
+	</label>
+	<input class=toggle id=btn-light-cb type=checkbox>
+	<label class=toggle-button for=btn-light-cb></label>
+	<label for=btn-light-cb>
+		<svg class='icon day' viewBox='0 0 35 35'>
+			<path style='fill-rule:evenodd;clip-rule:evenodd;' d='M6,17.5C6,16.672,5.328,16,4.5,16h-3C0.672,16,0,16.672,0,17.5 S0.672,19,1.5,19h3C5.328,19,6,18.328,6,17.5z M7.5,26c-0.414,0-0.789,0.168-1.061,0.439l-2,2C4.168,28.711,4,29.086,4,29.5 C4,30.328,4.671,31,5.5,31c0.414,0,0.789-0.168,1.06-0.44l2-2C8.832,28.289,9,27.914,9,27.5C9,26.672,8.329,26,7.5,26z M17.5,6 C18.329,6,19,5.328,19,4.5v-3C19,0.672,18.329,0,17.5,0S16,0.672,16,1.5v3C16,5.328,16.671,6,17.5,6z M27.5,9 c0.414,0,0.789-0.168,1.06-0.439l2-2C30.832,6.289,31,5.914,31,5.5C31,4.672,30.329,4,29.5,4c-0.414,0-0.789,0.168-1.061,0.44 l-2,2C26.168,6.711,26,7.086,26,7.5C26,8.328,26.671,9,27.5,9z M6.439,8.561C6.711,8.832,7.086,9,7.5,9C8.328,9,9,8.328,9,7.5 c0-0.414-0.168-0.789-0.439-1.061l-2-2C6.289,4.168,5.914,4,5.5,4C4.672,4,4,4.672,4,5.5c0,0.414,0.168,0.789,0.439,1.06 L6.439,8.561z M33.5,16h-3c-0.828,0-1.5,0.672-1.5,1.5s0.672,1.5,1.5,1.5h3c0.828,0,1.5-0.672,1.5-1.5S34.328,16,33.5,16z  M28.561,26.439C28.289,26.168,27.914,26,27.5,26c-0.828,0-1.5,0.672-1.5,1.5c0,0.414,0.168,0.789,0.439,1.06l2,2 C28.711,30.832,29.086,31,29.5,31c0.828,0,1.5-0.672,1.5-1.5c0-0.414-0.168-0.789-0.439-1.061L28.561,26.439z M17.5,29 c-0.829,0-1.5,0.672-1.5,1.5v3c0,0.828,0.671,1.5,1.5,1.5s1.5-0.672,1.5-1.5v-3C19,29.672,18.329,29,17.5,29z M17.5,7 C11.71,7,7,11.71,7,17.5S11.71,28,17.5,28S28,23.29,28,17.5S23.29,7,17.5,7z M17.5,25c-4.136,0-7.5-3.364-7.5-7.5 c0-4.136,3.364-7.5,7.5-7.5c4.136,0,7.5,3.364,7.5,7.5C25,21.636,21.636,25,17.5,25z'>
+		</svg>
+	</label>
+</div>
+
 <script src='d3.v5.min.js'></script>
 <script>
+
+LightDarkModeButton: {
+	let btn = document.getElementById('btn-light-cb'),
+		dark_toggle = dark => {
+			dark = document.body.classList.toggle('dark-mode', dark)
+			document.body.classList.toggle('light-mode', !dark)
+			btn.checked = !dark }
+	btn.addEventListener('click', ev => dark_toggle())
+	if (window.matchMedia) {
+		let dark_mq = window.matchMedia('(prefers-color-scheme: dark)')
+		dark_toggle(dark_mq.matches)
+		dark_mq.addEventListener('change', ev => dark_toggle(ev.matches)) }
+}
+
 
 // Bootstrap sequence to fallback to remote d3 url, fetch data
 
@@ -154,6 +280,7 @@ window.onload = () =>
 
 main = data => {
 'use strict'
+
 
 // Helpers
 
