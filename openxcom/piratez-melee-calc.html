@@ -660,9 +660,7 @@ let refresh = debounce(300, 'now', () => {
 		.call(s => s.exit().remove())
 		.call(s => s
 			.enter().append('tr').merge(s)
-			.each((d, n, ns) => refresh_row(d3.select(ns[n]))))
-	document.getElementById('fields-weapons')
-		.style.min_height = `${document.getElementById('info').offsetHeight}px` }
+			.each((d, n, ns) => refresh_row(d3.select(ns[n])))) }
 )
 
 let refresh_select = query => {
