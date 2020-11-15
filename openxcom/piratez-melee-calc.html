@@ -98,6 +98,7 @@ form select[multiple] option:checked {
 
 
 form .stats { grid-area: stats; }
+form .stats label { font-size: 80%; }
 form .stats input { margin-left: .4em; width: 3.5em; }
 
 form .weapons { grid-area: weapons; }
@@ -391,9 +392,10 @@ let url_dec = v => {
 
 let
 	stats = new Map([
-		['strength', 35], ['melee', 70], ['throwing', 40],
-		['TUs', 65], ['bravery', 30], ['reactions', 40],
-		['firing', 50], ['stamina', 100], ['psiStrength', 40], ['psiSkill', 30] ]),
+		['strength', 35], ['melee', 70], ['throwing', 40], ['TUs', 65],
+		['bravery', 30], ['reactions', 40], ['firing', 50], ['stamina', 100],
+		['mana', 40], ['psiStrength', 40], ['psiSkill', 30] ]),
+	stats_names = {reactions: 'react', mana: 'freshness', psiStrength: 'voo-str', psiSkill: 'voo-skill'},
 	fmt = {d: d3.format('d'), f1: d3.format('.1f'), f2: d3.format('.2f')}
 
 let
@@ -451,9 +453,10 @@ let item_stats_toggle = (key, item_id) => {
 	item_stats_index_update = item_id }
 
 let item_stats = d => {
-	let attrs = obj_tuples( map_entries(stats),
-		d => [d.key, state_attrs(d.key) || stats.get(d.key)] )
-	let info = {weapon: {text: d.name, title: `id: ${d.type.toLowerCase()}`}}
+	let
+		attrs = obj_tuples( map_entries(stats),
+			d => [d.key, state_attrs(d.key) || stats.get(d.key)] ),
+		info = {weapon: {text: d.name, title: `id: ${d.type.toLowerCase()}`}}
 
 	ApplyAmmoStats: {
 		if (!('compatibleAmmo' in d)) break ApplyAmmoStats
@@ -702,14 +705,15 @@ let item_stats = d => {
 		let k, kx
 		for ([k, kx] of [
 				['ToHealth', 'toH'], ['ToWound', 'toWound'],  ['ToStun', 'toStn'],
-				['ToEnergy', 'toE'], ['ToMorale', 'toM'], ['ToTime', 'toTU'],
-				['ToTile', 'toMap'], ['ToArmor', 'toAr'], ['ToArmorPre', 'toArPre'] ]) {
+				['ToEnergy', 'toE'], ['ToMorale', 'toM'], ['ToTime', 'toTU'], ['ToTile', 'toMap'],
+				['ToArmor', 'toAr'], ['ToArmorPre', 'toArPre'], ['ToMana', 'toF'] ]) {
 			obj_pop_run(da, k, d => {
 				ext.push(`${kx}=${d}`)
 				if (kx === 'toArPre') ext_title.push(
 					`- "${kx}": damage multiplier to armor before applying armor resistances.` )
 				else if (kx === 'toAr') ext_title.push(`- "${kx}": armor damage multiplier.`)
 				else if (kx === 'toWound') ext_title.push(`- "${kx}": fatal wound count multiplier.`)
+				else if (kx === 'toF') ext_title.push(`- "${kx}": freshness damage multiplier.`)
 				else ext_title.push(`- "${kx}": "${da_key}.${k}" damage multiplier value.`) }) }
 
 		DescribeRandomType: {
@@ -739,6 +743,8 @@ let item_stats = d => {
 			`- "no-ok" (IgnoreOverKill): disables overkill damage, default=true.` ])
 		da_key_desc('IgnorePainImmunity', d => [ d && `ignores-pain-immunity`,
 			`- "ignores-pain-immunity": some units don\'t get stun level from damage - ignores that.` ])
+		da_key_desc('IgnoreSelfDestruct', d => [ d && `ignores-selfd`,
+			`- "ignores-selfd": puts things down without them exploding.` ])
 		da_key_desc('IgnoreDirection', d => [ d && `unidir`,
 			`- "unidir" (IgnoreDirection): damage ignores direction of the hit, used by smoke and fire.` ])
 		da_key_desc('SmokeThreshold', d => [ `smoke=${d}`,
@@ -852,7 +858,7 @@ let form = d3.select('body').append('form')
 		.call(s => s.append('legend').text('stats'))
 		.selectAll('input').data(map_entries(stats))
 		.enter()
-			.append('label').attr('for', d => `input-stats-${d.key}`).text(d => d.key)
+			.append('label').attr('for', d => `input-stats-${d.key}`).text(d => stats_names[d.key] || d.key)
 			.append('input')
 				.on('input', (d, n, ns) => { state_attrs(d.key, ns[n].value); refresh() })
 				.call(attrs({

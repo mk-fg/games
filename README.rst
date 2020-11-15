@@ -380,7 +380,7 @@ game, plus pretty graphics ofc.
 .. _Anno 2070: http://anno2070.wikia.com/
 
 
-`Kerbal Space Program`_ (ksp)
+`Kerbal Space Program`_ (KSP)
 -----------------------------
 
 Bunch of delta-V and aerobraking maps, along with some outdated mod tweaks.
