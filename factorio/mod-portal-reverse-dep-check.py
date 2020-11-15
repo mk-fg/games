@@ -14,7 +14,7 @@ class FetchError(Exception): pass
 
 def api_fetch(cache, key, mod=None, query=None, update=False, state=None):
 	if isinstance(key, (tuple, list)): key = '\0'.join(map(str, key)).encode()
-	if key in cache: return json.loads(cache[key])
+	if not update and key in cache: return json.loads(cache[key])
 	if state:
 		ts = time.monotonic()
 		delay = state.get('delay', 0) - (ts - state.get('ts_last'))
