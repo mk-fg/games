@@ -388,11 +388,11 @@ Bunch of delta-V and aerobraking maps, along with some outdated mod tweaks.
 .. _Kerbal Space Program: https://kerbalspaceprogram.com/
 
 
-`OpenXCOM XPirateZ mod`_
-------------------------
+`OpenXCOM X-Piratez mod`_
+-------------------------
 
-Very extensive total conversion for OpenXCOM, and one of the best strategies of
-its type if complexity, longevity and rather slow pacing is your thing.
+Extensive total conversion for OpenXCOM, and one of the best strategies
+of its type, if complexity, longevity and rather slow pacing is your thing.
 
 Fair warning though - art/text in that mod can get a bit weird.
 
@@ -439,6 +439,11 @@ Fair warning though - art/text in that mod can get a bit weird.
 
   | Script to save/restore armor + loadouts for all soldiers from/to a specific save file.
   | Useful for mass-switching loadouts for when diff missions require diff armors (e.g. land, sea, infiltration).
+
+- battlescape-save-end-cheat.py
+
+  | Tweaks battlescape save file to make all enemies on the map surrender or get stunned.
+  | Quick and dirty fix for "find last enemy" problem, which can often be pointlessly tedious.
 
 .. _OpenXCOM XPirateZ mod: https://www.ufopaedia.org/index.php/Piratez
 
