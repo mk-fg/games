@@ -445,6 +445,12 @@ Fair warning though - art/text in that mod can get a bit weird.
   | Tweaks battlescape save file to make all enemies on the map surrender or get stunned.
   | Quick and dirty fix for "find last enemy" problem, which can often be pointlessly tedious.
 
+- remove-map-block-lights.py
+
+  | Edits specified map block to remove all light/glow from tiles used in it by patching light-byte in mcd files.
+  | Intended for removing craft cabin lights, as these can make starts on night missions really annoying.
+  | Usage: ./script --dry-run -d user/mods/Piratez user/mods/Piratez/Ruleset/Piratez.rul 'crafts type=str_fatsub'
+
 .. _OpenXCOM XPirateZ mod: https://www.ufopaedia.org/index.php/Piratez
 
 
