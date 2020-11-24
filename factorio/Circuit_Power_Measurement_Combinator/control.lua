@@ -112,7 +112,7 @@ local function update_meter_signal(meter)
 
 	-- Scan existing signals for slots to replace or fill-in
 	local ps, ps_stat, ps_free, ps_last = {}, {}, {}, meter.params_last or {}
-	for n, p in ipairs(ecc.parameters.parameters) do
+	for n, p in ipairs(ecc.parameters) do
 		if not p.signal.name then table.insert(ps_free, {n, p.index})
 		else
 			k = ('%s.%s'):format(p.signal.type, p.signal.name)
@@ -144,7 +144,7 @@ local function update_meter_signal(meter)
 		else break end
 	end
 
-	ecc.parameters = {parameters=ps}
+	ecc.parameters = ps
 end
 
 
