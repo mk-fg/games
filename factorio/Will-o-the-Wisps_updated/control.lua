@@ -612,10 +612,15 @@ local tasks_entities = {
 		if not control.enabled then return end
 		local signals = e.get_merged_signals()
 
+		-- Compatibility for breaking change introduced in factorio-1.1
+		local cb_params, cb_params_old = control.parameters
+		if cb_params.parameters
+			then cb_params, cb_params_old = cb_params.parameters, true end
+
 		-- Get range from both local parameters and merged inputs
 		-- Also used to scan local parameters for free/wisp slots to use/update
 		local params, params_wisp, params_free, range, name = {}, {}, {}, 0
-		for n, param in ipairs(control.parameters.parameters) do
+		for n, param in ipairs(cb_params) do
 			name = param.signal.name
 			if not name then table.insert(params_free, {n, param.index})
 			elseif wisp_unit_proto_check(name)
@@ -659,7 +664,7 @@ local tasks_entities = {
 					count=count, signal={type='item', name=name} }
 			else break end
 		end
-		control.parameters = {parameters=params}
+		control.parameters = cb_params_old and {parameters=params} or params
 	end},
 
 	recongregate = {work=20, func=function(cg, group, s)

@@ -1,5 +1,14 @@
-local hit_effects = require('__base__/prototypes/entity/demo-hit-effects')
-local sounds = require('__base__/prototypes/entity/demo-sounds')
+-- Breaking change in factorio-1.1
+local utils = require('libs/utils')
+local hit_effects, sounds
+if utils.version_to_num(mods.base) >= utils.version_to_num('1.1.0') then
+	hit_effects = require('__base__/prototypes/entity/hit-effects')
+	sounds = require('__base__/prototypes/entity/sounds')
+else
+	hit_effects = require('__base__/prototypes/entity/demo-hit-effects')
+	sounds = require('__base__/prototypes/entity/demo-sounds')
+end
+
 
 data:extend{{
 
