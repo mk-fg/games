@@ -95,6 +95,11 @@ local function update_meter_signal(meter)
 	if not (ecc and ecc.enabled) then return end
 	local k, n, w, idx
 
+	-- Compatibility for breaking change introduced in factorio-1.1
+	local ecc_params, ecc_params_old = ecc.parameters
+	if ecc_params.parameters
+		then ecc_params, ecc_params_old = ecc_params.parameters, true end
+
 	local w_stats, w_total, w_other, stats_abs = {}, 0, 0, meter.stats_abs
 	for k, w in pairs(meter.p.electric_network_statistics.output_counts) do
 		w_last, stats_abs[k] = stats_abs[k], w
@@ -112,7 +117,7 @@ local function update_meter_signal(meter)
 
 	-- Scan existing signals for slots to replace or fill-in
 	local ps, ps_stat, ps_free, ps_last = {}, {}, {}, meter.params_last or {}
-	for n, p in ipairs(ecc.parameters) do
+	for n, p in ipairs(ecc_params) do
 		if not p.signal.name then table.insert(ps_free, {n, p.index})
 		else
 			k = ('%s.%s'):format(p.signal.type, p.signal.name)
@@ -144,7 +149,7 @@ local function update_meter_signal(meter)
 		else break end
 	end
 
-	ecc.parameters = ps
+	ecc.parameters = ecc_params_old and {parameters=ps} or ps
 end
 
 
