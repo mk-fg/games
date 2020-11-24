@@ -1,5 +1,22 @@
-local hit_effects = require('__base__/prototypes/entity/demo-hit-effects')
-local sounds = require('__base__/prototypes/entity/demo-sounds')
+
+local function version_to_num(ver, padding)
+	local ver_nums = {}
+	ver:gsub('(%d+)', function(v) ver_nums[#ver_nums+1] = tonumber(v) end)
+	ver = 0
+	for n,v in pairs(ver_nums)
+		do ver = ver + v * math.pow(10, ((#ver_nums-n)*(padding or 3))) end
+	return ver
+end
+
+-- Breaking change in factorio-1.1
+local hit_effects, sounds
+if version_to_num(mods.base) >= version_to_num('1.1.0') then
+	hit_effects = require('__base__/prototypes/entity/hit-effects')
+	sounds = require('__base__/prototypes/entity/sounds')
+else
+	hit_effects = require('__base__/prototypes/entity/demo-hit-effects')
+	sounds = require('__base__/prototypes/entity/demo-sounds')
+end
 
 
 -- Recipes/items

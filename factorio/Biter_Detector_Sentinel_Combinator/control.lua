@@ -13,8 +13,6 @@ local SentinelSet, Ticks
 -- Order of elements is not important there, while add/removal is O(1),
 --  unlike table.insert/table.remove (which are O(n) and are very slow comparatively).
 
--- XXX: add strict-mode errors here
-
 
 local utils = {
 
@@ -55,7 +53,22 @@ BiterSignals[conf.sig_biter_other] = true
 
 -- Mod Init Process
 
+local strict_mode = false
+local function strict_mode_enable()
+	if strict_mode then return end
+	setmetatable(_ENV, {
+		__newindex = function(self, key, value)
+			error('\n\n[ENV Error] Forbidden global *write*:\n'
+				..serpent.line{key=key or '<nil>', value=value or '<nil>'}..'\n', 2) end,
+		__index = function(self, key)
+			if key == 'game' then return end -- used in utils.log check
+			error('\n\n[ENV Error] Forbidden global *read*:\n'
+				..serpent.line{key=key or '<nil>'}..'\n', 2) end })
+	strict_mode = true
+end
+
 local function init_globals()
+	strict_mode_enable()
 	local sets = utils.t('sentinel_info')
 	for k, _ in pairs(utils.t('sentinel_info ticks')) do
 		if global[k] then goto skip end
@@ -128,10 +141,15 @@ local function update_sentinel_signal(s)
 	local ecc = s.e.get_control_behavior()
 	if not (ecc and (ecc.enabled or s.alarm)) then return end
 
+	-- Compatibility for breaking change introduced in factorio-1.1
+	local ecc_params, ecc_params_old = ecc.parameters
+	if ecc_params.parameters
+		then ecc_params, ecc_params_old = ecc_params.parameters, true end
+
 	-- Find slots to replace/fill-in, as well as special control signals
 	local ps, ps_stat, ps_free, sig, range, alarm_test = {}, {}, {}
 	-- Internal slots on combinator itself
-	for n, p in ipairs(ecc.parameters.parameters) do
+	for n, p in ipairs(ecc_params) do
 		if not p.signal.name then table.insert(ps_free, {n, p.index})
 		else
 			sig = ('%s.%s'):format(p.signal.type, p.signal.name)
@@ -188,7 +206,7 @@ local function update_sentinel_signal(s)
 	utils.log('- stats (range=%d): %s', range, stats)
 
 	-- Replace/fill-in detected parameter slots
-	local e_type, e_name
+	local e_type, e_name, n, idx
 	table.sort(ps_free, function(a, b) return a[2] < b[2] end)
 	for sig, c in pairs(stats) do
 		if ps_stat[sig] then n, idx = table.unpack(ps_stat[sig])
@@ -201,7 +219,7 @@ local function update_sentinel_signal(s)
 			ps[n], n = {index=idx, count=c, signal={type=e_type, name=e_name}}
 		else break end
 	end
-	ecc.parameters = {parameters=ps}
+	ecc.parameters = ecc_params_old and {parameters=ps} or ps
 end
 
 
