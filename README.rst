@@ -185,28 +185,6 @@ Easy to fix with mods though, which are one of the best parts of the game.
   Changes Burner Mining Drills to have 4x4 resource search area instead of
   default 2x2 (right under), and nothing else.
 
-- `Longer Days and Nights
-  <https://mods.factorio.com/mod/Longer_Days_and_Nights>`_
-
-  Gives control over the length of day/night cycle.
-
-- ReducedResearchX
-
-  Local mod to reduce all research costs by somewhat complicated formula,
-  designed to keep early-game tech costs pretty-much as-is, but have massive
-  reductions for late-game techs.
-
-  Formula (python3 notation): ``cost = lambda v: (a + max(0,v-a)*b**(v/(v+c)))``
-
-  Chart for what costs end up being can be checked in `doc/research-cost-chart.html
-  <https://mk-fg.github.io/games/factorio/ReducedResearchX/doc/research-cost-chart.html>`_
-
-  Shows how late-game techs that cost 1k/2k/5k research units get down to
-  ~300/500/1k, while early-game ones get much smaller to no reductions.
-
-  | Does not change research time by default, as it's not a bottleneck anyway.
-  | Based on simple "ReducedResearch" mod (~10 lines of lua), but with updated formula.
-
 - mod-portal-reverse-dep-check.py
 
   Script to lookup what depends on specific mod using

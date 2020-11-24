@@ -1,9 +1,0 @@
-{
-	"name": "ReducedResearchX",
-	"version": "0.2.0",
-	"factorio_version": "0.17.0",
-	"dependencies": ["base >= 0.17"],
-	"title": "Reduced Research X",
-	"author": "mk-fg, Kynaro",
-	"description": "Reduces research costs."
-}
