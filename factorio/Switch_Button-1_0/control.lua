@@ -15,14 +15,28 @@ local function player_can_reach_button(player, entity)
     or player.character.can_reach_entity(entity)
 end
 
+local function cb_params_get(cb)
+  -- Compatibility wrapper for factorio-1.1 changes
+  if not cb then return end
+  local params = cb.parameters
+  params = params.parameters or params
+  return params
+end
+
+local function cb_params_set(cb, params)
+  -- Compatibility wrapper for factorio-1.1 changes
+  if cb.parameters.parameters then params = {parameters=params} end
+  cb.parameters = params
+end
+
 ---------------------[BUILD ENTITY FUNCTION]---------------------
 local function onBuilt(event)
   local switchbutton = event.created_entity or event.entity -- latter for revive event
   local control = switchbutton.get_or_create_control_behavior()
-  if not control.parameters.parameters[1].signal.name then -- can be already set via blueprint
+  if not cb_params_get(control)[1].signal.name then -- can be already set via blueprint
     control.enabled = false
-    control.parameters = {parameters={{ index=1,
-      signal={type='virtual', name='signal-check'}, count=1 }}}
+    cb_params_set(control, {{ index=1,
+      signal={type='virtual', name='signal-check'}, count=1 }})
   end
 end
 
