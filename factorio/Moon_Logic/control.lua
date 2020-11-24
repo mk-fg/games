@@ -45,6 +45,20 @@ end
 
 -- ----- Circuit network controls -----
 
+local function cb_params_get(cb)
+	-- Compatibility wrapper for factorio-1.1 changes
+	if not cb then return end
+	local params = cb.parameters
+	params = params.parameters or params
+	return params
+end
+
+local function cb_params_set(cb, params)
+	-- Compatibility wrapper for factorio-1.1 changes
+	if cb.parameters.parameters then params = {parameters=params} end
+	cb.parameters = params
+end
+
 local function cn_wire_signals(e, wire_type)
 	local res, cn = {}, e.get_or_create_control_behavior()
 		.get_circuit_network(wire_type, defines.circuit_connector_id.combinator_input)
@@ -201,7 +215,8 @@ local function mlc_update_output(mlc, output)
 		if n > n_max then break end
 	::skip:: end
 	if err_msg ~= '' then mlc.err_out = err_msg end
-	ecc.enabled, ecc.parameters = true, {parameters=signals}
+	cb_params_set(ecc, signals)
+	ecc.enabled = true
 end
 
 local function mlc_update_led(mlc, mlc_env)
@@ -221,9 +236,9 @@ local function mlc_update_led(mlc, mlc_env)
 	elseif st == 'sleep' then op = '-'
 	elseif st == 'no-power' then op = '^'
 	elseif st == 'error' then op, b, out = '+', 1 - a, mlc_err_sig end -- shown with ALT
-	cb.parameters = {parameters={
+	cb_params_set(cb, {
 		operation=op, first_signal=nil, second_signal=nil,
-		first_constant=a, second_constant=b, output_signal=out }}
+		first_constant=a, second_constant=b, output_signal=out })
 	mlc_env._state = st
 end
 
@@ -349,8 +364,9 @@ local function on_built(ev)
 	global.combinators[e.unit_number] = mlc
 
 	-- Copy combinator settings from the original one when blueprinted
-	local uid_src = e.get_or_create_control_behavior()
-		.parameters.parameters.first_constant or 0
+	local ecc_params = cb_params_get(e.get_or_create_control_behavior())
+	local uid_src = ecc_params.first_constant or 0
+
 	if uid_src < 0 then uid_src = uid_src + 0x100000000 end -- int -> uint conversion
 	if uid_src ~= 0 then
 		local mlc_src = global.combinators[uid_src]
@@ -412,6 +428,7 @@ local function update_signals_in_guis()
 	for uid, gui_t in pairs(global.guis) do
 		mlc = global.combinators[uid]
 		if not (mlc and mlc.e.valid) then mlc_remove(uid); goto skip end
+
 		gui_flow = gui_t.signal_pane
 		if gui_flow then gui_flow.clear() end
 		for k, color in pairs{red={1,0.3,0.3}, green={0.3,1,0.3}} do
@@ -423,9 +440,10 @@ local function update_signals_in_guis()
 						caption=('[%s] %s%s = %s'):format(conf.get_wire_label(k), label or '', sig, v) }
 					label.style.font_color = color
 		end end end
+
 		cb = mlc.core.get_control_behavior()
 		mlc_out = tc((Combinators[uid] or {})._out or {})
-		for _, cbs in pairs(cb and cb.parameters.parameters or {}) do
+		for _, cbs in pairs(cb_params_get(cb) or {}) do
 			sig = cbs.signal.name
 			if sig then
 				mlc_out[sig] = nil
@@ -434,6 +452,7 @@ local function update_signals_in_guis()
 					gui_flow.add{ type='label', name='out-'..sig,
 						caption=('[out] %s %s = %s'):format(label, sig, cbs.count) }
 		end end end
+
 		for sig, val in pairs(mlc_out) do -- show remaining invalid signals
 			val = serpent.line(val, {compact=true, nohuge=false})
 			if val:len() > 8 then val = val:sub(1, 8)..'+' end
