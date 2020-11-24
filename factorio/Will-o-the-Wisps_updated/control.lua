@@ -1142,7 +1142,10 @@ function Init.state_tick()
 				tech = force.technologies[tech]
 				if tech and tech.researched then force.recipes['UV-lamp'].enabled = true end
 			end
-			if force.technologies['combat-robotics'].researched
+			local combat_robotics_tech = -- breaking change in factorio-1.1
+				utils.version_to_num(game.active_mods.base) >= utils.version_to_num('1.1.0')
+				and 'defender' or 'combat-robotics'
+			if force.technologies[combat_robotics_tech].researched
 				then force.recipes['wisp-drone-blue-capsule'].enabled = true end
 		end
 	end

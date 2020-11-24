@@ -81,8 +81,11 @@ function changes.update_tech_recipes()
 		if not tech then return end
 		table.insert(tech.effects, {type='unlock-recipe', recipe=recipe})
 	end
+	local combat_robotics_tech = -- breaking change in factorio-1.1
+		utils.version_to_num(mods.base) >= utils.version_to_num('1.1.0')
+		and 'defender' or 'combat-robotics'
 	add_tech_unlock('solar-energy', 'UV-lamp')
-	add_tech_unlock('combat-robotics', 'wisp-drone-blue-capsule')
+	add_tech_unlock(combat_robotics_tech, 'wisp-drone-blue-capsule')
 	add_tech_unlock('deadlock-solar-energy-1', 'UV-lamp') -- industrial revolution mod
 end
 

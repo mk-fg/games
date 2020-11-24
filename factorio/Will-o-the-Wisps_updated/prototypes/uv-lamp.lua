@@ -32,7 +32,9 @@ data:extend{{
 	open_sound = sounds.machine_open,
 	close_sound = sounds.machine_close,
 	working_sound = {
-		sound = {filename = '__base__/sound/lamp-working.ogg', volume = 0.4},
+		sound = {
+			filename = '__Will-o-the-Wisps_updated__/sound/lamp-working.ogg',
+			volume = 0.4 },
 		max_sounds_per_type = 3,
 		use_doppler_shift = false,
 		audible_distance_modifier = 0.5 },

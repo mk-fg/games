@@ -144,7 +144,7 @@ do -- cclp-core hidden combinator, includes item to be copied to blueprints
 			icon_size = 64,
 			flags = {'placeable-neutral', 'player-creation', 'placeable-off-grid', 'hide-alt-info'},
 			selectable_in_game = false,
-			collision_mask = {'layer-11'},
+			collision_mask = {'rail-layer'},
 			item_slot_count = 1,
 			circuit_wire_max_distance = 3,
 			sprites = invisible_sprite,

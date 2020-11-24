@@ -1,3 +1,8 @@
+local utils = require('libs/utils')
+local beam_ammo_cat = -- breaking change in factorio-1.1
+	utils.version_to_num(mods.base) >= utils.version_to_num('1.1.0')
+	and 'beam' or 'combat-robot-beam'
+
 data:extend{{
 
 	type = 'unit',
@@ -45,12 +50,12 @@ data:extend{{
 
 	attack_parameters = {
 		type = 'beam',
-		ammo_category = 'combat-robot-beam',
+		ammo_category = beam_ammo_cat,
 		cooldown = 20,
 		range = 7,
 		min_attack_distance = 3,
 		ammo_type = {
-			category = 'combat-robot-beam',
+			category = beam_ammo_cat,
 			action = {
 				type = 'direct',
 				action_delivery = {
