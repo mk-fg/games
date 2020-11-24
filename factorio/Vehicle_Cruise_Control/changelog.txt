@@ -1,31 +1,43 @@
+
+---------------------------------------------------------------------------------------------------
+Version: 0.0.7
+Date: 2020-11-24
+  Features:
+    - Update for Factorio-1.1 (experimental version) compatibility.
+
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.6
-Date: 19. 08. 2020
+Date: 2020-08-19
   Changes:
     - Bump compatibility info to Factorio 1.0.
+
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.5
-Date: 10. 08. 2020
+Date: 2020-08-10
   Changes:
     - Updated metadata for Factorio 0.18.x compatibility.
     - Cruise/Brake buttons use green/red background when enabled.
+
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.4
-Date: 13. 04. 2019
+Date: 2019-04-13
   Changes:
     - Updated metadata for Factorio 0.17.x compatibility.
+
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.3
-Date: 26. 06. 2018
+Date: 2018-06-26
   Bugfixes:
     - Fix lua error on gui init when loading game with player in a vehicle.
+
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.2
-Date: 24. 06. 2018
+Date: 2018-06-24
   Bugfixes:
     - Fix gui/state reset on exiting/re-entering the vehicle.
+
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.1
-Date: 24. 06. 2018
+Date: 2018-06-24
   Features:
     - Initial release with Cruise/Brake buttons and associated hotkeys.
