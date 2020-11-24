@@ -1,7 +1,7 @@
 {
 	"name": "Wildfire",
-	"version": "0.0.5",
-	"factorio_version": "1.0",
+	"version": "0.0.6",
+	"factorio_version": "1.1",
 	"dependencies": ["base >= 1.0"],
 	"title": "Wildfire",
 	"author": "mk-fg",
