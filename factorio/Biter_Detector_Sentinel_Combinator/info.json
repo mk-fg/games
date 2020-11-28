@@ -1,7 +1,7 @@
 {
 	"name": "Biter_Detector_Sentinel_Combinator",
-	"version": "0.0.13",
-	"factorio_version": "1.1",
+	"version": "0.0.14",
+	"factorio_version": "1.0",
 	"dependencies": ["base >= 0.18.0", "? SchallCircuitGroup"],
 	"title": "Biter Detector Sentinel Combinator",
 	"author": "mk-fg",

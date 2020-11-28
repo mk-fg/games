@@ -9,13 +9,15 @@ local function version_to_num(ver, padding)
 end
 
 -- Breaking change in factorio-1.1
-local hit_effects, sounds
+local hit_effects, sounds, rail_layer
 if version_to_num(mods.base) >= version_to_num('1.1.0') then
 	hit_effects = require('__base__/prototypes/entity/hit-effects')
 	sounds = require('__base__/prototypes/entity/sounds')
+	rail_layer = 'rail-layer'
 else
 	hit_effects = require('__base__/prototypes/entity/demo-hit-effects')
 	sounds = require('__base__/prototypes/entity/demo-sounds')
+	rail_layer = 'layer-11'
 end
 
 local function png(name) return ('__Color_Combinator_Lamp_Posts__/art/%s.png'):format(name) end
@@ -144,7 +146,7 @@ do -- cclp-core hidden combinator, includes item to be copied to blueprints
 			icon_size = 64,
 			flags = {'placeable-neutral', 'player-creation', 'placeable-off-grid', 'hide-alt-info'},
 			selectable_in_game = false,
-			collision_mask = {'rail-layer'},
+			collision_mask = {rail_layer},
 			item_slot_count = 1,
 			circuit_wire_max_distance = 3,
 			sprites = invisible_sprite,

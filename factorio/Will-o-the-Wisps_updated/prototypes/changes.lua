@@ -89,4 +89,20 @@ function changes.update_tech_recipes()
 	add_tech_unlock('deadlock-solar-energy-1', 'UV-lamp') -- industrial revolution mod
 end
 
+
+function changes.fix_schall_circuit_group_compat()
+	-- Compatibility fix for older SchallCircuitGroup mod version, before circuit-input subgroup was introduced
+	if not mods.SchallCircuitGroup then return end
+	local subgroups = data.raw['item-subgroup']
+	for _, sg in ipairs{'circuit-input', 'circuit-combinator', 'circuit-network'} do
+		if not subgroups[sg] then goto skip end
+		for _, proto in ipairs{'UV-lamp', 'wisp-detector'} do
+			proto = data.raw.item[proto]
+			if proto.subgroup ~= sg then proto.subgroup = sg end
+		end
+		break
+	::skip:: end
+end
+
+
 return changes

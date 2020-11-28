@@ -1,7 +1,7 @@
 {
 	"name": "Circuit_Power_Measurement_Combinator",
-	"version": "0.0.8",
-	"factorio_version": "1.1",
+	"version": "0.0.9",
+	"factorio_version": "1.0",
 	"dependencies": ["base >= 0.18.0", "? SchallCircuitGroup"],
 	"title": "Circuit Power Measurement Combinator",
 	"author": "mk-fg",

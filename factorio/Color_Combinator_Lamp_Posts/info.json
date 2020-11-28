@@ -1,7 +1,7 @@
 {
 	"name": "Color_Combinator_Lamp_Posts",
-	"version": "0.0.7",
-	"factorio_version": "1.1",
+	"version": "0.0.8",
+	"factorio_version": "1.0",
 	"dependencies": ["base >= 1.0", "? SchallCircuitGroup"],
 	"title": "Color Combinator Lamp Posts",
 	"author": "mk-fg",
