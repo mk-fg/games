@@ -93,13 +93,10 @@ end
 function changes.fix_schall_circuit_group_compat()
 	-- Compatibility fix for older SchallCircuitGroup mod version, before circuit-input subgroup was introduced
 	if not mods.SchallCircuitGroup then return end
-	local subgroups = data.raw['item-subgroup']
+	local subgroups, proto = data.raw['item-subgroup'], data.raw.item['wisp-detector']
 	for _, sg in ipairs{'circuit-input', 'circuit-combinator', 'circuit-network'} do
 		if not subgroups[sg] then goto skip end
-		for _, proto in ipairs{'UV-lamp', 'wisp-detector'} do
-			proto = data.raw.item[proto]
-			if proto.subgroup ~= sg then proto.subgroup = sg end
-		end
+		if proto.subgroup ~= sg then proto.subgroup = sg end
 		break
 	::skip:: end
 end
