@@ -380,18 +380,27 @@ script.on_event(defines.events.on_robot_built_entity, on_built, mlc_filter)
 script.on_event(defines.events.script_raised_built, on_built, mlc_filter)
 script.on_event(defines.events.script_raised_revive, on_built, mlc_filter)
 
-local function on_entity_settings_pasted(ev)
+local function on_entity_copy(ev)
+	if ev.destination.name == 'mlc-core' then return ev.destination.destroy() end -- for clone event
 	if not (ev.source.name == 'mlc' and ev.destination.name == 'mlc') then return end
 	local uid_src, uid_dst = ev.source.unit_number, ev.destination.unit_number
-	local mlc_old = global.combinators[uid_dst]
+	local mlc_old_core = global.combinators[uid_dst]
 	mlc_remove(uid_dst, true)
+	if mlc_old_core
+		then mlc_old_core = mlc_old_core.core
+		-- For cloned entities, mlc-core might not yet exist, so create/register it here, remove cloned one
+		-- It'd give zero-outputs for one tick, but probably not an issue, easier to handle it like this
+		else mlc_old_core = bootstrap_core(ev.destination) end
 	global.combinators[uid_dst] = tdc(global.combinators[uid_src])
 	local mlc_dst, mlc_src = global.combinators[uid_dst], global.combinators[uid_src]
-	mlc_dst.e, mlc_dst.core, mlc_dst.next_tick = ev.destination, mlc_old.core, 0
+	mlc_dst.e, mlc_dst.core, mlc_dst.next_tick = ev.destination, mlc_old_core, 0
 	guis.history_insert(global.guis[uid_dst], mlc_src, mlc_src.code or '')
 end
 
-script.on_event(defines.events.on_entity_settings_pasted, on_entity_settings_pasted)
+script.on_event(
+	defines.events.on_entity_cloned, on_entity_copy, -- can be tested via clone in /editor
+	{{filter='name', name='mlc'}, {filter='name', name='mlc-core'}} )
+script.on_event(defines.events.on_entity_settings_pasted, on_entity_copy)
 
 local function on_destroyed(ev) mlc_remove(ev.entity.unit_number) end
 local function on_mined(ev) mlc_remove(ev.entity.unit_number, nil, true) end
