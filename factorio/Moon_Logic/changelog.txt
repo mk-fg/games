@@ -1,5 +1,11 @@
 
 ---------------------------------------------------------------------------------------------------
+Version: 0.0.47
+Date: 2020-12-08
+  Bugfixes:
+    - Fix bug with output signals being linked when shift-click copying combinator settings until next save/load.
+
+---------------------------------------------------------------------------------------------------
 Version: 0.0.45
 Date: 2020-12-01
   Features:

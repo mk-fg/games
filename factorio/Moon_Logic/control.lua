@@ -112,7 +112,10 @@ local function cn_output_table_len(out) -- rawlen won't skip 0 and doesn't work 
 	for k, v in pairs(out) do if v ~= 0 then n = n + 1 end end
 	return n
 end
-local function cn_output_table_value(out, k) return rawget(out, k) or 0 end
+local function cn_output_table_value(out, k)
+	if k == '__self' then return end -- for table.deepcopy to tell this apart from factorio object
+	return rawget(out, k) or 0
+end
 local function cn_output_table_replace(out, new_tbl)
 	-- Note: validation for sig_names/values is done when output table is used later
 	for sig, v in pairs(out) do out[sig] = nil end
