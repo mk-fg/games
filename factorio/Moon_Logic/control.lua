@@ -695,6 +695,12 @@ script.on_event('mlc-code-vars', function(ev)
 	guis.vars_window_toggle(ev.player_index)
 end)
 
+script.on_event('mlc-open-gui', function(ev)
+	local player = game.players[ev.player_index]
+	local e = player.selected
+	if e and e.name == 'mlc' then player.opened = e end
+end)
+
 
 -- ----- Init -----
 

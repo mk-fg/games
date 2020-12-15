@@ -151,6 +151,10 @@ data:extend{
 		name = 'mlc-code-close',
 		key_sequence = 'CONTROL + Q',
 		order = '06' },
+	{ type = 'custom-input',
+		name = 'mlc-open-gui',
+		key_sequence = 'CONTROL + E',
+		order = '07' },
 
 	-- GUI button sprites
 	{ type = 'sprite',

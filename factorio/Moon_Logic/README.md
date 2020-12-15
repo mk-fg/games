@@ -51,6 +51,10 @@ If you don't use these buttons to undo minor changes (they still keep history of
 
 UI hotkeys can also be customized in the Settings - Controls game menu.
 
+There is an optional hotkey for opening these combinators from anywhere on the map,
+which kinda breaks basic game mechanics in a way similar to various "Long Reach" mods,
+but can be useful if code breaks too often and is hard to reach for debugging all the time.
+
 &nbsp;
 
 --------------------
@@ -257,6 +261,7 @@ Big thanks to [ixu](https://mods.factorio.com/user/ixu) and [completion](https:/
 
 - [Github repo link](https://github.com/mk-fg/games/tree/master/factorio/Moon_Logic)
 
+&nbsp;
 
 --------------------
 
