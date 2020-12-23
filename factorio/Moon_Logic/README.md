@@ -51,7 +51,7 @@ If you don't use these buttons to undo minor changes (they still keep history of
 
 UI hotkeys can also be customized in the Settings - Controls game menu.
 
-There is an optional hotkey for opening these combinators from anywhere on the map,
+There is an optional hotkey (Ctrl-E) for opening these combinators from anywhere on the map,
 which kinda breaks basic game mechanics in a way similar to various "Long Reach" mods,
 but can be useful if code breaks too often and is hard to reach for debugging all the time.
 
