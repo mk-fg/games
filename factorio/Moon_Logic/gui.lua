@@ -246,13 +246,13 @@ local function create_gui(player, entity)
 	elc(top_btns, {type='flow', name='mt-top-spacer-b', direction='horizontal'}, {width=10})
 
 	-- MT column-1: preset buttons at the top
+	local style, tooltip
 	for n=0, 19 do
+		if not global.presets[n] then style, tooltip = 'button', preset_help_tooltip()
+		else style, tooltip = 'green_button', preset_help_tooltip(global.presets[n]) end
 		elc( top_btns,
-			{ type='button', name='mlc-preset-'..n, direction='horizontal', caption=n,
-				tooltip='Discard changes and close [[color=#e69100]Esc[/color]]' },
+			{type='button', style=style, name='mlc-preset-'..n, direction='horizontal', caption=n, tooltip=tooltip},
 			{height=20, width=27, top_padding=0, bottom_padding=0, left_padding=0, right_padding=0} )
-		if not global.presets[n] then el.style, el.tooltip = 'button', preset_help_tooltip()
-		else el.style, el.tooltip = 'green_button', preset_help_tooltip(global.presets[n]) end
 	end
 
 	-- MT column-1: code text-box
