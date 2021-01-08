@@ -138,24 +138,6 @@ local function code_error_highlight(text, line_err)
 	return result
 end
 
-local function set_history_btns_state(gui_t, mlc)
-	local hist_log, n = mlc.history, mlc.history_state
-	if n and hist_log[n-1] then
-		gui_t.mlc_back.sprite = 'mlc-back-enabled'
-		gui_t.mlc_back.ignored_by_interaction = false
-	else
-		gui_t.mlc_back.sprite = 'mlc-back'
-		gui_t.mlc_back.ignored_by_interaction = true
-	end
-	if n and hist_log[n+1] then
-		gui_t.mlc_fwd.sprite = 'mlc-fwd-enabled'
-		gui_t.mlc_fwd.ignored_by_interaction = false
-	else
-		gui_t.mlc_fwd.sprite = 'mlc-fwd'
-		gui_t.mlc_fwd.ignored_by_interaction = true
-	end
-end
-
 local function preset_help_tooltip(code)
 	if not code then
 		return '-- [ [color=#ffe6c0]left-click[/color] to save script here ] --'..
@@ -181,6 +163,32 @@ local function preset_help_tooltip(code)
 	return desc
 end
 
+local function set_preset_btn_state(el, code)
+	el.style = code and 'green_button' or 'button'
+	for k,v in pairs{ height=20, width=27,
+			top_padding=0, bottom_padding=0, left_padding=0, right_padding=0 }
+		do el.style[k] = v end
+	el.tooltip = preset_help_tooltip(code)
+end
+
+local function set_history_btns_state(gui_t, mlc)
+	local hist_log, n = mlc.history, mlc.history_state
+	if n and hist_log[n-1] then
+		gui_t.mlc_back.sprite = 'mlc-back-enabled'
+		gui_t.mlc_back.enabled = true
+	else
+		gui_t.mlc_back.sprite = 'mlc-back'
+		gui_t.mlc_back.enabled = false
+	end
+	if n and hist_log[n+1] then
+		gui_t.mlc_fwd.sprite = 'mlc-fwd-enabled'
+		gui_t.mlc_fwd.enabled = true
+	else
+		gui_t.mlc_fwd.sprite = 'mlc-fwd'
+		gui_t.mlc_fwd.enabled = false
+	end
+end
+
 local function create_gui(player, entity)
 	local uid = entity.unit_number
 	local mlc = global.combinators[uid]
@@ -193,9 +201,9 @@ local function create_gui(player, entity)
 	local el_map, el = {} -- map is to check if el belonds to this gui
 	local gui_t = {uid=uid, el_map=el_map}
 
-	local function elc(parent, props, style)
+	local function elc(parent, props, style_tweaks)
 		el = parent.add(props)
-		for k,v in pairs(style or {}) do el.style[k] = v end
+		for k,v in pairs(style_tweaks or {}) do el.style[k] = v end
 		gui_t[props.name:gsub('%-', '_')], el_map[el.index] = el, el
 		return el
 	end
@@ -221,7 +229,7 @@ local function create_gui(player, entity)
 	local function top_btns_add(name, tooltip)
 		local sz, pad = 20, 0
 		return elc( top_btns,
-			{type='sprite-button', name=name, sprite=name, direction='horizontal', tooltip=tooltip},
+			{type='sprite-button', name=name, sprite=name, direction='horizontal', tooltip=tooltip, style='button'},
 			{height=sz, width=sz, top_padding=pad, bottom_padding=pad, left_padding=pad, right_padding=pad} )
 	end
 
@@ -246,14 +254,9 @@ local function create_gui(player, entity)
 	elc(top_btns, {type='flow', name='mt-top-spacer-b', direction='horizontal'}, {width=10})
 
 	-- MT column-1: preset buttons at the top
-	local style, tooltip
-	for n=0, 19 do
-		if not global.presets[n] then style, tooltip = 'button', preset_help_tooltip()
-		else style, tooltip = 'green_button', preset_help_tooltip(global.presets[n]) end
-		elc( top_btns,
-			{type='button', style=style, name='mlc-preset-'..n, direction='horizontal', caption=n, tooltip=tooltip},
-			{height=20, width=27, top_padding=0, bottom_padding=0, left_padding=0, right_padding=0} )
-	end
+	for n=0, 19 do set_preset_btn_state(
+		elc(top_btns, {type='button', name='mlc-preset-'..n, caption=n, direction='horizontal'}),
+		global.presets[n] ) end
 
 	-- MT column-1: code text-box
 	elc(mt_left, { type='scroll-pane',
@@ -419,13 +422,11 @@ function guis.on_gui_click(ev)
 				guis.history_insert(gui_t, mlc, gui_t.mlc_code.text)
 			else
 				global.presets[preset_n] = gui_t.mlc_code.text
-				el.style = 'green_button'
-				el.tooltip = preset_help_tooltip(global.presets[preset_n])
+				set_preset_btn_state(el, global.presets[preset_n])
 			end
 		elseif ev.button == rmb then
 			global.presets[preset_n] = nil
-			el.style = 'button'
-			el.tooltip = preset_help_tooltip()
+			set_preset_btn_state(el, global.presets[preset_n])
 		end
 
 	elseif el_id == 'mlc-back' then
