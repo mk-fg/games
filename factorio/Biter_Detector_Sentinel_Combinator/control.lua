@@ -222,6 +222,23 @@ local function update_sentinel_signal(s)
 	ecc.parameters = ecc_params_old and {parameters=ps} or ps
 end
 
+local function reset_sentinel_signals(s)
+	local ecc = s.e.get_control_behavior()
+	if not (ecc and ecc.enabled) then return end
+
+	local ecc_params = ecc.parameters
+	for k, e in pairs(BiterSignals) do
+		utils.log('k=', k);
+		for k2, e2 in pairs(ecc_params) do		
+			if e2.signal['name'] and k == 'virtual.'..e2.signal['name'] then				
+				table.remove(ecc_params, k2);
+				break;
+			end
+		end		
+	end
+	ecc.parameters = ecc_params;
+end
+
 
 script.on_nth_tick(conf.ticks_between_updates, function(ev)
 	if conf.ticks_between_rescan and ( -- periodic map scans, default-disabled
@@ -249,9 +266,15 @@ script.on_nth_tick(conf.ticks_between_updates, function(ev)
 		if not s.alarm then
 			if not s.p or not s.p.valid then
 				find_sentinel_radar(s)
-				if not s.p or not s.p.valid then goto skip end -- no radar in range
+				if not s.p or not s.p.valid then 
+					reset_sentinel_signals(s)
+					goto skip
+				end -- no radar in range
 			end
-			if s.p.energy <= 0 then goto skip end -- radar is not working
+			if s.p.energy <= 0 then
+				reset_sentinel_signals(s)
+				goto skip
+			end -- radar is not working
 		end
 
 		update_sentinel_signal(s)
