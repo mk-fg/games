@@ -50,6 +50,18 @@ end end
 BiterSignals[conf.sig_biter_total] = true
 BiterSignals[conf.sig_biter_other] = true
 
+-- Compatibility wrappers for factorio-1.1 changes
+local function cb_params_get(cb)
+	if not cb then return end
+	local params = cb.parameters
+	params = params.parameters or params
+	return params
+end
+local function cb_params_set(cb, params)
+	if cb.parameters.parameters then params = {parameters=params} end
+	cb.parameters = params
+end
+
 
 -- Mod Init Process
 
@@ -140,11 +152,7 @@ end
 local function update_sentinel_signal(s)
 	local ecc = s.e.get_control_behavior()
 	if not (ecc and (ecc.enabled or s.alarm)) then return end
-
-	-- Compatibility for breaking change introduced in factorio-1.1
-	local ecc_params, ecc_params_old = ecc.parameters
-	if ecc_params.parameters
-		then ecc_params, ecc_params_old = ecc_params.parameters, true end
+	local ecc_params = cb_params_get(ecc)
 
 	-- Find slots to replace/fill-in, as well as special control signals
 	local ps, ps_stat, ps_free, sig, range, alarm_test = {}, {}, {}
@@ -219,24 +227,19 @@ local function update_sentinel_signal(s)
 			ps[n], n = {index=idx, count=c, signal={type=e_type, name=e_name}}
 		else break end
 	end
-	ecc.parameters = ecc_params_old and {parameters=ps} or ps
+	cb_params_set(ecc, ps)
 end
+
 
 local function reset_sentinel_signals(s)
 	local ecc = s.e.get_control_behavior()
 	if not (ecc and ecc.enabled) then return end
-
-	local ecc_params = ecc.parameters
-	for k, e in pairs(BiterSignals) do
-		utils.log('k=', k);
-		for k2, e2 in pairs(ecc_params) do		
-			if e2.signal['name'] and k == 'virtual.'..e2.signal['name'] then				
-				table.remove(ecc_params, k2);
-				break;
-			end
-		end		
+	local ecc_params = cb_params_get(ecc)
+	for n, p in ipairs(ecc_params) do
+		sig = ('%s.%s'):format(p.signal.type, p.signal.name)
+		if BiterSignals[sig] then ecc_params[n] = nil end
 	end
-	ecc.parameters = ecc_params;
+	cb_params_set(ecc, ecc_params)
 end
 
 
@@ -264,9 +267,9 @@ script.on_nth_tick(conf.ticks_between_updates, function(ev)
 		utils.log('--- sentinel n=%d alarm=%s', n, s.alarm, true)
 
 		if not s.alarm then
-			if not s.p or not s.p.valid then
+			if not (s.p and s.p.valid) then
 				find_sentinel_radar(s)
-				if not s.p or not s.p.valid then 
+				if not (s.p and s.p.valid) then
 					reset_sentinel_signals(s)
 					goto skip
 				end -- no radar in range
