@@ -80,7 +80,6 @@ local function strict_mode_enable()
 end
 
 local function init_globals()
-	strict_mode_enable()
 	local sets = utils.t('sentinel_info')
 	for k, _ in pairs(utils.t('sentinel_info ticks')) do
 		if global[k] then goto skip end
@@ -90,6 +89,7 @@ local function init_globals()
 end
 
 local function init_refs()
+	strict_mode_enable()
 	SentinelSet = global.sentinel_info
 	Ticks = global.ticks
 end
@@ -234,11 +234,12 @@ end
 local function reset_sentinel_signals(s)
 	local ecc = s.e.get_control_behavior()
 	if not (ecc and ecc.enabled) then return end
-	local ecc_params = cb_params_get(ecc)
+	local ecc_params, count = cb_params_get(ecc), 0
 	for n, p in ipairs(ecc_params) do
-		sig = ('%s.%s'):format(p.signal.type, p.signal.name)
-		if BiterSignals[sig] then ecc_params[n] = nil end
+		local sig = ('%s.%s'):format(p.signal.type, p.signal.name)
+		if BiterSignals[sig] then count, ecc_params[n] = count + 1 end
 	end
+	utils.log('- signals removed on reset', count)
 	cb_params_set(ecc, ecc_params)
 end
 
@@ -268,16 +269,14 @@ script.on_nth_tick(conf.ticks_between_updates, function(ev)
 
 		if not s.alarm then
 			if not (s.p and s.p.valid) then
+				if s.p then reset_sentinel_signals(s) end -- to avoid calling reset more than once
 				find_sentinel_radar(s)
-				if not (s.p and s.p.valid) then
-					reset_sentinel_signals(s)
-					goto skip
-				end -- no radar in range
+				if not (s.p and s.p.valid) then goto skip end -- no radar in range
 			end
-			if s.p.energy <= 0 then
+			if s.p.energy <= 0 then -- radar is not working
 				reset_sentinel_signals(s)
 				goto skip
-			end -- radar is not working
+			end
 		end
 
 		update_sentinel_signal(s)
