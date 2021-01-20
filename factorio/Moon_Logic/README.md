@@ -165,6 +165,8 @@ REoTMhuDqH5D6CURIEMhslfTsI1eWhEVLBX4dCdto+hlT3vy7ieDEZH+9c7LBLM+KnOYYU0K1fgMg+xd
 
 **-- What is all this dark magic?**
 
+----------
+
 See [Lua 5.2 Reference Manual](https://www.lua.org/manual/5.2/). I also like [quick pdf reference here](http://lua-users.org/files/wiki_insecure/users/thomasl/luarefv51single.pdf).
 
 Runtime errors in the code will raise global alert on the map, set "mlc-error" output on the combinator (can catch these on Programmable Speakers), and highlight the line where it happened. Syntax errors are reported on save immediately. See in-game help window for some extra debugging options.

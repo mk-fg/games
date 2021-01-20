@@ -45,16 +45,14 @@ end
 
 -- ----- Circuit network controls -----
 
+-- Compatibility wrappers for factorio-1.1 constant-combinator control behavior changes
 local function cb_params_get(cb)
-	-- Compatibility wrapper for factorio-1.1 changes
 	if not cb then return end
 	local params = cb.parameters
 	params = params.parameters or params
 	return params
 end
-
 local function cb_params_set(cb, params)
-	-- Compatibility wrapper for factorio-1.1 changes
 	if cb.parameters.parameters then params = {parameters=params} end
 	cb.parameters = params
 end
@@ -428,8 +426,8 @@ local function on_entity_copy(ev)
 		else mlc_old_outs = {out_wire_connect_both(ev.destination)} end
 	global.combinators[uid_dst] = tdc(global.combinators[uid_src])
 	local mlc_dst, mlc_src = global.combinators[uid_dst], global.combinators[uid_src]
-	mlc_dst.e, mlc_dst.next_tick, mlc.core = ev.destination, 0
-	mlc.out_red, mlc.out_green = table.unpack(mlc_old_outs)
+	mlc_dst.e, mlc_dst.next_tick, mlc_dst.core = ev.destination, 0
+	mlc_dst.out_red, mlc_dst.out_green = table.unpack(mlc_old_outs)
 	guis.history_insert(global.guis[uid_dst], mlc_src, mlc_src.code or '')
 end
 
