@@ -19,17 +19,20 @@ local function help_window_toggle(pn, toggle_on)
 		' ',
 		'Special variables available/handled in Lua environment:',
 		'  [color=#ffe6c0]uid[/color] (uint) -- globally-unique number of this combinator.',
-		('  [color=#ffe6c0]%s[/color] {signal-name=value, ...} -- signals in the %s network (read-only).')
+		('  [color=#ffe6c0]%s[/color] {signal-name=value, ...} -- signals on the %s input wire (read-only).')
 			:format(conf.red_wire_name, conf.red_wire_name),
 		'    Any keys queried there are always numbers, returns 0 for missing signal.',
-		('  [color=#ffe6c0]%s[/color] {signal-name=value, ...} -- same as above for %s network.')
+		('  [color=#ffe6c0]%s[/color] {signal-name=value, ...} -- same as above for %s input network.')
 			:format(conf.green_wire_name, conf.green_wire_name),
 		'  [color=#ffe6c0]out[/color] {signal-name=value, ...} -- table with all signals sent to networks.',
 		'    They are persistent, so to remove a signal you need to set its entry',
-		'     to nil or 0, or flush all signals by entering "[color=#ffe6c0]out = {}[/color]" (creates a fresh table).',
+		'      to nil or 0, or flush all signals by entering "[color=#ffe6c0]out = {}[/color]" (creates a fresh table).',
+		('    Signal name can be prefixed by "%s/" or "%s/" to only output it on that specific wire,')
+			:format(conf.red_wire_name, conf.green_wire_name),
+		'      and will override non-prefixed signal value there, if that is used as well, until unset.',
 		'  [color=#ffe6c0]delay[/color] (number) -- delay in ticks until next run - use for intervals or performance.',
 		'    Defaults to 1 (run again on next tick), and gets reset to it before each run,',
-		'    so must be set on every individual run if you want to delay the next one.',
+		'      so must be set on every individual run if you want to delay the next one.',
 		'  [color=#ffe6c0]var[/color] {} -- table to easily store values between code runs (per-mlc globals work too).',
 		'  [color=#ffe6c0]debug[/color] (bool) -- set to true to print debug info about next code run to factorio log.',
 		'  [color=#ffe6c0]ota_update_from_uid[/color] (uint) -- copy code from another combinator with this uid.',

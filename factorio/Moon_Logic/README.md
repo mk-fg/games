@@ -80,6 +80,8 @@ This mod allows using it to script factorio circuit network logic directly from 
 - Ever-increasing output counter: `out.wood = out.wood + 1`
 
 - Don't update counter on every single [game tick](https://wiki.factorio.com/Time#Ticks): `out.wood = out.wood + 1; delay = 60`
+
+- Different value on each output wire: `out['red/wood'], out['green/wood'] = -3, 10`
 &nbsp;
 
 ----------

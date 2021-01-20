@@ -85,7 +85,7 @@ local function cn_input_signal_get(wenv, k)
 	return v
 end
 local function cn_input_signal_set(wenv, k, v)
-	error(( 'Attempt to set value to input wire:'..
+	error(( 'Attempt to set value on input wire:'..
 		' %s[%s] = %s' ):format(conf.get_wire_label(wenv._wire), k, v), 2)
 end
 
@@ -196,30 +196,48 @@ local sandbox_env_base = {
 local mlc_err_sig = {type='virtual', name='mlc-error'}
 
 local function mlc_update_output(mlc, output)
-	-- Note: uses invisible mlc.core combinator to set signal outputs
-	local ecc = mlc.core.get_or_create_control_behavior()
-	if not (ecc and ecc.valid) then return end
-	local signals, err_msg, n, n_max, err, t = {}, '', 1, ecc.signals_count
-	for sig, v in pairs(output) do
-		t, err = global.signals[sig]
-		if type(v) == 'boolean' then v = v and 1 or 0 end
-		if not t then err = ('unknown signal [%s]'):format(sig)
-		elseif type(v) ~= 'number'
-			then err = ('signal must be a number [%s=(%s) %s]'):format(sig, type(v), v)
-		elseif not (v >= -2147483648 and v <= 2147483647)
-			then err = ('signal value out of range [%s=%s]'):format(sig, v) end
-		if err then
-			if err_msg ~= '' then err_msg = err_msg..', ' end
-			err_msg = err_msg..err
-			goto skip
-		end
-		signals[n] = {signal={type=t, name=sig}, count=v, index=n}
-		n = n + 1
-		if n > n_max then break end
+	-- Sets signal outputs on invisible mlc-core combinators connected to visible outputs
+	local signals, errors = {red={}, green={}}, {}
+
+	local sig_err, sig, st, err, pre, pre_label = tc(output)
+	for _, k in ipairs{false, 'red', 'green'} do
+		st = signals[k] and {signals[k]} or {signals.red, signals.green}
+		if not k then pre, pre_label = '^.+$', '^.+$'
+			else pre, pre_label = '^'..k..'/(.+)$', '^'..conf.get_wire_label(k)..'/(.+)$' end
+		for k, v in pairs(output) do
+			sig, err = k:match(pre) or k:match(pre_label)
+			if not (sig and global.signals[sig]) then goto skip end
+			sig_err[k] = nil
+			if type(v) == 'boolean' then v = v and 1 or 0
+			elseif type(v) ~= 'number'
+				then err = ('signal must be a number [%s=(%s) %s]'):format(sig, type(v), v)
+			elseif not (v >= -2147483648 and v <= 2147483647)
+				then err = ('signal value out of range [%s=%s]'):format(sig, v) end
+			if err then table.insert(errors, err); goto skip end
+			for _, sig_table in ipairs(st) do sig_table[sig] = v end
+	::skip:: end end
+	for sig, _ in pairs(sig_err)
+		do table.insert(errors, ('unknown signal [%s]'):format(sig)) end
+
+	local ps, ecc, n, n_max
+	for _, k in ipairs{'red', 'green'} do
+		ps, ecc = {}, mlc['out_'..k].get_or_create_control_behavior()
+		if not (ecc and ecc.valid) then goto skip end
+		n, n_max = 1, ecc.signals_count
+		for sig, v in pairs(signals[k]) do
+			ps[n] = {signal={type=global.signals[sig], name=sig}, count=v, index=n}
+			n = n + 1
+			if n > n_max then
+				table.insert( errors,
+					('too many signals (wire=%s max=%d)')
+					:format(conf.get_wire_label(k), n_max) )
+				break
+		end end
+		cb_params_set(ecc, ps)
+		ecc.enabled = true
 	::skip:: end
-	if err_msg ~= '' then mlc.err_out = err_msg end
-	cb_params_set(ecc, signals)
-	ecc.enabled = true
+
+	if next(errors) then mlc.err_out = table.concat(errors, ', ') end
 end
 
 local function mlc_update_led(mlc, mlc_env)
@@ -263,13 +281,40 @@ end
 
 -- ----- MLC (+ sandbox) init / remove -----
 
+-- Create/connect/remove invisible constant-combinator entities for wire outputs
+local function out_wire_connect(e, wire)
+	local core = e.surface.create_entity{
+		name='mlc-core', position=e.position,
+		force=e.force, create_build_effect_smoke=false }
+	e.connect_neighbour{ wire=wire, target_entity=core,
+		source_circuit_id=defines.circuit_connector_id.combinator_output }
+	core.destructible = false
+	return core
+end
+local function out_wire_connect_both(e)
+	return
+		out_wire_connect(e, defines.wire_type.red),
+		out_wire_connect(e, defines.wire_type.green)
+end
+local function out_wire_clear_mlc(mlc)
+	for _, e in ipairs{'core', 'out_red', 'out_green'} do
+		e, mlc[e] = mlc[e]
+		if e and e.valid then e.destroy() end
+	end
+	return mlc
+end
+local function out_wire_connect_mlc(mlc)
+	out_wire_clear_mlc(mlc)
+	mlc.out_red, mlc.out_green = out_wire_connect_both(mlc.e)
+	return mlc
+end
+
 local function mlc_log(...) log(...) end -- to avoid logging func code
 
 local function mlc_init(e)
 	-- Inits *local* mlc_env state for combinator - builds env, evals lua code, etc
 	-- *global* state will be used for init values if it exists, otherwise empty defaults
 	-- Lua env for code is composed from: sandbox_env_base + local mlc_env proxies + global mlc.vars
-	-- Note that this part only cares about control network of visible 2x1 combinator, not mlc.core.
 	if not e.valid then return end
 	local uid = e.unit_number
 	if Combinators[uid] then error('Double-init for existing combinator unit_number') end
@@ -325,6 +370,9 @@ local function mlc_init(e)
 		rawset(env_wire_green, '_debug', v or false)
 		return v_prev end
 
+	-- Migration from pre-0.0.52 to separate wire outputs
+	if mlc.core then out_wire_connect_mlc(mlc) end
+
 	CombinatorEnv[uid] = env
 	mlc_update_code(mlc, mlc_env, env)
 	return mlc_env
@@ -333,8 +381,7 @@ end
 local function mlc_remove(uid, keep_entities, to_be_mined)
 	guis.close(uid)
 	if not keep_entities then
-		local mlc = global.combinators[uid] or {}
-		if mlc.core and mlc.core.valid then mlc.core.destroy() end
+		local mlc = out_wire_clear_mlc(global.combinators[uid] or {})
 		if not to_be_mined and mlc.e and mlc.e.valid then mlc.e.destroy() end
 	end
 	Combinators[uid], CombinatorEnv[uid], global.combinators[uid], global.guis[uid] = nil
@@ -345,25 +392,10 @@ end
 
 local mlc_filter = {{filter='name', name='mlc'}}
 
-local function bootstrap_core(e)
-	-- Creates/connects invisible constant-combinator 'core' entity for wire outputs
-	local core = e.surface.create_entity{
-		name='mlc-core', position=e.position,
-		force=e.force, create_build_effect_smoke=false }
-	e.connect_neighbour{
-		wire=defines.wire_type.red, target_entity=core,
-		source_circuit_id=defines.circuit_connector_id.combinator_output }
-	e.connect_neighbour{
-		wire=defines.wire_type.green, target_entity=core,
-		source_circuit_id=defines.circuit_connector_id.combinator_output }
-	core.destructible = false
-	return core
-end
-
 local function on_built(ev)
 	local e = ev.created_entity or ev.entity -- latter for revive event
 	if not e.valid then return end
-	local mlc = {e=e, core=bootstrap_core(e)}
+	local mlc = out_wire_connect_mlc{e=e}
 	global.combinators[e.unit_number] = mlc
 
 	-- Copy combinator settings from the original one when blueprinted
@@ -387,16 +419,17 @@ local function on_entity_copy(ev)
 	if ev.destination.name == 'mlc-core' then return ev.destination.destroy() end -- for clone event
 	if not (ev.source.name == 'mlc' and ev.destination.name == 'mlc') then return end
 	local uid_src, uid_dst = ev.source.unit_number, ev.destination.unit_number
-	local mlc_old_core = global.combinators[uid_dst]
+	local mlc_old_outs = global.combinators[uid_dst]
 	mlc_remove(uid_dst, true)
-	if mlc_old_core
-		then mlc_old_core = mlc_old_core.core
-		-- For cloned entities, mlc-core might not yet exist, so create/register it here, remove cloned one
+	if mlc_old_outs
+		then mlc_old_outs = {mlc_old_outs.out_red, mlc_old_outs.out_green}
+		-- For cloned entities, mlc-core's might not yet exist - create/register them here, remove clones above
 		-- It'd give zero-outputs for one tick, but probably not an issue, easier to handle it like this
-		else mlc_old_core = bootstrap_core(ev.destination) end
+		else mlc_old_outs = {out_wire_connect_both(ev.destination)} end
 	global.combinators[uid_dst] = tdc(global.combinators[uid_src])
 	local mlc_dst, mlc_src = global.combinators[uid_dst], global.combinators[uid_src]
-	mlc_dst.e, mlc_dst.core, mlc_dst.next_tick = ev.destination, mlc_old_core, 0
+	mlc_dst.e, mlc_dst.next_tick, mlc.core = ev.destination, 0
+	mlc.out_red, mlc.out_green = table.unpack(mlc_old_outs)
 	guis.history_insert(global.guis[uid_dst], mlc_src, mlc_src.code or '')
 end
 
@@ -436,14 +469,16 @@ local function signal_icon_tag(sig)
 end
 
 local function update_signals_in_guis()
-	local gui_flow, label, mlc, mlc_out, cb, sig
+	local gui_flow, label, mlc, cb, sig, mlc_out, mlc_out_idx, mlc_out_err
+	local colors = {red={1,0.3,0.3}, green={0.3,1,0.3}}
 	for uid, gui_t in pairs(global.guis) do
 		mlc = global.combinators[uid]
 		if not (mlc and mlc.e.valid) then mlc_remove(uid); goto skip end
 
+		-- Inputs
 		gui_flow = gui_t.signal_pane
 		if gui_flow then gui_flow.clear() end
-		for k, color in pairs{red={1,0.3,0.3}, green={0.3,1,0.3}} do
+		for k, color in pairs(colors) do
 			cb = cn_wire_signals(mlc.e, defines.wire_type[k])
 			for sig, v in pairs(cb) do
 				if v ~= 0 then
@@ -453,22 +488,37 @@ local function update_signals_in_guis()
 					label.style.font_color = color
 		end end end
 
-		cb = mlc.core.get_control_behavior()
-		mlc_out = tc((Combinators[uid] or {})._out or {})
-		for _, cbs in pairs(cb_params_get(cb) or {}) do
-			sig = cbs.signal.name
-			if sig then
-				mlc_out[sig] = nil
-				if cbs.count ~= 0 then
-					label = signal_icon_tag(sig)
-					gui_flow.add{ type='label', name='out-'..sig,
-						caption=('[out] %s %s = %s'):format(label, sig, cbs.count) }
+		-- Outputs
+		mlc_out, mlc_out_idx, mlc_out_err = {}, {}, tc((Combinators[uid] or {})._out or {})
+		for k, cb in pairs{red=mlc.out_red, green=mlc.out_green} do
+			cb = cb.get_control_behavior()
+			for _, cbs in pairs(cb_params_get(cb) or {}) do
+				sig, label = cbs.signal.name, conf.get_wire_label(k)
+				if sig then
+					mlc_out_err[sig],
+						mlc_out_err[('%s/%s'):format(k, sig)],
+						mlc_out_err[('%s/%s'):format(label, sig)] = nil
+					if cbs.count ~= 0 then
+						if not mlc_out[sig] then mlc_out_idx[#mlc_out_idx+1], mlc_out[sig] = sig, {} end
+						mlc_out[sig][k] = cbs.count
+		end end end end
+		table.sort(mlc_out_idx)
+		for val, sig in pairs(mlc_out_idx) do
+			val, label = mlc_out[sig], signal_icon_tag(sig)
+			if val['red'] == val['green'] then
+				gui_flow.add{ type='label', name='out-'..sig,
+					caption=('[out] %s %s = %s'):format(label, sig, val['red']) }
+			else for k, color in pairs(colors) do
+				k = gui_flow.add{ type='label', name='out/'..k..'-'..sig,
+					caption=('[out/%s] %s %s = %s'):format(conf.get_wire_label(k), label, sig, val[k]) }
+				k.style.font_color = color
 		end end end
 
-		for sig, val in pairs(mlc_out) do -- show remaining invalid signals
+		-- Remaining invalid signals and errors
+		for sig, val in pairs(mlc_out_err) do
 			val = serpent.line(val, {compact=true, nohuge=false})
 			if val:len() > 8 then val = val:sub(1, 8)..'+' end
-			gui_flow.add{ type='label', name='out_err-'..sig,
+			gui_flow.add{ type='label', name='out/err-'..sig,
 				caption=('[color=#ce9f7f][out-invalid] %s = %s[/color]'):format(sig, val) }
 		end
 		gui_t.mlc_errors.caption = format_mlc_err_msg(mlc) or ''
@@ -575,7 +625,8 @@ local function on_tick(ev)
 	for uid, mlc in pairs(global.combinators) do
 		local mlc_env = Combinators[uid]
 		if not mlc_env then mlc_env = mlc_init(mlc.e) end
-		if not (mlc_env and mlc.e.valid and mlc.core.valid)
+		if not ( mlc_env and mlc.e.valid
+				and mlc.out_red.valid and mlc.out_green.valid )
 			then mlc_remove(uid); goto skip end
 
 		local err_msg = format_mlc_err_msg(mlc)
@@ -605,7 +656,9 @@ script.on_event(defines.events.on_tick, on_tick)
 
 function load_code_from_gui(code, uid) -- note: in global _ENV, used from gui.lua
 	local mlc, mlc_env = global.combinators[uid], Combinators[uid]
-	if not (mlc and mlc.e.valid and mlc.core.valid) then return mlc_remove(uid) end
+	if not ( mlc and mlc.e.valid
+			and mlc.out_red.valid and mlc.out_green.valid )
+		then return mlc_remove(uid) end
 	mlc.code = code or ''
 	if not mlc_env then return mlc_init(mlc.e) end
 	mlc_update_code(mlc, mlc_env)
