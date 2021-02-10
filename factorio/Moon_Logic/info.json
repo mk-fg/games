@@ -1,8 +1,8 @@
 {
 	"name": "Moon_Logic",
-	"version": "0.0.55",
+	"version": "0.0.56",
 	"factorio_version": "1.1",
-	"dependencies": ["base >= 1.0", "? SchallCircuitGroup"],
+	"dependencies": ["base >= 1.1", "? SchallCircuitGroup"],
 	"title": "Moon Logic",
 	"author": "OwnlyMe, IWTDU, mk-fg",
 	"description": "Adds programmable Lua combinator. Based on Sandboxed LuaCombinator and LuaCombinator2 mods."

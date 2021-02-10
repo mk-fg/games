@@ -45,18 +45,6 @@ end
 
 -- ----- Circuit network controls -----
 
--- Compatibility wrappers for factorio-1.1 constant-combinator control behavior changes
-local function cb_params_get(cb)
-	if not cb then return end
-	local params = cb.parameters
-	params = params.parameters or params
-	return params
-end
-local function cb_params_set(cb, params)
-	if cb.parameters.parameters then params = {parameters=params} end
-	cb.parameters = params
-end
-
 local function cn_wire_signals(e, wire_type)
 	local res, cn = {}, e.get_or_create_control_behavior()
 		.get_circuit_network(wire_type, defines.circuit_connector_id.combinator_input)
@@ -231,8 +219,7 @@ local function mlc_update_output(mlc, output)
 					:format(conf.get_wire_label(k), n_max) )
 				break
 		end end
-		cb_params_set(ecc, ps)
-		ecc.enabled = true
+		ecc.enabled, ecc.parameters = true, ps
 	::skip:: end
 
 	if next(errors) then mlc.err_out = table.concat(errors, ', ') end
@@ -255,10 +242,9 @@ local function mlc_update_led(mlc, mlc_env)
 	elseif st == 'sleep' then op = '-'
 	elseif st == 'no-power' then op = '^'
 	elseif st == 'error' then op, b, out = '+', 1 - a, mlc_err_sig end -- shown with ALT
-	cb_params_set(cb, {
+	mlc_env._state, cb.parameters = st, {
 		operation=op, first_signal=nil, second_signal=nil,
-		first_constant=a, second_constant=b, output_signal=out })
-	mlc_env._state = st
+		first_constant=a, second_constant=b, output_signal=out }
 end
 
 local function mlc_update_code(mlc, mlc_env, lua_env)
@@ -397,7 +383,7 @@ local function on_built(ev)
 	global.combinators[e.unit_number] = mlc
 
 	-- Copy combinator settings from the original one when blueprinted
-	local ecc_params = cb_params_get(e.get_or_create_control_behavior())
+	local ecc_params = e.get_or_create_control_behavior().parameters
 	local uid_src = ecc_params.first_constant or 0
 
 	if uid_src < 0 then uid_src = uid_src + 0x100000000 end -- int -> uint conversion
@@ -490,7 +476,7 @@ local function update_signals_in_guis()
 		mlc_out, mlc_out_idx, mlc_out_err = {}, {}, tc((Combinators[uid] or {})._out or {})
 		for k, cb in pairs{red=mlc.out_red, green=mlc.out_green} do
 			cb = cb.get_control_behavior()
-			for _, cbs in pairs(cb_params_get(cb) or {}) do
+			for _, cbs in pairs(cb.parameters or {}) do
 				sig, label = cbs.signal.name, conf.get_wire_label(k)
 				if sig then
 					mlc_out_err[sig],
@@ -547,7 +533,7 @@ local function run_moon_logic_tick(mlc, mlc_env, tick)
 	local out_tick, out_diff = mlc.next_tick, tc(mlc_env._out)
 	local dbg = mlc.vars.debug and function(fmt, ...)
 		mlc_log((' -- moon-logic [%s]: %s'):format(mlc_env._uid, fmt:format(...))) end
-	mlc.vars.delay, mlc.vars.var, mlc.vars.debug = 1, mlc.vars.var or {}
+	mlc.vars.delay, mlc.vars.var, mlc.vars.irq, mlc.vars.debug = 1, mlc.vars.var or {}
 
 	if mlc.e.energy < conf.energy_fail_level then
 		mlc.state = 'no-power'
@@ -584,6 +570,12 @@ local function run_moon_logic_tick(mlc, mlc_env, tick)
 	local delay = tonumber(mlc.vars.delay) or 1
 	if delay > conf.led_sleep_min then mlc.state = 'sleep' end
 	mlc.next_tick = tick + delay
+
+	local sig = mlc.vars.irq
+	if sig then
+		if global.signals[sig] then mlc.irq = {type=global.signals[sig], name=sig}
+		else mlc.err_run = ('Unknown IRQ signal: %s'):format(mlc.vars.irq) end
+	end
 
 	for sig, v in pairs(mlc_env._out) do
 		if out_diff[sig] ~= v then out_diff[sig] = v
@@ -634,6 +626,8 @@ local function on_tick(ev)
 			goto skip -- suspend combinator logic until errors are addressed
 		elseif mlc_env._alert then alert_clear(mlc_env) end
 
+		if mlc.irq and mlc.e.get_merged_signal(mlc.irq, defines.circuit_connector_id.combinator_input) ~= 0
+			then mlc.next_tick = nil end
 		if tick >= (mlc.next_tick or 0) and mlc_env._func then
 			run_moon_logic_tick(mlc, mlc_env, tick)
 			for _, p in ipairs(game.connected_players)
