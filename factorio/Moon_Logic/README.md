@@ -125,8 +125,9 @@ if red['signal-T'] == our_train then
 else
   out = {} -- keep inserters idle and environment clean
   delay = 20 * 60 -- check for next train every 20s
+  irq = 'signal-T' -- any train on station will interrupt the delay
+  irq_min_interval = delay -- to sleep when other train triggers that irq signal
 end
-
 ```
 
 As comments in the code might suggest already, it's a train station automation example.

@@ -573,8 +573,10 @@ local function run_moon_logic_tick(mlc, mlc_env, tick)
 
 	local sig = mlc.vars.irq
 	if sig then
-		if global.signals[sig] then mlc.irq = {type=global.signals[sig], name=sig}
-		else mlc.err_run = ('Unknown IRQ signal: %s'):format(mlc.vars.irq) end
+		if global.signals[sig] then
+			mlc.irq = {type=global.signals[sig], name=sig}
+			mlc.irq_delay = tonumber(mlc.vars.irq_min_interval)
+		else mlc.err_run = ('Unknown "irq" signal: %s'):format(serpent.line(mlc.vars.irq)) end
 	end
 
 	for sig, v in pairs(mlc_env._out) do
@@ -626,8 +628,9 @@ local function on_tick(ev)
 			goto skip -- suspend combinator logic until errors are addressed
 		elseif mlc_env._alert then alert_clear(mlc_env) end
 
-		if mlc.irq and mlc.e.get_merged_signal(mlc.irq, defines.circuit_connector_id.combinator_input) ~= 0
-			then mlc.next_tick = nil end
+		if mlc.irq and (mlc.irq_tick or 0) < tick - (mlc.irq_delay or 0)
+				and mlc.e.get_merged_signal(mlc.irq, defines.circuit_connector_id.combinator_input) ~= 0
+			then mlc.irq_tick, mlc.next_tick = tick end
 		if tick >= (mlc.next_tick or 0) and mlc_env._func then
 			run_moon_logic_tick(mlc, mlc_env, tick)
 			for _, p in ipairs(game.connected_players)

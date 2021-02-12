@@ -1,5 +1,11 @@
 
 ---------------------------------------------------------------------------------------------------
+Version: 0.0.58
+Date: 2021-02-12
+  Features:
+    - Add special "irq_min_interval" value to make it easier to use "irq" when input signal is not a pulse.
+
+---------------------------------------------------------------------------------------------------
 Version: 0.0.57
 Date: 2021-02-12
   Bugfixes:
@@ -9,7 +15,7 @@ Date: 2021-02-12
 Version: 0.0.56
 Date: 2021-02-10
   Features:
-    - Add option to set "irq" value to input signal name that can be set to non-zero to interrupt the delay setting.
+    - Add special "irq" value to set input signal name that can be non-zero to interrupt the delay setting.
 
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.54

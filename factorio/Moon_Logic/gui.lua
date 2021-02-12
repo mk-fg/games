@@ -30,16 +30,18 @@ local function help_window_toggle(pn, toggle_on)
 		('    Signal name can be prefixed by "%s/" or "%s/" to only output it on that specific wire,')
 			:format(conf.red_wire_name, conf.green_wire_name),
 		'      and will override non-prefixed signal value there, if that is used as well, until unset.',
+		'  [color=#ffe6c0]var[/color] {} -- table to easily store values between code runs (per-mlc globals work too).',
 		'  [color=#ffe6c0]delay[/color] (number) -- delay in ticks until next run - use for intervals or performance.',
 		'    Defaults to 1 (run again on next tick), and gets reset to it before each run,',
 		'      so must be set on every individual run if you want to delay the next one.',
 		'  [color=#ffe6c0]irq[/color] (signal-name) -- input signal name to interrupt any delay on.',
 		'    If any [color=#ffe6c0]delay[/color] value is set and this signal is non-zero on any input wire, delay gets interrupted.',
 		'    Same as [color=#ffe6c0]delay[/color], gets reset before each code run, and must be set if still needed.',
-		'  [color=#ffe6c0]var[/color] {} -- table to easily store values between code runs (per-mlc globals work too).',
+		'  [color=#ffe6c0]irq_min_interval[/color] (number) -- min ticks between triggering code runs on any [color=#ffe6c0]irq[/color] signal.',
+		'    To avoid complicated logic when that signal is not a pulse. Use nil or <=1 to disable (default).',
 		'  [color=#ffe6c0]debug[/color] (bool) -- set to true to print debug info about next code run to factorio log.',
 		'  [color=#ffe6c0]ota_update_from_uid[/color] (uint) -- copy code from another combinator with this uid.',
-		'    Gets reset after code runs. Ignored if MLC with that uid (number in a window header) does not exist.',
+		'    Reset after code runs, ignored if MLC with that uid (number in a window header) does not exist.',
 		'    Note that only code is updated, while persistent lua environment and outputs stay the same.',
 		' ',
 		'Factorio APIs available, aside from general Lua stuff:',
@@ -217,7 +219,7 @@ local function create_gui(player, entity)
 	local gui = elc( player.gui.screen,
 		{ type='frame', name='mlc-gui',
 			direction='vertical', caption =
-				('Moon Logic [%s] - %s {}, %s {}, out {}, var {}, delay (int)')
+				('Moon Logic [%s] - %s {}, %s {}, out {}, var {}, delay (int), irq (sig-name), irq_min_interval (int)')
 				:format(uid, conf.red_wire_name, conf.green_wire_name) },
 		{top_padding=1, right_padding=4, bottom_padding=4, left_padding=4} )
 	gui.location = {20 * dsf, 150 * dsf} -- doesn't work from initial props
