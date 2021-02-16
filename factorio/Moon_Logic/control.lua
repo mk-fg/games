@@ -45,10 +45,30 @@ end
 
 -- ----- Circuit network controls -----
 
+local function cn_sig(k, err_level)
+	-- Afaik this disambiguation is only a problem with "Attach Notes" mod
+	-- It adds item=signal-A signals to copy virtual ones - not sure why, but is a problem
+	local sig = global.signals_short[k]
+	if type(sig) ~= false then sig = global.signals[sig or k] end
+	if sig then return sig end
+	if not err_level then return end
+	if sig == false then
+		local m = {}
+		for _,t in ipairs{'virtual', 'item', 'fluid'} do
+			sig = t..'='..k
+			if global.signals[sig] then table.insert(m, sig) end
+		end
+		error(( 'Ambiguous short signal name "%s",'..
+			' matching: %s' ):format(k, table.concat(m, ' ')), err_level)
+	end
+	error('Unknown signal: '..k, err_level)
+end
+
 local function cn_wire_signals(e, wire_type)
 	local res, cn = {}, e.get_or_create_control_behavior()
 		.get_circuit_network(wire_type, defines.circuit_connector_id.combinator_input)
-	for _, sig in pairs(cn and cn.signals or {}) do res[sig.signal.name] = sig.count end
+	for _, sig in pairs(cn and cn.signals or {})
+		do res[sig.signal.type..'='..sig.signal.name] = sig.count end
 	return res
 end
 
@@ -59,8 +79,8 @@ local function cn_input_signal(wenv, wire_type, k)
 		wenv._cache, wenv._cache_tick = signals, game.tick
 	end
 	if k then
-		if not global.signals[k] then error('Unknown signal name: '..k, 3) end
-		signals = signals[k]
+		k = cn_sig(k, 4)
+		signals = signals[k.type..'='..k.name]
 	end
 	return signals
 end
@@ -191,16 +211,16 @@ local function mlc_update_output(mlc, output)
 		if not k then pre, pre_label = '^.+$', '^.+$'
 			else pre, pre_label = '^'..k..'/(.+)$', '^'..conf.get_wire_label(k)..'/(.+)$' end
 		for k, v in pairs(output) do
-			sig, err = k:match(pre) or k:match(pre_label)
-			if not (sig and global.signals[sig]) then goto skip end
+			sig, err = cn_sig(k:match(pre) or k:match(pre_label))
+			if not sig then goto skip end
 			sig_err[k] = nil
 			if type(v) == 'boolean' then v = v and 1 or 0
-			elseif type(v) ~= 'number'
-				then err = ('signal must be a number [%s=(%s) %s]'):format(sig, type(v), v)
-			elseif not (v >= -2147483648 and v <= 2147483647)
-				then err = ('signal value out of range [%s=%s]'):format(sig, v) end
+			elseif type(v) ~= 'number' then
+				err = ('signal must be a number [%s=(%s) %s]'):format(sig.name, type(v), v)
+			elseif not (v >= -2147483648 and v <= 2147483647) then
+				err = ('signal value out of range [%s=%s]'):format(sig.name, v) end
 			if err then table.insert(errors, err); goto skip end
-			for _, sig_table in ipairs(st) do sig_table[sig] = v end
+			for _, sig_table in ipairs(st) do sig_table[sig.type..'='..sig.name] = v end
 	::skip:: end end
 	for sig, _ in pairs(sig_err)
 		do table.insert(errors, ('unknown signal [%s]'):format(sig)) end
@@ -211,7 +231,7 @@ local function mlc_update_output(mlc, output)
 		if not (ecc and ecc.valid) then goto skip end
 		n, n_max = 1, ecc.signals_count
 		for sig, v in pairs(signals[k]) do
-			ps[n] = {signal={type=global.signals[sig], name=sig}, count=v, index=n}
+			ps[n] = {signal=global.signals[sig], count=v, index=n}
 			n = n + 1
 			if n > n_max then
 				table.insert( errors,
@@ -446,10 +466,11 @@ local function format_mlc_err_msg(mlc)
 end
 
 local function signal_icon_tag(sig)
-	local t = global.signals[sig]
-	if not t then return end
-	if t == 'virtual' then return '[virtual-signal='..sig..']' end
-	if game.is_valid_sprite_path(t..'/'..sig) then return '[img='..t..'/'..sig..']' end
+	local sig = global.signals[sig]
+	if not sig then return end
+	if sig.type == 'virtual' then return '[virtual-signal='..sig.name..']' end
+	if game.is_valid_sprite_path(sig.type..'/'..sig.name)
+		then return '[img='..sig.type..'/'..sig.name..']' end
 end
 
 local function update_signals_in_guis()
@@ -478,23 +499,27 @@ local function update_signals_in_guis()
 			cb = cb.get_control_behavior()
 			for _, cbs in pairs(cb.parameters or {}) do
 				sig, label = cbs.signal.name, conf.get_wire_label(k)
-				if sig then
-					mlc_out_err[sig],
-						mlc_out_err[('%s/%s'):format(k, sig)],
-						mlc_out_err[('%s/%s'):format(label, sig)] = nil
-					if cbs.count ~= 0 then
-						if not mlc_out[sig] then mlc_out_idx[#mlc_out_idx+1], mlc_out[sig] = sig, {} end
-						mlc_out[sig][k] = cbs.count
-		end end end end
+				if not sig then goto cb_slot_skip end
+				mlc_out_err[sig],
+					mlc_out_err[('%s/%s'):format(k, sig)],
+					mlc_out_err[('%s/%s'):format(label, sig)] = nil
+				sig = cbs.signal.type..'='..cbs.signal.name
+				mlc_out_err[sig],
+					mlc_out_err[('%s/%s'):format(k, sig)],
+					mlc_out_err[('%s/%s'):format(label, sig)] = nil
+				if cbs.count == 0 then goto cb_slot_skip end
+				if not mlc_out[sig] then mlc_out_idx[#mlc_out_idx+1], mlc_out[sig] = sig, {} end
+				mlc_out[sig][k] = cbs.count
+		end ::cb_slot_skip:: end
 		table.sort(mlc_out_idx)
-		for val, sig in pairs(mlc_out_idx) do
-			val, label = mlc_out[sig], signal_icon_tag(sig)
+		for val, k in pairs(mlc_out_idx) do
+			val, sig, label = mlc_out[k], global.signals[k].name, signal_icon_tag(k)
 			if val['red'] == val['green'] then
 				gui_flow.add{ type='label', name='out-'..sig,
 					caption=('[out] %s %s = %s'):format(label, sig, val['red']) }
 			else for k, color in pairs(colors) do
 				k = gui_flow.add{ type='label', name='out/'..k..'-'..sig,
-					caption=('[out/%s] %s %s = %s'):format(conf.get_wire_label(k), label, sig, val[k]) }
+					caption=('[out/%s] %s%s = %s'):format(conf.get_wire_label(k), label or '', sig, val[k] or 0) }
 				k.style.font_color = color
 		end end end
 
@@ -573,10 +598,9 @@ local function run_moon_logic_tick(mlc, mlc_env, tick)
 
 	local sig = mlc.vars.irq
 	if sig then
-		if global.signals[sig] then
-			mlc.irq = {type=global.signals[sig], name=sig}
-			mlc.irq_delay = tonumber(mlc.vars.irq_min_interval)
-		else mlc.err_run = ('Unknown "irq" signal: %s'):format(serpent.line(mlc.vars.irq)) end
+		sig = cn_sig(sig)
+		if sig then mlc.irq, mlc.irq_delay = sig, tonumber(mlc.vars.irq_min_interval) else
+			mlc.err_run = ('Unknown/ambiguous "irq" signal: %s'):format(serpent.line(mlc.vars.irq)) end
 	end
 
 	for sig, v in pairs(mlc_env._out) do
@@ -767,13 +791,19 @@ local function strict_mode_enable()
 end
 
 local function update_signal_types_table()
-	global.signals = {}
-	for name, sig in pairs(game.virtual_signal_prototypes) do
-		if sig.subgroup.name == 'virtual-signal-special' then goto skip end -- anything/everything/each
-		global.signals[name] = 'virtual'
+	global.signals, global.signals_short = {}, {}
+	for k, sig in pairs(game.virtual_signal_prototypes) do
+		if sig.special then goto skip end -- anything/everything/each
+		global.signals_short[k], global.signals['virtual='..k] = 'virtual='..k, {type='virtual', name=k}
 	::skip:: end
-	for name, _ in pairs(game.item_prototypes) do global.signals[name] = 'item' end
-	for name, _ in pairs(game.fluid_prototypes) do global.signals[name] = 'fluid' end
+	for k, _ in pairs(game.item_prototypes) do
+		global.signals_short[k] = global.signals_short[k] and false or 'item='..k
+		global.signals['item='..k] = {type='item', name=k}
+	end
+	for k, _ in pairs(game.fluid_prototypes) do
+		global.signals_short[k] = global.signals_short[k] and false or 'fluid='..k
+		global.signals['fluid='..k] = {type='fluid', name=k}
+	end
 end
 
 local function update_recipes()
