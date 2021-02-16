@@ -491,10 +491,10 @@ local function update_signals_in_guis()
 			val, label = mlc_out[sig], signal_icon_tag(sig)
 			if val['red'] == val['green'] then
 				gui_flow.add{ type='label', name='out-'..sig,
-					caption=('[out] %s %s = %s'):format(label, sig, val['red']) }
+					caption=('[out] %s %s = %s'):format(label or '', sig, val['red'] or 0) }
 			else for k, color in pairs(colors) do
 				k = gui_flow.add{ type='label', name='out/'..k..'-'..sig,
-					caption=('[out/%s] %s %s = %s'):format(conf.get_wire_label(k), label, sig, val[k]) }
+					caption=('[out/%s] %s %s = %s'):format(conf.get_wire_label(k), label or '', sig, val[k] or 0) }
 				k.style.font_color = color
 		end end end
 
@@ -768,12 +768,14 @@ end
 
 local function update_signal_types_table()
 	global.signals = {}
-	for name, sig in pairs(game.virtual_signal_prototypes) do
-		if sig.subgroup.name == 'virtual-signal-special' then goto skip end -- anything/everything/each
-		global.signals[name] = 'virtual'
-	::skip:: end
+	-- item-fluid-virtual order is important here, to work around same-name
+	--  issue with Attach Notes mod, that copies "virtual" signals into "item".
 	for name, _ in pairs(game.item_prototypes) do global.signals[name] = 'item' end
 	for name, _ in pairs(game.fluid_prototypes) do global.signals[name] = 'fluid' end
+	for name, sig in pairs(game.virtual_signal_prototypes) do
+		if sig.special then goto skip end -- anything/everything/each
+		global.signals[name] = 'virtual'
+	::skip:: end
 end
 
 local function update_recipes()
