@@ -1,12 +1,5 @@
 
 ---------------------------------------------------------------------------------------------------
-Version: 0.0.59
-Date: 2021-02-16
-  Changes:
-    - Signal error on the combinator if ambiguous signal name is used (e.g. same name in both "item" and "virtual" groups).
-    - Add/handle "type=name" signal notation for non-ambiguous specification of these.
-
----------------------------------------------------------------------------------------------------
 Version: 0.0.58
 Date: 2021-02-12
   Features:
