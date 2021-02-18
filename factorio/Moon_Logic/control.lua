@@ -813,58 +813,9 @@ script.on_configuration_changed(function(data) -- migration
 				then log('- Applying mod update from pre-'..ver); return true end
 		end
 
-		if version_less_than('0.0.2') then -- will also trigger missing protos popup
-			local mlcs, uid = {}
-			for _, e in ipairs(game.surfaces.nauvis.find_entities_filtered{name='mlc'} or {}) do
-				uid = e.unit_number
-				if global.combinators[uid] then mlcs[uid] = {e=e, code=global.combinators[uid].code} end
-			end
-			for uid, gui_t in ipairs(global.guis) do guis.close(uid) end
-			for k, _ in pairs(tt('guis history historystate textboxes')) do global[k] = {} end
-			global.combinators = mlcs
-		end
-
-		if version_less_than('0.0.6') then
-			for uid, gui_t in ipairs(global.guis) do guis.close(uid) end
-			global.history, global.historystate, global.textboxes = nil
-		end
-
-		if version_less_than('0.0.12') then
-			local used_presets, mlc_count, mlc_code, n_free, warned = '', 0
-			for uid, gui_t in ipairs(global.guis) do guis.close(uid) end
-			for uid, mlc in pairs(global.combinators) do
-				mlc_code, n_free = mlc and mlc.code
-				for n = 0, 20 do
-					if not n_free and not global.presets[n] then n_free = n end
-					if mlc_code == global.presets[n] then mlc_code = nil end
-				end
-				if mlc_code then
-					if n_free then
-						global.presets[n_free] = mlc_code
-						if used_presets ~= '' then used_presets = used_presets..', ' end
-						used_presets = used_presets..n_free
-					else game.print('No free presets left for code'..
-						' in one of the removed Moon Logic Combinators') end
-				end
-				mlc.e.destroy()
-				mlc_count, global.combinators[uid] = mlc_count + 1
-			end
-			for _, e in ipairs(game.surfaces.nauvis.find_entities_filtered{name='mlc'} or {}) do e.destroy() end
-			game.print( 'Moon Logic Combinator: in 0.0.12 these'..
-				' combinators changed in size (1x1 -> 2x1), and now work slightly differently.' )
-			game.print( 'Moon Logic Combinator: To avoid error-prone'..
-				' migration process, they all were removed from the map.' )
-			game.print( 'Moon Logic Combinator: But their code will be stored'..
-				' on preset buttons (numbers on top of GUI). Rebuild, reconnect, restore.' )
-			if used_presets ~= '' then game.print(( 'Moon Logic Combinator: stored non-duplicate/empty code'..
-				' from %s removed combinator(s) to following preset button(s): %s' ):format(mlc_count, used_presets)) end
-		end
-
-		if version_less_than('0.0.14') then global.guis_player = {} end
-		if version_less_than('0.0.19') then global.presets[20] = nil end
-
 		if version_less_than('0.0.27') then
-			for uid, mlc in pairs(global.combinators) do mlc.textbox = nil end
+			error( 'Update from Moon Logic versions <=0.0.27 were removed in 0.0.61+'..
+				' - please download/install 0.0.60 manually, then update normally from there.' )
 		end
 	end
 

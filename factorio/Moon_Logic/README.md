@@ -214,12 +214,9 @@ Big thanks to [ixu](https://mods.factorio.com/user/ixu) and [completion](https:/
         [Integrated Circuitry](https://mods.factorio.com/mod/integratedCircuitry) has even more display options and a neat wire support posts.
         &nbsp;
 
-    - [Schall Virtual Signal](https://mods.factorio.com/mod/SchallVirtualSignal) - adds a bunch more extra signals to use on the net.
-
-        They might not be very descriptive - mostly just more numbers - but there are a lot of them!
-        &nbsp;
-
     - [Time Series Graphs](https://mods.factorio.com/mod/timeseries) - time-series monitoring/graphing system for your network.
+
+    - [Colored Signals](https://mods.factorio.com/mod/colored_signals), [Schall Virtual Signal](https://mods.factorio.com/mod/SchallVirtualSignal) - more signals to use on the network.
 
     - [RadioNetwork](https://mods.factorio.com/mod/RadioNetwork), [Factorio LAN](https://mods.factorio.com/mod/Factorio-LAN), etc - to link remote networks together and control things from afar.
     &nbsp;
