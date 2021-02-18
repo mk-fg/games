@@ -1,5 +1,11 @@
 
 ---------------------------------------------------------------------------------------------------
+Version: 0.0.60
+Date: 2021-02-19
+  Changes:
+    - Don't expose signals for items flagged as hidden, as these shouldn't appear in combinator GUIs either.
+
+---------------------------------------------------------------------------------------------------
 Version: 0.0.59
 Date: 2021-02-16
   Bugfixes:

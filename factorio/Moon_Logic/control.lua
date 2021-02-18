@@ -768,9 +768,11 @@ end
 
 local function update_signal_types_table()
 	global.signals = {}
-	-- item-fluid-virtual order is important here, to work around same-name
-	--  issue with Attach Notes mod, that copies "virtual" signals into "item".
-	for name, _ in pairs(game.item_prototypes) do global.signals[name] = 'item' end
+	-- item-fluid-virtual order here is intentional,
+	--  for predictable/documented same-name signal resolution.
+	for name, _ in pairs(game
+			.get_filtered_item_prototypes{{filter='flag', flag='hidden', invert=true}})
+		do global.signals[name] = 'item' end
 	for name, _ in pairs(game.fluid_prototypes) do global.signals[name] = 'fluid' end
 	for name, sig in pairs(game.virtual_signal_prototypes) do
 		if sig.special then goto skip end -- anything/everything/each
