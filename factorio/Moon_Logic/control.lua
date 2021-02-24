@@ -344,8 +344,10 @@ local function mlc_init(e)
 	if not mlc.vars.var then mlc.vars.var = {} end
 	local env = setmetatable(mlc.vars, { -- env_ro + mlc.vars
 		__index=env_ro, __newindex=function(vars, k, v)
-			if k == 'out' then cn_output_table_replace(env_ro.out, v)
-				env_wire_red._debug, env_wire_green._debug = v, v
+			if k == 'out' then
+				cn_output_table_replace(env_ro.out, v)
+				rawset(env_wire_red, '_debug', v)
+				rawset(env_wire_green, '_debug', v)
 			else rawset(vars, k, v) end end })
 
 	mlc_env.debug_wires_set = function(v)

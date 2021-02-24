@@ -1,6 +1,6 @@
 {
 	"name": "Moon_Logic",
-	"version": "0.0.60",
+	"version": "0.0.61",
 	"factorio_version": "1.1",
 	"dependencies": ["base >= 1.0", "? SchallCircuitGroup"],
 	"title": "Moon Logic",

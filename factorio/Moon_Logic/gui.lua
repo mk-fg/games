@@ -329,12 +329,10 @@ function guis.close(uid)
 	global.guis[uid] = nil
 end
 
-function guis.history_insert(gui_t, mlc, code)
-	local hist_log, n = mlc.history, mlc.history_state
-	-- XXX: do not store empty strings
-	if not hist_log then
-		mlc.history = {gui_t.mlc_code.text}
-		mlc.history_state = 1
+function guis.history_insert(mlc, code, gui_t)
+	if code:gsub('^%s*(.-)%s*$', '%1') == '' then return end -- don't store empty state
+	local hist_log, n, text = mlc.history, mlc.history_state
+	if not hist_log then mlc.history, mlc.history_state = {code}, 1
 	else
 		if hist_log[n] == code then n = n
 		elseif #hist_log == n then
@@ -364,11 +362,13 @@ end
 
 function guis.save_code(uid, code)
 	local gui_t, mlc = global.guis[uid], global.combinators[uid]
-	if not (gui_t and mlc) then return end
-	local clean_code = code_error_highlight(code or gui_t.mlc_code.text)
-	gui_t.mlc_code.text = clean_code
-	guis.history_insert(gui_t, mlc, clean_code)
-	load_code_from_gui(clean_code, uid)
+	if not mlc then return end
+	if gui_t then
+		code = code_error_highlight(code or gui_t.mlc_code.text)
+		gui_t.mlc_code.text = code
+	end
+	guis.history_insert(mlc, code, gui_t)
+	load_code_from_gui(code, uid)
 end
 
 function guis.update_error_highlight(uid, mlc, err)
@@ -384,7 +384,7 @@ function guis.on_gui_text_changed(ev)
 	if not uid then return end
 	local mlc = global.combinators[uid]
 	if not mlc then return end
-	guis.history_insert(gui_t, mlc, ev.element.text)
+	guis.history_insert(mlc, ev.element.text, gui_t)
 end
 
 function guis.on_gui_click(ev)
@@ -427,7 +427,7 @@ function guis.on_gui_click(ev)
 		if ev.button == defines.mouse_button_type.left then
 			if global.presets[preset_n] then
 				gui_t.mlc_code.text = global.presets[preset_n]
-				guis.history_insert(gui_t, mlc, gui_t.mlc_code.text)
+				guis.history_insert(mlc, gui_t.mlc_code.text, gui_t)
 			else
 				global.presets[preset_n] = gui_t.mlc_code.text
 				set_preset_btn_state(el, global.presets[preset_n])
