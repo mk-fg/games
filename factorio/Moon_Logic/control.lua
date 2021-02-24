@@ -606,8 +606,11 @@ local function run_moon_logic_tick(mlc, mlc_env, tick)
 	mlc_update_led(mlc, mlc_env)
 
 	if mlc.vars.ota_update_from_uid then
-		local mlc_src = global.combinators[mlc.vars.ota_update_from_uid]
-		if mlc_src then guis.save_code(mlc_env._uid, mlc_src.code) end
+		local mlc_src = mlc.vars.ota_update_from_uid
+		mlc_src = mlc_src ~= mlc_env._uid and
+			global.combinators[mlc.vars.ota_update_from_uid]
+		if mlc_src and mlc_src.code ~= mlc.code
+			then guis.save_code(mlc_env._uid, mlc_src.code) end
 		mlc.vars.ota_update_from_uid = nil
 	end
 end

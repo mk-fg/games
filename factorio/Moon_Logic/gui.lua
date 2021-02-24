@@ -331,7 +331,7 @@ end
 
 function guis.history_insert(mlc, code, gui_t)
 	if code:gsub('^%s*(.-)%s*$', '%1') == '' then return end -- don't store empty state
-	local hist_log, n, text = mlc.history, mlc.history_state
+	local hist_log, n = mlc.history, mlc.history_state
 	if not hist_log then mlc.history, mlc.history_state = {code}, 1
 	else
 		if hist_log[n] == code then n = n
