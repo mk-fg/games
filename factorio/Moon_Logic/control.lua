@@ -416,7 +416,7 @@ local function on_entity_copy(ev)
 	local mlc_dst, mlc_src = global.combinators[uid_dst], global.combinators[uid_src]
 	mlc_dst.e, mlc_dst.next_tick, mlc_dst.core = ev.destination, 0
 	mlc_dst.out_red, mlc_dst.out_green = table.unpack(mlc_old_outs)
-	guis.history_insert(global.guis[uid_dst], mlc_src, mlc_src.code or '')
+	guis.history_insert(mlc_src, mlc_src.code or '', global.guis[uid_dst])
 end
 
 script.on_event(
