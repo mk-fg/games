@@ -460,10 +460,11 @@ local function update_signals_in_guis()
 	for uid, gui_t in pairs(global.guis) do
 		mlc = global.combinators[uid]
 		if not (mlc and mlc.e.valid) then mlc_remove(uid); goto skip end
+		gui_flow = gui_t.signal_pane
+		if not (gui_flow and gui_flow.valid) then goto skip end
+		gui_flow.clear()
 
 		-- Inputs
-		gui_flow = gui_t.signal_pane
-		if gui_flow then gui_flow.clear() end
 		for k, color in pairs(colors) do
 			cb = cn_wire_signals(mlc.e, defines.wire_type[k])
 			for sig, v in pairs(cb) do
@@ -678,14 +679,21 @@ script.on_event(defines.events.on_gui_opened, function(ev)
 		return player.print( 'BUG: Moon Logic Combinator #'..
 			e.unit_number..' is not registered with mod code', {1, 0.3, 0} )
 	end
-	if not global.guis[e.unit_number]
-		then guis.open(player, e)
-		else
-			e = global.guis[e.unit_number].mlc_gui.player_index
-			if e then e = game.players[e].name end
-			if not e then e = 'Another player' end
-			player.print(e..' already opened this combinator', {1,1,0})
-		end
+	local gui_t = global.guis[e.unit_number]
+	if not gui_t then guis.open(player, e)
+	elseif player.index == gui_t.mlc_gui.player_index then
+		-- This can happen when clicking same mlc again with code box focused
+		-- "return" here will open regular combinator gui, so do something else
+		-- Not sure how to handle this better - setting anything to player.opened closes stuff
+		local code = gui_t.mlc_code.text
+		gui_t = guis.open(player, e)
+		gui_t.mlc_code.text = code -- restore currently-edited code
+	else
+		e = gui_t.mlc_gui.player_index
+		if e then e = game.players[e].name end
+		if not e then e = 'Another player' end
+		player.print(e..' already opened this combinator', {1,1,0})
+	end
 end)
 
 script.on_event(defines.events.on_gui_click, guis.on_gui_click)

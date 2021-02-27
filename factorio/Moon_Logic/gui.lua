@@ -320,6 +320,7 @@ function guis.open(player, e)
 	global.guis[e.unit_number] = gui_t
 	player.opened = gui_t.mlc_gui
 	global.guis_player[player.index] = e.unit_number
+	return gui_t
 end
 
 function guis.close(uid)
