@@ -7,13 +7,13 @@
 By default, mod updates input/output signals tab in the opened combinator GUI on every tick (60 times a second), so that any signals flapping their value back-and-forth can be easily visible there.
 
 Set "GUI Signals Update Interval" option to a higher value for better performance, but with that caveat of potentially making quick changes undetectable.
-Use prime number values there (not divisible into parts) to make sure that at least any cyclical changes will be unlikely to hide neatly within it.
+Use prime number values there (not divisible into parts) to make sure that at least any cyclical changes will be unlikely to hide neatly within such interval.
 
 ----------
 
-## "red.wood" works, but "red.fast-transport-belt" causes some lua error
+## "red.wood" works, but "red.fast-transport-belt" shows some lua error on the combinator
 
-"-" is an arithmetic minus operator in lua code, so `red.fast-transport-belt` is same as `red.fast - transport - belt`, i.e. `red.fast` value minus `transport` value minus `belt` value, resulting in something like a `Unknown signal name "fast"` error.
+"-" is an arithmetic minus operator in lua code, so `red.fast-transport-belt` is same as `red.fast - transport - belt`, i.e. `red.fast` value minus `transport` value minus `belt` value, resulting in something like a `Unknown signal name "fast"` error shown at the bottom of the combinator window.
 
 `<table>.<key-literal>` in lua is just a convenience shorthand for `<table>[<key-value>]`, so use the latter form instead, e.g. `out['fast-transport-belt']` or `red['express-transport-belt']`.
 
@@ -35,7 +35,7 @@ Anyone who knows lua and has time/patience to test multiplayer should be able to
 It's just too complicated to implement and maintain for me, especially given restrictions of a factorio GUI system.
 
 And on top of that, text editing lag resulting from it feels completely unbearable to me (try linked earlier lua combinator mods).
-I'd suggest even disabling existing "undo" feature ("Enable Code Editing History" mod option) to make editing text within that GUI more pleasant.
+I'd suggest even disabling existing "undo" feature ("Enable Code Editing History" mod option) to make editing text within that GUI more tolerable.
 
 Just tab-out to a Notepad++, Vim, Emacs or any out-of-game text editor for >10 lines of code and edit it there.
 
@@ -46,7 +46,9 @@ Just tab-out to a Notepad++, Vim, Emacs or any out-of-game text editor for >10 l
 When you specify e.g. "signal-A", it will be matched for first type in this order: virtual, fluid, item.
 
 Using same-name signals with different types is not supported, but if there's a legit use-case for it, maybe leave a comment somewhere, and see also ["Same signal names with diff type in Attach Notes mod" thread](https://mods.factorio.com/mod/Moon_Logic/discussion/601dc6dd84b410248ac51690) about it.
-I'm not aware of any mod creating such duplicate signal names atm. [Attach Notes](https://mods.factorio.com/mod/attach-notes) technically does it, but only with hidden items, which are not exposed as signals in combinators anyway.
+
+I'm not aware of any mod creating such duplicate signal names atm.
+[Attach Notes](https://mods.factorio.com/mod/attach-notes) technically does it, but only with hidden items, which are not exposed as selectable circuit network signals anyway.
 
 ----------
 
