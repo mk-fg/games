@@ -1,5 +1,13 @@
 
 ---------------------------------------------------------------------------------------------------
+Version: 0.0.66
+Date: 2021-03-03
+  Features:
+    - Add mandatory signal disambiguation via prefixes.
+      This happens if same name can refer to multiple signal types (item, fluid, virtual).
+      Prefixes are always allowed, but only required in case of name ambiguity (some mods do that).
+
+---------------------------------------------------------------------------------------------------
 Version: 0.0.65
 Date: 2021-03-03
   Features:

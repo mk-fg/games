@@ -41,17 +41,6 @@ Just tab-out to a Notepad++, Vim, Emacs or any out-of-game text editor for >10 l
 
 ----------
 
-## Using out.somesignal picks that signal of a wrong type (item, fluid, virtual)
-
-When you specify e.g. "signal-A", it will be matched for first type in this order: virtual, fluid, item.
-
-Using same-name signals with different types is not supported, but if there's a legit use-case for it, maybe leave a comment somewhere, and see also ["Same signal names with diff type in Attach Notes mod" thread](https://mods.factorio.com/mod/Moon_Logic/discussion/601dc6dd84b410248ac51690) about it.
-
-I'm not aware of any mod creating such duplicate signal names atm.
-[Attach Notes](https://mods.factorio.com/mod/attach-notes) technically does it, but only with hidden items, which are not exposed as selectable circuit network signals anyway.
-
-----------
-
 ## Saving lua code in blueprints
 
 Difficult and rather inconvenient to make it work.
