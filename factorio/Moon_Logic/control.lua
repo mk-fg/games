@@ -540,7 +540,6 @@ local function run_moon_logic_tick(mlc, mlc_env, tick)
 
 	if mlc.e.energy < conf.energy_fail_level then
 		mlc.state = 'no-power'
-		cn_output_table_replace(mlc_env._out)
 		mlc_update_led(mlc, mlc_env)
 		mlc.next_tick = game.tick + conf.energy_fail_delay
 		return
@@ -669,6 +668,13 @@ function load_code_from_gui(code, uid) -- note: in global _ENV, used from gui.lu
 	else guis.update_error_highlight(uid, mlc, mlc.err_parse) end
 end
 
+function clear_outputs_from_gui(uid) -- note: in global _ENV, used from gui.lua
+	local mlc, mlc_env = global.combinators[uid], Combinators[uid]
+	if not (mlc and mlc_env) then return end
+	cn_output_table_replace(mlc_env._out)
+	mlc_update_output(mlc, mlc_env._out)
+end
+
 script.on_event(defines.events.on_gui_opened, function(ev)
 	if not ev.entity then return end
 	local player = game.players[ev.player_index]
@@ -689,9 +695,8 @@ script.on_event(defines.events.on_gui_opened, function(ev)
 		gui_t = guis.open(player, e)
 		gui_t.mlc_code.text = code -- restore currently-edited code
 	else
-		e = gui_t.mlc_gui.player_index
-		if e then e = game.players[e].name end
-		if not e then e = 'Another player' end
+		e = game.players[gui_t.mlc_gui.player_index or 0]
+		e = e and e.name or 'Another player'
 		player.print(e..' already opened this combinator', {1,1,0})
 	end
 end)

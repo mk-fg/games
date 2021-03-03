@@ -57,7 +57,7 @@ local function help_window_toggle(pn, toggle_on)
 				' Overwrite - [color=#ffe6c0]right[/color] then [color=#ffe6c0]left[/color].',
 		'  These are shared between all combinators, and can be used to copy code snippets.',
 		'  Another way to copy code is the usual [color=#ffe6c0]shift+right-click[/color]'..
-				' - [color=#ffe6c0]shift+left-click[/color].',
+				' - [color=#ffe6c0]shift+left-click[/color] on the combinators.',
 		' ',
 		'Default UI hotkeys (rebindable, do not work when editing text-box is focused):',
 		'  [color=#ffe6c0]Esc[/color] - unfocus/close code textbox (makes all other hotkeys work again),',
@@ -66,6 +66,7 @@ local function help_window_toggle(pn, toggle_on)
 		'  [color=#ffe6c0]Ctrl-Q[/color] - close all UIs,'..
 				' [color=#ffe6c0]Ctrl-Enter[/color] - save/apply and close,'..
 				' [color=#ffe6c0]Ctrl-F[/color] - toggle env window.',
+		'Some buttons at the top of the window also have multiple actions, see tooltips there.',
 		' ',
 		'To learn signal names, connect anything with signals to this combinator,',
 		'and their names will be printed as colored inputs on the right of the code window.',
@@ -246,8 +247,9 @@ local function create_gui(player, entity)
 		'There\'s also Close All Windows [[color=#e69100]Ctrl-Q[/color]] hotkey' )
 	top_btns_add('mlc-help', 'Toggle quick reference window')
 	top_btns_add( 'mlc-vars',
-		'Toggle environment window for this combinator [[color=#e69100]Ctrl-F[/color]]\n'..
-		'Right-click to clear all environment variables on it' )
+		'Toggle environment window for this combinator [[color=#e69100]Ctrl-F[/color]].\n'..
+		'Right-click - clear all lua environment variables on it.\n'..
+		'Shift + right-click - clear "out" outputs-table.' )
 
 	elc(top_btns, {type='flow', name='mt-top-spacer-a', direction='horizontal'}, {width=10})
 
@@ -420,8 +422,11 @@ function guis.on_gui_click(ev)
 
 	elseif el_id == 'mlc-vars' then
 		if ev.button == rmb then
-			for k, _ in pairs(mlc.vars) do mlc.vars[k] = nil end -- clear env
-			vars_window_update(game.players[ev.player_index], uid)
+			if ev.shift then clear_outputs_from_gui(uid)
+			else -- clear env
+				for k, _ in pairs(mlc.vars) do mlc.vars[k] = nil end
+				vars_window_update(game.players[ev.player_index], uid)
+			end
 		else vars_window_switch_or_toggle(ev.player_index, uid) end
 
 	elseif preset_n then

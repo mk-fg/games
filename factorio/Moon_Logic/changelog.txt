@@ -1,5 +1,13 @@
 
 ---------------------------------------------------------------------------------------------------
+Version: 0.0.65
+Date: 2021-03-03
+  Features:
+    - Add shift+right-click on variables-window button to clear "out" outputs-table.
+  Changes:
+    - Failing power no longer resets combinator outputs, to be consistent with lua env handling.
+
+---------------------------------------------------------------------------------------------------
 Version: 0.0.64
 Date: 2021-02-27
   Bugfixes:
