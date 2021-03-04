@@ -126,7 +126,7 @@ end
 local function cn_input_signal_iter(wenv)
 	-- This returns shortened signal names for simplicity and compatibility
 	local signals, sig_cache = {}, cn_input_signal(wenv, defines.wire_type[wenv._wire])
-	for k, v in pairs(sig_cache) do signals[cn_sig_name(k)] = cache[k] end
+	for k, v in pairs(sig_cache) do signals[cn_sig_name(k)] = sig_cache[k] end
 	if wenv._debug then
 		local sig_fmt = conf.get_wire_label(wenv._wire)..'[%s]'
 		for sig, v in pairs(signals) do wenv._debug[sig_fmt:format(sig)] = v or 0 end
