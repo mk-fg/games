@@ -58,6 +58,16 @@ local function cn_sig_str(t, name)
 	return cn_sig_str_prefix[t]..name
 end
 
+local function cn_sig_name(sig_str)
+	-- Returns abbreviated signal name without prefix
+	local k = sig_str:sub(2)
+	local sig_str2 = global.signals_short[k]
+	if sig_str2 == false then return sig_str
+	elseif sig_str2 == sig_str then return k
+	elseif not sig_str2 then error(('MOD BUG - abbreviation for invalid signal string: %s'):format(sig_str))
+	else error(('MOD BUG - signal string/abbrev mismatch: %s != %s'):format(sig_str, sig_str2)) end
+end
+
 local function cn_sig(k, err_level)
 	local sig = global.signals_short[k]
 	if type(sig) ~= false then sig = global.signals[sig or k] end
@@ -75,20 +85,23 @@ local function cn_sig(k, err_level)
 	error('Unknown signal: '..k, err_level)
 end
 
-local function cn_wire_signals(e, wire_type)
+local function cn_wire_signals(e, wire_type, canon)
 	-- Returns signal=count table, with signal names abbreviated where possible
 	local res, cn, k = {}, e.get_or_create_control_behavior()
 		.get_circuit_network(wire_type, defines.circuit_connector_id.combinator_input)
-	for _, sig in pairs(cn and cn.signals or {})
-		do res[ global.signals_short[sig.signal.name]
-			and sig.signal.name or cn_sig_str(sig.signal) ] = sig.count end
+	for _, sig in pairs(cn and cn.signals or {}) do
+		if canon then k = cn_sig_str(sig.signal)
+		else k = global.signals_short[sig.signal.name]
+			and sig.signal.name or cn_sig_str(sig.signal) end
+		res[k] = sig.count
+	end
 	return res
 end
 
 local function cn_input_signal(wenv, wire_type, k)
 	local signals = wenv._cache
 	if wenv._cache_tick ~= game.tick then
-		signals = cn_wire_signals(wenv._e, wire_type)
+		signals = cn_wire_signals(wenv._e, wire_type, true)
 		wenv._cache, wenv._cache_tick = signals, game.tick
 	end
 	if k then signals = signals[cn_sig_str(cn_sig(k, 4))] end
@@ -111,7 +124,9 @@ local function cn_input_signal_len(wenv)
 	return n
 end
 local function cn_input_signal_iter(wenv)
-	local signals = cn_input_signal(wenv, defines.wire_type[wenv._wire])
+	-- This returns shortened signal names for simplicity and compatibility
+	local signals, sig_cache = {}, cn_input_signal(wenv, defines.wire_type[wenv._wire])
+	for k, v in pairs(sig_cache) do signals[cn_sig_name(k)] = cache[k] end
 	if wenv._debug then
 		local sig_fmt = conf.get_wire_label(wenv._wire)..'[%s]'
 		for sig, v in pairs(signals) do wenv._debug[sig_fmt:format(sig)] = v or 0 end
