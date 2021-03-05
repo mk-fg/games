@@ -55,6 +55,9 @@ function changes.set_ectoplasm_immunity()
 	-- Similar transport infra categories: transport-belt underground-belt pipe pipe-to-ground
 	-- These are still affected, same as electric poles, to have wisps be a nuisance to non-rail long-range infra
 
+	if settings.startup['wisp-biter-nests-are-immune'].value
+		then immune_categories['unit-spawner'] = true end
+
 	local function set_ectoplasm_immunity(proto)
 		if proto.resistances then
 			for n, resist in pairs(proto.resistances) do
@@ -81,9 +84,8 @@ function changes.update_tech_recipes()
 		if not tech then return end
 		table.insert(tech.effects, {type='unlock-recipe', recipe=recipe})
 	end
-	local combat_robotics_tech = 'defender'
 	add_tech_unlock('solar-energy', 'UV-lamp')
-	add_tech_unlock(combat_robotics_tech, 'wisp-drone-blue-capsule')
+	add_tech_unlock('defender', 'wisp-drone-blue-capsule')
 	add_tech_unlock('deadlock-solar-energy-1', 'UV-lamp') -- industrial revolution mod
 end
 

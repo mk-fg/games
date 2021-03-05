@@ -57,7 +57,7 @@ Technologies:
 - Mod only tracks surface darkness changes, not time, so mods that change day/night cycle should be compatible.
 - There are mod options to control where, which and how many will-o'-the-wisps can be seen on the map.
 - Set "Wisp aggression factor" in mod options to e.g. 0.5 or something higher for a more challenging game.
-- Be careful with enabling wisp-vs-biter aggression - can accelerate evolution factor due to them killing nests.
+- Enabling wisps to fight biters while disabling immunity of their nests can speed up biter evolution factor.
 - See [forum thread](https://forums.factorio.com/viewtopic.php?f=190&t=60876&p=366660#p366660) for more technical info and debug commands.
 
 

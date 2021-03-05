@@ -4,7 +4,7 @@ data:extend{
 
 	{ order = '0010',
 		setting_type = 'runtime-global',
-		name = 'wisps-can-attack',
+		name = 'wisps-can-attack', -- no "wisp-" prefix
 		type = 'bool-setting',
 		default_value = not conf.peaceful_wisps },
 	{ order = '0015',
@@ -15,12 +15,12 @@ data:extend{
 		default_value = conf.wisp_death_retaliation_radius },
 	{ order = '0020',
 		setting_type = 'runtime-global',
-		name = 'defences-shoot-wisps',
+		name = 'defences-shoot-wisps', -- no "wisp-" prefix
 		type = 'bool-setting',
 		default_value = not conf.peaceful_defences },
 	{ order = '0030',
 		setting_type = 'runtime-global',
-		name = 'purple-wisp-damage',
+		name = 'purple-wisp-damage', -- no "wisp-" prefix
 		type = 'bool-setting',
 		default_value = not conf.peaceful_spores },
 	{ order = '0040',
@@ -94,5 +94,11 @@ data:extend{
 		minimum_value = 0,
 		maximum_value = 1.0,
 		default_value = conf.wisp_forest_spawn_chance_green },
+
+	{ order = '1010',
+		setting_type = 'startup',
+		name = 'wisp-biter-nests-are-immune',
+		type = 'bool-setting',
+		default_value = true },
 
 }
