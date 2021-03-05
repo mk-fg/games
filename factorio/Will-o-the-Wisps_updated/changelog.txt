@@ -1,5 +1,11 @@
 
 ---------------------------------------------------------------------------------------------------
+Version: 0.3.20
+Date: 2021-03-05
+  Changes:
+    - Add warning about potentially accelerated evo-factor to wisps-vs-biters option description.
+
+---------------------------------------------------------------------------------------------------
 Version: 0.3.18
 Date: 2021-01-18
   Bugfixes:
