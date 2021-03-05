@@ -1,10 +1,5 @@
 local conf = require('config')
 
-local utils = require('libs/utils')
-local beam_ammo_cat = -- breaking change in factorio-1.1
-	utils.version_to_num(mods.base) >= utils.version_to_num('1.1.0')
-	and 'beam' or 'combat-robot-beam'
-
 data:extend{{
 
 	type = 'combat-robot',
@@ -31,13 +26,13 @@ data:extend{{
 
 	attack_parameters = {
 		type = 'beam',
-		ammo_category = beam_ammo_cat,
+		ammo_category = 'beam',
 		cooldown = 20,
 		range = 10,
 		damage_modifier = 0.2,
 		-- animation =
 		ammo_type = {
-			category = beam_ammo_cat,
+			category = 'beam',
 			action = {
 				type = 'direct',
 				action_delivery = {

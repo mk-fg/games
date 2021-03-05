@@ -1,14 +1,5 @@
--- Breaking change in factorio-1.1
-local utils = require('libs/utils')
-local hit_effects, sounds
-if utils.version_to_num(mods.base) >= utils.version_to_num('1.1.0') then
-	hit_effects = require('__base__/prototypes/entity/hit-effects')
-	sounds = require('__base__/prototypes/entity/sounds')
-else
-	hit_effects = require('__base__/prototypes/entity/demo-hit-effects')
-	sounds = require('__base__/prototypes/entity/demo-sounds')
-end
-
+local hit_effects = require('__base__/prototypes/entity/hit-effects')
+local sounds = require('__base__/prototypes/entity/sounds')
 
 -- Regular lamp: light={ intensity=0.9 size=40 } colored={ intensity=1 size=6 }
 local uv_light = {intensity=0.3, size=5, color={r=0.8, g=0.1, b=0.9, a=0.2}}

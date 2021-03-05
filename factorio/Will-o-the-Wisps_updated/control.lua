@@ -612,15 +612,10 @@ local tasks_entities = {
 		if not control.enabled then return end
 		local signals = e.get_merged_signals()
 
-		-- Compatibility for breaking change introduced in factorio-1.1
-		local cb_params, cb_params_old = control.parameters
-		if cb_params.parameters
-			then cb_params, cb_params_old = cb_params.parameters, true end
-
 		-- Get range from both local parameters and merged inputs
 		-- Also used to scan local parameters for free/wisp slots to use/update
 		local params, params_wisp, params_free, range, name = {}, {}, {}, 0
-		for n, param in ipairs(cb_params) do
+		for n, param in ipairs(control.parameters) do
 			name = param.signal.name
 			if not name then table.insert(params_free, {n, param.index})
 			elseif wisp_unit_proto_check(name)
@@ -664,7 +659,7 @@ local tasks_entities = {
 					count=count, signal={type='item', name=name} }
 			else break end
 		end
-		control.parameters = cb_params_old and {parameters=params} or params
+		control.parameters = params
 	end},
 
 	recongregate = {work=20, func=function(cg, group, s)
@@ -1142,10 +1137,7 @@ function Init.state_tick()
 				tech = force.technologies[tech]
 				if tech and tech.researched then force.recipes['UV-lamp'].enabled = true end
 			end
-			local combat_robotics_tech = -- breaking change in factorio-1.1
-				utils.version_to_num(game.active_mods.base) >= utils.version_to_num('1.1.0')
-				and 'defender' or 'combat-robotics'
-			if force.technologies[combat_robotics_tech].researched
+			if force.technologies.defender.researched
 				then force.recipes['wisp-drone-blue-capsule'].enabled = true end
 		end
 	end
