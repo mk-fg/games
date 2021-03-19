@@ -1,0 +1,26 @@
+hair_change_decision = {
+	picture = gfx/interface/illustrations/decisions/decision_personal_religious.dds
+
+	title = hair_change_decision
+	desc = hair_change_decision_desc
+	confirm_text = hair_change_decision_confirm
+
+	is_shown = { NOT = { dynasty = { has_variable = hair_change_decision_used } } }
+
+	effect = {
+		add_piety = -100
+		dynasty = {
+			set_variable = {
+				name = hair_change_decision_used
+				value = yes
+			}
+		}
+		every_living_character = {
+			limit = { NOT = { has_character_flag = hair_change_enacted } }
+			add_character_flag = { flag = hair_change_enacted }
+		}
+	}
+
+	ai_check_interval = 0
+	ai_will_do = 0
+}

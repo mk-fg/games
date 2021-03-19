@@ -1,0 +1,22 @@
+hair_change = {
+	usage = game
+
+	hair_changed = {
+		dna_modifiers = {
+			accessory = {
+				mode = add
+				gene = hairstyles
+				template = all_hairstyles
+				range = { 0 28 } # there are 28 female hairs there, 30 male ones
+			}
+		}
+		weight = {
+			base = 0
+			modifier = {
+				add = 100
+				has_character_flag = hair_change_enacted
+			}
+		}
+	}
+
+}

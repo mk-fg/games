@@ -279,6 +279,21 @@ history, obsoleted by official game updates:
 .. _Surviving Mars: https://www.survivingmars.com/
 
 
+`Crusader Kings 3`_
+-------------------
+
+Same as with other PDS games, it badly needs fixes after every major patch and in general.
+
+- Missing hairstyle randomizer
+  [`Steam <https://steamcommunity.com/sharedfiles/filedetails/?id=1322434314>`_,
+  `PDX Plaza <https://mods.paradoxplaza.com/mods/22441/Any>`_]
+
+  Fixes an issue with most characters in the game going bald when loading 1.2.x
+  game after 1.3.0 patch - very simple and purely aesthetic one-off bugfix.
+
+.. _Crusader Kings 3: https://ck3.paradoxwikis.com/
+
+
 `Darkest Dungeon`_: darkest-dungeon-save-manager.py
 ---------------------------------------------------
 
