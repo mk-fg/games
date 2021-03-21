@@ -7,7 +7,7 @@ hair_change = {
 				mode = add
 				gene = hairstyles
 				template = all_hairstyles
-				range = { 0 28 } # there are 28 female hairs there, 30 male ones
+				range = { 0 1 }
 			}
 		}
 		weight = {
