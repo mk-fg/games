@@ -50,18 +50,6 @@ end end
 BiterSignals[conf.sig_biter_total] = true
 BiterSignals[conf.sig_biter_other] = true
 
--- Compatibility wrappers for factorio-1.1 changes
-local function cb_params_get(cb)
-	if not cb then return end
-	local params = cb.parameters
-	params = params.parameters or params
-	return params
-end
-local function cb_params_set(cb, params)
-	if cb.parameters.parameters then params = {parameters=params} end
-	cb.parameters = params
-end
-
 
 -- Mod Init Process
 
@@ -152,12 +140,11 @@ end
 local function update_sentinel_signal(s)
 	local ecc = s.e.get_control_behavior()
 	if not (ecc and (ecc.enabled or s.alarm)) then return end
-	local ecc_params = cb_params_get(ecc)
 
 	-- Find slots to replace/fill-in, as well as special control signals
 	local ps, ps_stat, ps_free, sig, range, alarm_test = {}, {}, {}
 	-- Internal slots on combinator itself
-	for n, p in ipairs(ecc_params) do
+	for n, p in ipairs(ecc.parameters) do
 		if not p.signal.name then table.insert(ps_free, {n, p.index})
 		else
 			sig = ('%s.%s'):format(p.signal.type, p.signal.name)
@@ -227,20 +214,20 @@ local function update_sentinel_signal(s)
 			ps[n], n = {index=idx, count=c, signal={type=e_type, name=e_name}}
 		else break end
 	end
-	cb_params_set(ecc, ps)
+	ecc.parameters = ps
 end
 
 
 local function reset_sentinel_signals(s)
 	local ecc = s.e.get_control_behavior()
 	if not (ecc and ecc.enabled) then return end
-	local ecc_params, count = cb_params_get(ecc), 0
+	local count, ecc_params = 0, ecc.parameters
 	for n, p in ipairs(ecc_params) do
 		local sig = ('%s.%s'):format(p.signal.type, p.signal.name)
 		if BiterSignals[sig] then count, ecc_params[n] = count + 1 end
 	end
 	utils.log('- signals removed on reset', count)
-	cb_params_set(ecc, ecc_params)
+	ecc.parameters = ecc_params
 end
 
 
