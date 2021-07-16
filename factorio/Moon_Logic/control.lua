@@ -42,6 +42,10 @@ local function tdc(object)
 	return _copy(object)
 end
 
+local function console_warn(p, text)
+	p.print(('[Moon Logic mod] %s'):format(text), {0.957, 0.710, 0.659})
+end
+
 
 -- ----- Circuit network controls -----
 
@@ -274,7 +278,7 @@ local function mlc_update_led(mlc, mlc_env)
 	-- This should set state in a way that doesn't actually produce any signals
 	-- Combinator is not considered 'active', as it ends up with 0 value, unless it's mlc-error
 	-- It's possible to have it output value and cancel it out, but shows-up on ALT-display
-	-- First constant on the combinator encodes its uid value, to copy code from in blueprints
+	-- First constant on the combinator encodes its uid value, as a fallback to copy code in blueprints
 	if mlc.state == mlc_env._state then return end
 	local st, cb = mlc.state, mlc.e.get_or_create_control_behavior()
 	if not (cb and cb.valid) then return end
@@ -423,22 +427,50 @@ end
 
 local mlc_filter = {{filter='name', name='mlc'}}
 
+function on_setup_blueprint(ev)
+	local p = game.players[ev.player_index]
+	if not (p and p.valid) then return end
+	local item_stack, bp_map, bp_es = p.blueprint_to_setup, ev.mapping.valid and ev.mapping.get()
+	if not (item_stack and item_stack.valid_for_read) then item_stack = p.cursor_stack end
+	if item_stack and item_stack.valid_for_read then bp_es = item_stack.get_blueprint_entities() end
+	if not (bp_es and bp_map) then return console_warn( p, 'BUG: Failed to detect'..
+		' blueprint item/info, Moon Logic Combinator code (if any) WILL NOT be stored there' ) end
+
+	-- Blueprint ev.mapping can be invalidated by other mods acting on this event, so checked first
+	-- See https://forums.factorio.com/viewtopic.php?p=457054#p457054 for more details
+	local bp_check, bp_mlc_uids = {}, {}
+	for _, e in ipairs(bp_es) do bp_check[e.entity_number] = e.name end
+	for bp_idx, e in pairs(bp_map) do
+		if not e.valid or bp_check[bp_idx] ~= e.name
+			then return console_warn( p, 'BUG: Blueprint-to-real entity mapping was'..
+				' invalidated by another mod, combinator settings WILL NOT be stored in this blueprint!' ) end
+		if e.name == 'mlc' then bp_mlc_uids[bp_idx] = e.unit_number end
+	end
+	for bp_idx, uid in pairs(bp_mlc_uids)
+		do item_stack.set_blueprint_entity_tag(bp_idx, 'mlc-code', global.combinators[uid].code) end
+end
+
+script.on_event(defines.events.on_player_setup_blueprint, on_setup_blueprint)
+
 local function on_built(ev)
 	local e = ev.created_entity or ev.entity -- latter for revive event
 	if not e.valid then return end
 	local mlc = out_wire_connect_mlc{e=e}
 	global.combinators[e.unit_number] = mlc
 
-	-- Copy combinator settings from the original one when blueprinted
-	local ecc_params = e.get_or_create_control_behavior().parameters
-	local uid_src = ecc_params.first_constant or 0
-
-	if uid_src < 0 then uid_src = uid_src + 0x100000000 end -- int -> uint conversion
-	if uid_src ~= 0 then
-		local mlc_src = global.combinators[uid_src]
-		if mlc_src then mlc.code = mlc_src.code else
-			mlc.code = ('-- Moon Logic [%s] is unavailable for OTA code update'):format(uid_src) end
-	end
+	-- Blueprints - try to restore settings from tags stored there on setup,
+	--  or fallback to old method with uid stored in a constant for simple copy-paste if tags fail
+	if ev.tags and ev.tags['mlc-code'] then mlc.code = ev.tags['mlc-code']
+	else
+		local ecc_params = e.get_or_create_control_behavior().parameters
+		local uid_src = ecc_params.first_constant or 0
+		if uid_src < 0 then uid_src = uid_src + 0x100000000 end -- int -> uint conversion
+		if uid_src ~= 0 then
+			local mlc_src = global.combinators[uid_src]
+			if mlc_src then mlc.code = mlc_src.code else
+				mlc.code = ('-- No code was stored in blueprint and'..
+					' Moon Logic [%s] is unavailable for OTA code update'):format(uid_src) end
+	end end
 end
 
 script.on_event(defines.events.on_built_entity, on_built, mlc_filter)
@@ -732,8 +764,7 @@ script.on_event(defines.events.on_gui_opened, function(ev)
 	if not (e and e.name == 'mlc') then return end
 	if not global.combinators[e.unit_number] then
 		player.opened = nil
-		return player.print( 'BUG: Moon Logic Combinator #'..
-			e.unit_number..' is not registered with mod code', {1, 0.3, 0} )
+		return console_warn(player, 'BUG: Combinator #'..e.unit_number..' is not registered with mod code')
 	end
 	local gui_t = global.guis[e.unit_number]
 	if not gui_t then guis.open(player, e)

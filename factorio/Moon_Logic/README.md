@@ -12,7 +12,7 @@ Mod code uses things which are likely to desync mp games, and I only test single
 Adds Moon Logic Combinator that runs Lua code that can read red/green wire signal inputs and set outputs.
 
 Based on other LuaCombinator mods, but instead of adding more complexity and features, mostly removes them to keep it simple and clean.
-I.e. no syntax highlighting, code formatting, binding to factorio events, blueprints, etc.
+I.e. no syntax highlighting, code formatting, binding to factorio events, etc.
 
 General principle is that it's not a replacement for Vim/Emacs or some IDE, but just a window where you paste some Lua code/logic or type/edit a couple of lines.
 And not a mod development framework either - only a combinator to convert circuit network inputs to outputs, nothing more.
@@ -188,7 +188,6 @@ Regular combinators are best for simple things, as they work ridiculously fast o
 
 - Hotkeys for save/undo/redo/etc don't work when code textbox is focused, you need to press Esc or otherwise unfocus it first.
 - Cursor position when clicking on the code box can be weird and unintiutive - just click again if you don't see it on the spot.
-- Combinator code (latest version) will only be copied to a blueprint-placed ones while original one exists, and not stored in exported blueprint strings.
 
 Big thanks to [ixu](https://mods.factorio.com/user/ixu) and [completion](https://mods.factorio.com/user/completion) for testing the mod extensively and reporting dozens of bugs here.
 

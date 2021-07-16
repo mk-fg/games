@@ -41,14 +41,9 @@ Just tab-out to a Notepad++, Vim, Emacs or any out-of-game text editor for >10 l
 
 ----------
 
-## Saving lua code in blueprints
+## Does it work with blueprints?
 
-Difficult and rather inconvenient to make it work.
-
-It can be done by placing some extra invisible constant combinators into the blueprint and serializing text into their settings, and there are third-party libraries to do that, but that's complicated, not great for potentially-large code sizes, shows up in-game and has other drawbacks.
-
-Currently code is copied from blueprint source moon-logic-combinator for easy Ctrl+C/Ctrl+V, and preset buttons can be used to same effect.
-For copying/editing large chunks of code between games, I'd suggest using a nice out-of-game text editor and a text file (maybe in a proper repository too).
+It should, as of 0.0.69, but only stores code there, as other state is likely specific to the original setup.
 
 ----------
 
