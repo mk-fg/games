@@ -43,7 +43,7 @@ Just tab-out to a Notepad++, Vim, Emacs or any out-of-game text editor for >10 l
 
 ## Does it work with blueprints?
 
-It should, as of 0.0.69, but only stores code there, as other state is likely specific to the original setup.
+It should, as of 0.0.69, but only stores combinator code there, as other state is likely specific to the original setup.
 
 ----------
 

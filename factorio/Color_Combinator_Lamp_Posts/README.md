@@ -23,3 +23,5 @@ Mod settings (startup tab):
 
     Lamp post glow color intensity, from 0 (white) to 1.0 (full color). Does not affect color of the lamp itself. Default: 0.135.
     &nbsp;
+
+When pasing these lamps from blueprints, note that these will contain missing "Smart Lamp Data" items, which are settings for these lamps, and will be auto-created when lamp is built - no need to worry about those.

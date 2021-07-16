@@ -28,12 +28,11 @@ local function cclp_init(e)
 
 	-- For placing from a blueprint - robots can't place this ghost,
 	--  as there's no inventory item for it, but it has all parameters on it
-	-- Factorio-1.1 introduced breaking change here with cb.parameters.parameters fix
 	core = e.surface
 		.find_entities_filtered{position=e.position, ghost_name='cclp-core'}
 	if next(core) then
 		cb = core[1].get_or_create_control_behavior()
-		core_data = {cb.enabled, cb.parameters.parameters or cb.parameters}
+		core_data = {cb.enabled, cb.parameters}
 		core[1].destroy()
 	else core_data = {true, {{
 		index=1, signal={type='virtual', name='signal-white'}, count=1 }}} end
@@ -47,7 +46,7 @@ local function cclp_init(e)
 
 	cb = core.get_or_create_control_behavior()
 	cb.enabled, cb_params = table.unpack(core_data)
-	cb.parameters = cb.parameters.parameters and {parameters=cb_params} or cb_params
+	cb.parameters = cb_params
 
 	cb = e.get_or_create_control_behavior()
 	cb.use_colors = true
