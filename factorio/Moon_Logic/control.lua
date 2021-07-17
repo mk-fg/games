@@ -441,11 +441,10 @@ local function blueprint_match_positions(bp_es, map_es)
 			then goto skip end
 		k = e.position.x..'_'..e.position.y
 		be, bp_mlcs[k] = bp_mlcs[k]
-		if not be then return end -- no matching blueprint entity
-		if e.name == 'entity-ghost' then goto skip end -- these have tags already
+		if not be or e.name == 'entity-ghost' then goto skip end -- ghosts have tags already
 		bp_mlc_uids[be.entity_number] = e.unit_number
 	::skip:: end
-	if next(bp_mlcs) then return end -- blueprint entities left with none on map
+	if next(bp_mlcs) then return end -- blueprint entities left unmapped
 	return bp_mlc_uids
 end
 
@@ -467,7 +466,7 @@ local function on_setup_blueprint(ev)
 
 	local bp = p.blueprint_to_setup
 	if not (bp and bp.valid_for_read) then bp = p.cursor_stack end
-	if not (bp and bp.valid_for_read)
+	if not (bp and bp.valid_for_read and bp.is_blueprint and bp.is_blueprint_setup())
 		then return console_warn( p, 'BUG: Failed to detect blueprint'..
 			' item/info, Moon Logic Combinator code (if any) WILL NOT be stored there' ) end
 
@@ -475,7 +474,7 @@ local function on_setup_blueprint(ev)
 	if not bp_es then return end -- tiles-only blueprint, no mlcs
 	local bp_map = ev.mapping.valid and ev.mapping.get() or {}
 	local bp_mlc_uids = blueprint_map_validate(bp_es, bp_map) -- try using ev.mapping first
-	if true or not bp_mlc_uids then -- fallback - map entities via blueprint_match_position
+	if not bp_mlc_uids then -- fallback - map entities via blueprint_match_position
 		-- Entity name filters are not used because both ghost/real entities must be matched
 		local map_es = p.surface.find_entities(ev.area)
 		bp_mlc_uids = blueprint_match_positions(bp_es, map_es)
