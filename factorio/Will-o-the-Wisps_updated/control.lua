@@ -676,7 +676,7 @@ local tasks_entities = {
 		if cg.dst_player and utils.pick_chance(c.chance_player_follow) then
 			local p = game.players[cg.dst_player].character -- follow same player
 			if p and p.valid and p.surface.index == s.index
-				then pos, cmd = p.position {type=defines.command.go_to_location, destination_entity=p} end
+				then pos, cmd = p.position, {type=defines.command.go_to_location, destination_entity=p} end
 		end
 
 		if not pos then -- find new interesting location
