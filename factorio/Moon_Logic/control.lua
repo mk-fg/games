@@ -427,27 +427,64 @@ end
 
 local mlc_filter = {{filter='name', name='mlc'}}
 
-function on_setup_blueprint(ev)
-	local p = game.players[ev.player_index]
-	if not (p and p.valid) then return end
-	local item_stack, bp_map, bp_es = p.blueprint_to_setup, ev.mapping.valid and ev.mapping.get()
-	if not (item_stack and item_stack.valid_for_read) then item_stack = p.cursor_stack end
-	if item_stack and item_stack.valid_for_read then bp_es = item_stack.get_blueprint_entities() end
-	if not (bp_es and bp_map) then return console_warn( p, 'BUG: Failed to detect'..
-		' blueprint item/info, Moon Logic Combinator code (if any) WILL NOT be stored there' ) end
+local function blueprint_match_positions(bp_es, map_es)
+	-- Hack to work around invalidated ev.mapping - match entities by x/y position
+	-- Same idea as in https://forums.factorio.com/viewtopic.php?p=466734
+	--  but x/y in blueprints seem to be absolute in current factorio, not offset from center
+	local bp_mlcs, bp_mlc_uids, be, k = {}, {}
+	for _, e in ipairs(bp_es) do if e.name == 'mlc'
+		then bp_mlcs[e.position.x..'_'..e.position.y] = e end end
+	if not next(bp_mlcs) then return bp_mlc_uids end -- no mlcs in blueprint
+	for _, e in ipairs(map_es) do
+		if not (e.valid and ( e.name == 'mlc'
+				or (e.name == 'entity-ghost' and e.ghost_name == 'mlc') ))
+			then goto skip end
+		k = e.position.x..'_'..e.position.y
+		be, bp_mlcs[k] = bp_mlcs[k]
+		if not be then return end -- no matching blueprint entity
+		if e.name == 'entity-ghost' then goto skip end -- these have tags already
+		bp_mlc_uids[be.entity_number] = e.unit_number
+	::skip:: end
+	if next(bp_mlcs) then return end -- blueprint entities left with none on map
+	return bp_mlc_uids
+end
 
+local function blueprint_map_validate(bp_es, bp_map)
 	-- Blueprint ev.mapping can be invalidated by other mods acting on this event, so checked first
 	-- See https://forums.factorio.com/viewtopic.php?p=457054#p457054 for more details
 	local bp_check, bp_mlc_uids = {}, {}
 	for _, e in ipairs(bp_es) do bp_check[e.entity_number] = e.name end
 	for bp_idx, e in pairs(bp_map) do
-		if not e.valid or bp_check[bp_idx] ~= e.name
-			then return console_warn( p, 'BUG: Blueprint-to-real entity mapping was'..
-				' invalidated by another mod, combinator settings WILL NOT be stored in this blueprint!' ) end
+		if not e.valid or bp_check[bp_idx] ~= e.name then return end -- abort on mismatch
 		if e.name == 'mlc' then bp_mlc_uids[bp_idx] = e.unit_number end
 	end
+	return bp_mlc_uids
+end
+
+local function on_setup_blueprint(ev)
+	local p = game.players[ev.player_index]
+	if not (p and p.valid) then return end
+
+	local bp = p.blueprint_to_setup
+	if not (bp and bp.valid_for_read) then bp = p.cursor_stack end
+	if not (bp and bp.valid_for_read)
+		then return console_warn( p, 'BUG: Failed to detect blueprint'..
+			' item/info, Moon Logic Combinator code (if any) WILL NOT be stored there' ) end
+
+	local bp_es = bp.get_blueprint_entities()
+	if not bp_es then return end -- tiles-only blueprint, no mlcs
+	local bp_map = ev.mapping.valid and ev.mapping.get() or {}
+	local bp_mlc_uids = blueprint_map_validate(bp_es, bp_map) -- try using ev.mapping first
+	if true or not bp_mlc_uids then -- fallback - map entities via blueprint_match_position
+		-- Entity name filters are not used because both ghost/real entities must be matched
+		local map_es = p.surface.find_entities(ev.area)
+		bp_mlc_uids = blueprint_match_positions(bp_es, map_es)
+	end
+	if not bp_mlc_uids then return console_warn( p, 'BUG: Failed to match blueprint'..
+		' entities to ones on the map, combinator settings WILL NOT be stored in this blueprint!' ) end
+
 	for bp_idx, uid in pairs(bp_mlc_uids)
-		do item_stack.set_blueprint_entity_tag(bp_idx, 'mlc-code', global.combinators[uid].code) end
+		do bp.set_blueprint_entity_tag(bp_idx, 'mlc_code', global.combinators[uid].code) end
 end
 
 script.on_event(defines.events.on_player_setup_blueprint, on_setup_blueprint)
@@ -460,7 +497,7 @@ local function on_built(ev)
 
 	-- Blueprints - try to restore settings from tags stored there on setup,
 	--  or fallback to old method with uid stored in a constant for simple copy-paste if tags fail
-	if ev.tags and ev.tags['mlc-code'] then mlc.code = ev.tags['mlc-code']
+	if ev.tags and ev.tags.mlc_code then mlc.code = ev.tags.mlc_code
 	else
 		local ecc_params = e.get_or_create_control_behavior().parameters
 		local uid_src = ecc_params.first_constant or 0
