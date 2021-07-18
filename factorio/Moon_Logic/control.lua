@@ -226,6 +226,7 @@ local sandbox_env_base = {
 		lshift = bit32.lshift , rrotate = bit32.rrotate , rshift = bit32.rshift }
 }
 
+
 -- ----- MLC update processing -----
 
 local mlc_err_sig = {type='virtual', name='mlc-error'}
@@ -456,7 +457,9 @@ local function blueprint_map_validate(bp_es, bp_map)
 	for bp_idx, e in pairs(bp_map) do
 		if not e.valid or bp_check[bp_idx] ~= e.name then return end -- abort on mismatch
 		if e.name == 'mlc' then bp_mlc_uids[bp_idx] = e.unit_number end
+		bp_check[bp_idx] = nil
 	end
+	if next(bp_check) then return end -- not all bp entities are in the mapping
 	return bp_mlc_uids
 end
 

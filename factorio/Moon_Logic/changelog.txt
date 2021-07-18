@@ -1,6 +1,6 @@
 
 ---------------------------------------------------------------------------------------------------
-Version: 0.0.71
+Version: 0.0.72
 Date: 2021-07-18
   Bugfixes:
     - Implement storing code in blueprints when event.mapping is invalidated by mods.
