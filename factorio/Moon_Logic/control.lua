@@ -466,7 +466,7 @@ local function on_setup_blueprint(ev)
 
 	local bp = p.blueprint_to_setup
 	if not (bp and bp.valid_for_read) then bp = p.cursor_stack end
-	if not (bp and bp.valid_for_read and bp.is_blueprint and bp.is_blueprint_setup())
+	if not (bp and bp.valid_for_read and bp.is_blueprint)
 		then return console_warn( p, 'BUG: Failed to detect blueprint'..
 			' item/info, Moon Logic Combinator code (if any) WILL NOT be stored there' ) end
 
