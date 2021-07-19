@@ -45,6 +45,8 @@ Just tab-out to a Notepad++, Vim, Emacs or any out-of-game text editor for >10 l
 
 It should, as of 0.0.69, but only stores combinator code there, as other state is likely specific to the original setup.
 
+There is one known issue however - "select new contents" button in an open blueprint window will not store the code due to known Factorio API problem/limitation (see "Known Issues" section in the main mod description for more details), which might be fixed in the future though, and then that button should "just work".
+
 ----------
 
 ## Make lua code that updates lua code

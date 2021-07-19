@@ -186,10 +186,15 @@ Regular combinators are best for simple things, as they work ridiculously fast o
 
 ## Known Issues and quirks
 
+- Using blue "Select new contents" button in blueprint window will not store combinator code in that updated blueprint.
+
+    At least as of Factorio 1.1.36, there's no good way to detect this happening to warn about it, so maybe avoid using that button.
+    See bug report threads [#88100](https://forums.factorio.com/88100), [#99323](https://forums.factorio.com/99323) and ["text not copied when blueprinted" discussion thread here](https://mods.factorio.com/mod/Moon_Logic/discussion/5f51799b456fefcdcc7c7b76) for more details.
+
 - Hotkeys for save/undo/redo/etc don't work when code textbox is focused, you need to press Esc or otherwise unfocus it first.
 - Cursor position when clicking on the code box can be weird and unintiutive - just click again if you don't see it on the spot.
 
-Big thanks to [ixu](https://mods.factorio.com/user/ixu) and [completion](https://mods.factorio.com/user/completion) for testing the mod extensively and reporting dozens of bugs here.
+Huge thanks to [ixu](https://mods.factorio.com/user/ixu) and [completion](https://mods.factorio.com/user/completion) for testing the mod extensively and reporting dozens of bugs here.
 
 &nbsp;
 
