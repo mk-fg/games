@@ -186,10 +186,16 @@ Regular combinators are best for simple things, as they work ridiculously fast o
 
 ## Known Issues and quirks
 
-- Using blue "Select new contents" button in blueprint window will not store combinator code in that updated blueprint.
+- There are some known limitations wrt storing/copying combinator code via blueprints:
 
-    At least as of Factorio 1.1.36, there's no good way to detect this happening to warn about it, so maybe avoid using that button.
-    See bug report threads [#88100](https://forums.factorio.com/88100), [#99323](https://forums.factorio.com/99323) and ["text not copied when blueprinted" discussion thread here](https://mods.factorio.com/mod/Moon_Logic/discussion/5f51799b456fefcdcc7c7b76) for more details.
+    - Using blue "Select new contents" button in blueprint window will not store combinator code in that updated blueprint.
+
+        At least as of Factorio 1.1.36, there's no good way to detect this happening to warn about it, so maybe avoid using that button.
+        See bug report threads [#88100](https://forums.factorio.com/88100), [#99323](https://forums.factorio.com/99323) and ["text not copied when blueprinted" discussion thread here](https://mods.factorio.com/mod/Moon_Logic/discussion/5f51799b456fefcdcc7c7b76) for more details.
+
+    - As of 2021-08-08, it was pointed out that current version 1.0.3 of [The Blueprint Designer Lab](https://mods.factorio.com/mod/BlueprintLab_design/) mod does not restore combinator code when placing blueprints in the lab there, due to how it's done in v1.0.3 of that mod.
+
+        See this issue raised by ezonius in [a long "Text not copied when blueprinted" discussion thread](https://mods.factorio.com/mod/Moon_Logic/discussion/5f51799b456fefcdcc7c7b76) for details.
 
 - Hotkeys for save/undo/redo/etc don't work when code textbox is focused, you need to press Esc or otherwise unfocus it first.
 - Cursor position when clicking on the code box can be weird and unintiutive - just click again if you don't see it on the spot.
