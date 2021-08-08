@@ -378,6 +378,10 @@ game, plus pretty graphics ofc.
 
 Bunch of delta-V and aerobraking maps, along with some outdated mod tweaks.
 
+Useful online resources:
+
+- https://alexmoon.github.io/ksp/ - launch windows visualized as heatmaps.
+
 .. _Kerbal Space Program: https://kerbalspaceprogram.com/
 
 
