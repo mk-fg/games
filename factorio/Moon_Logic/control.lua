@@ -625,7 +625,8 @@ local function update_signals_in_guis()
 
 		-- Remaining invalid signals and errors
 		for sig, val in pairs(mlc_out_err) do
-			val = serpent.line(val, {compact=true, nohuge=false})
+			cb, val = pcall(serpent.line, val, {compact=true, nohuge=false})
+			if not cb then val = '<err>' end
 			if val:len() > 8 then val = val:sub(1, 8)..'+' end
 			gui_flow.add{ type='label', name='out/err-'..sig,
 				caption=('[color=#ce9f7f][out-invalid] %s = %s[/color]'):format(sig, val) }
