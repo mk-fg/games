@@ -1,6 +1,7 @@
 This mod adds on/off switch button for sending a single circuit network signal.
 
 Note that button is reachable from anywhere on the map, and can be toggled by left-click or player inventory key (E) by default, but it can be changed to work more like regular constant combinator via mod settings.
+Somewhat counter-intuitively, switch does not flip or light up unless connected to something by wire(s).
 
 Mod Settings (startup):
 
