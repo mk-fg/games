@@ -26,9 +26,9 @@ Also check out "/wf" console command (run it to get more info), which allows to 
 - Synergy
 
     - [Will-o'-the-Wisps updated](https://mods.factorio.com/mod/Will-o-the-Wisps_updated) - can make burning forests more of a problem at night
-    - [Fire Department](https://mods.factorio.com/mod/fire_department) - what if your factory also randomly caught on fire?
     - [Explosive Biters](https://mods.factorio.com/mod/Explosive_biters) - puts some fire into biters as well
     - [Wildfire Season](https://mods.factorio.com/mod/wildfire_season) - makes fires jump faster and over longer gaps
+    - (outdated) [Fire Department](https://mods.factorio.com/mod/fire_department) - what if your factory also randomly caught on fire?
 
 - Fire protection
 
