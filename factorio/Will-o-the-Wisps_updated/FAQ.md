@@ -33,23 +33,23 @@ These interfaces are probably not well-tested, but relatively simple wrappers fo
 
     - `emit_once(entity [, range [, effectiveness]])`
 
-        Make wisps flee from UV light source and cause damage to them, in exactly same way as UV lamps in this mod do.
-        Range defaults to UV lamps in the mod (configurable), and effectiveness to 1.0 (=100%).
+        Make wisps flee from specified entity and cause damage to them, in the same way as UV lamps in this mod do.
+        Range defaults to same as UV lamps in the mod (configurable), and effectiveness to 1.0 (=100%).
 
-        Can be used to make a custom UV-emitting effect on wisps in this mod, i.e. add this to a weapon, ammunition, any kind of event, etc.
-        Should be easier to use emit_start() for just custom lamps.
+        Can be used to make a custom UV-emitting effect on wisps in the mod, i.e. add this to a weapon, ammunition, any kind of event, etc.
+        Should be easier to use emit_start() instead for a simple custom lamp entities.
         &nbsp;
 
 - `wisps.control` - misc interfaces to interact with wisp entities from this mod.
 
     - `get_entity_names()`
 
-        Returns a simple list/table like `{'wisp-red', 'wisp-yellow', 'wisp-green', ...}` with names of all entities currently used by this mod.
+        Returns a list/table like `{'wisp-red', 'wisp-yellow', 'wisp-green', ...}` with names of all entities currently used by this mod.
         &nbsp;
 
     - `find_units(surface, position, range)`
 
-        Returns list/table of unit-like wisp entities in a range around specified position.
+        Get list/table of unit-like wisp entities in a range around specified position.
         &nbsp;
 
     - `find_spores(surface, position, range)`
