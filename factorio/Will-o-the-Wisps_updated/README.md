@@ -59,6 +59,7 @@ Technologies:
 - Set "Wisp aggression factor" in mod options to e.g. 0.5 or something higher for a more challenging game.
 - Enabling wisps to fight biters while disabling immunity of their nests can speed up biter evolution factor.
 - See [forum thread](https://forums.factorio.com/viewtopic.php?f=190&t=60876&p=366660#p366660) for more technical info and debug commands.
+- [FAQ](https://mods.factorio.com/mod/Will-o-the-Wisps_updated/faq) and that forum thread also has info on [LuaRemote interfaces](https://lua-api.factorio.com/latest/LuaRemote.html) for other mods/devs.
 
 
 --------------------

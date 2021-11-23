@@ -28,17 +28,18 @@ local MapStats, WorkSteps, WorkSets, WorkChecks
 ------------------------------------------------------------
 -- These are no longer allowed in globals as of 0.18.x,
 --  so moved here, despite being full of various parameters.
+-- effectiveness - 0 to 1.0 value derived from UV lamp energy satisfaction.
 
-local function uv_lamp_damage_func(energy_percent)
-	return math.floor(energy_percent * (10 * (1 + math.random(-5, 5)/10))) end
+local function uv_lamp_damage_func(effectiveness)
+	return math.floor(effectiveness * (10 * (1 + math.random(-5, 5)/10))) end
 
 -- See also: chart in doc/uv-lamp-spore-kill-chart.html
-local function uv_lamp_spore_kill_chance_func(energy_percent)
-	return math.random() < energy_percent * 0.15 end
+local function uv_lamp_spore_kill_chance_func(effectiveness)
+	return math.random() < effectiveness * 0.15 end
 
 -- XXX: hard to make this work without seq scans, but maybe possible
--- local function uv_lamp_ttl_change_func(energy_percent, wisp)
--- 	if math.random() < (energy_percent + 0.01)  * 0.15
+-- local function uv_lamp_ttl_change_func(effectiveness, wisp)
+-- 	if math.random() < (effectiveness + 0.01)  * 0.15
 -- 		then wisp.ttl = wisp.ttl / 3 end end
 
 local function wisp_chance_func(darkness, wisp)
@@ -296,11 +297,6 @@ local function init_light(o)
 	::done:: return o
 end
 
-local function uv_light_init(entity)
-	local n = UVLights.n + 1
-	UVLights.n, UVLights[n] = n, {entity=entity}
-end
-
 local function detector_init(entity)
 	local n = Detectors.n + 1
 	Detectors.n, Detectors[n] = n, init_light{entity=entity}
@@ -321,6 +317,11 @@ local function wisp_find_units(surface, pos, radius)
 	local units = surface.find_entities_filtered{
 		force={'wisp', 'wisp_attack'}, type='unit', area=area } or {}
 	return units
+end
+
+local function wisp_find_spores(surface, pos, radius)
+	return surface.find_entities_filtered{
+		name=wisp_spore_proto_name(), area=utils.get_area(radius, pos) }
 end
 
 local function wisp_find_player_target_pos(surface, area, entity_name, force)
@@ -390,6 +391,34 @@ end
 local function wisp_create_on_cliff(cliff)
 	if math.random() > conf.wisp_cliff_spawn_chance then return end
 	wisp_create_at_random('wisp-red', cliff, conf.wisp_red_disturbed_angry_chance)
+end
+
+local function uv_light_init(e, range, en_hi, en_lo)
+	local n = UVLights.n + 1
+	UVLights.n, UVLights[n] = n,
+		{entity=e, range=range, en_hi=en_hi, en_lo=en_lo}
+end
+
+local function uv_light_apply(e, range, effectiveness)
+	if not (e and e.valid) then return end
+
+	-- Effects on unit-type wisps - reds and yellows
+	local wisps = wisp_find_units(e.surface, e.position, range)
+	if next(wisps) then
+		local damage = uv_lamp_damage_func(effectiveness)
+		for _, wisp in ipairs(wisps) do
+			if math.random() <= effectiveness then
+				wisp.set_command{ type=defines.command.flee,
+					from=e, distraction=defines.distraction.none } end
+			wisp.damage(damage, game.forces.wisp, 'uv')
+		end
+	end
+
+	-- Effects on non-unit wisps - purple
+	wisps = wisp_find_spores(e.surface, e.position, conf.uv_lamp_range)
+	if next(wisps) then for _, wisp in ipairs(wisps) do
+		if uv_lamp_spore_kill_chance_func(effectiveness) then wisp.destroy() end
+	end end
 end
 
 
@@ -581,30 +610,18 @@ local tasks_entities = {
 	end},
 
 	uv = {work=4, func=function(uv, e, s)
-		local control  = e.get_control_behavior()
+		local effect, control  = 1, e.get_control_behavior()
 		if control and control.valid and control.disabled then return end
-
-		if e.energy > conf.uv_lamp_energy_limit then conf.uv_lamp_energy_limit = e.energy end
-		local energy_percent = e.energy / conf.uv_lamp_energy_limit
-		if energy_percent < conf.uv_lamp_energy_min then return end
-
-		-- Effects on unit-type wisps - reds and yellows
-		local wisps, wisp = wisp_find_units(s, e.position, conf.uv_lamp_range)
-		if next(wisps) then
-			local damage = uv_lamp_damage_func(energy_percent)
-			for _, entity in ipairs(wisps) do
-				entity.set_command{ type=defines.command.flee,
-					from=e, distraction=defines.distraction.none }
-				entity.damage(damage, game.forces.wisp, 'uv')
+		if uv.en_hi then -- always non-nil for third-party UV lights
+			if uv.en_hi ~= true and uv.en_hi ~= 0 then
+				if uv.en_hi == uv.en_lo then effect = e.energy > uv.en_hi and 1 or 0
+				else effect = math.min(1, (e.energy - uv.en_lo) / (uv.en_hi - uv.en_lo)) end
 			end
+		else -- default lamp from this mod
+			if e.energy > conf.uv_lamp_energy_limit then conf.uv_lamp_energy_limit = e.energy end
+			effect = e.energy / conf.uv_lamp_energy_limit
 		end
-
-		-- Effects on non-unit wisps - purple
-		wisps = s.find_entities_filtered{
-			name=wisp_spore_proto_name(), area=utils.get_area(conf.uv_lamp_range, e.position) }
-		if next(wisps) then for _, entity in ipairs(wisps) do
-			if uv_lamp_spore_kill_chance_func(energy_percent) then entity.destroy() end
-		end end
+		uv_light_apply(e, uv.range or conf.uv_lamp_range, effect)
 	end},
 
 	detectors = {work=1, func=function(wd, e, s)
@@ -942,6 +959,46 @@ local function run_wisp_command(cmd)
 	else return usage() end
 end
 
+
+------------------------------------------------------------
+-- Remote Interfaces
+------------------------------------------------------------
+
+remote.add_interface('wisps.uv', {
+	emit_start = function(e, range, en_hi, en_lo)
+		if not InitState.configured then return end
+		uv_light_init(e, range, en_hi or true, math.max(en_hi or 0, en_lo or 0)) end,
+	emit_stop = function(e_or_uid)
+		if not InitState.configured then return end
+		local set, uid = UVLights
+		if type(e_or_uid) == 'number' then uid = e_or_uid
+			elseif e_or_uid and e_or_uid.valid then uid = e_or_uid.unit_number end
+		if not uid then return end
+		for n, uv in ipairs(set) do
+			if not (uv.entity.valid and uv.entity.unit_number == uid)
+				then set[n], set.n, set[set.n] = set[set.n], set.n-1; break end
+		end end,
+	emit_once = function(e, range, effectiveness)
+		if not InitState.configured then return end
+		uv_light_apply(e, range or conf.uv_lamp_range, effectiveness or 1) end
+})
+
+remote.add_interface('wisps.control', {
+	find_units = function(surface, pos, range)
+		if not InitState.configured then return end
+		wisp_find_units(surface, pos, range) end,
+	find_spores = function(surface, pos, range)
+		if not InitState.configured then return end
+		wisp_find_spores(surface, pos, range) end,
+	get_entity_names = function()
+		if not InitState.configured then return end
+		local names = {wisp_spore_proto_name()}
+		for name,_ in pairs(wisp_unit_proto_map) do table.push(names, name) end
+		return names end,
+	create = function(name, surface, position, angry, ttl)
+		if not InitState.configured then return end
+		wisp_create(name, surface, position, angry, ttl) end
+})
 
 ------------------------------------------------------------
 -- Init / updates / settings
