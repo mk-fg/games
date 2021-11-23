@@ -70,6 +70,7 @@ Technologies:
 - Cosmetic Compatibility Mod(s)
 
     - [Inlaid UV-lamp](https://mods.factorio.com/mod/InlaidUVLamp) -  makes UV lamps look like ones in [Schall Lamp Contrast](https://mods.factorio.com/mod/SchallLampContrast) and [Inlaid Lamps Extended](https://mods.factorio.com/mod/InlaidLampsExtended) mods.
+    &nbsp;
 
 
 - Mod Suggestions
@@ -79,21 +80,26 @@ Technologies:
     - [Wildfire](https://mods.factorio.com/mod/Wildfire) - can make things a lot more "interesting" at nights.
     - [Diplomacy](https://mods.factorio.com/mod/diplomacy) and [Rampant](https://mods.factorio.com/mod/Rampant) - for [emergent game faction dynamics and challenge](https://forums.factorio.com/viewtopic.php?p=377032#p377032).
     - [Catmod-Reborn](https://mods.factorio.com/mod/Catmod-Reborn) - have cats chase shiny orbs of tuna.
+    &nbsp;
 
 
 - Mod Alternatives / Forks
 
     Note that multiple versions of these should not be used at the same time.
+    &nbsp;
 
     - [Will-o'-the-Wisps updated (2)](https://mods.factorio.com/mod/Will-o-the-Wisps_updated-2) - improved version between 0.17-1.0 factorio releases by Pi-C.
 
         All changes from there up to and including 0.18.6 are merged here as 0.2.x versions, see changelog for details.
+        &nbsp;
 
     - [The Night Has A Thousand Eyes](https://mods.factorio.com/mod/The_Night_Has_A_Thousand_Eyes) - seem to be a local fork for a specific multiplayer server/game.
 
         Not recommended for general use by the author (as of 0.1.1 / 2020-08-21), except for reference and merging fixes/changes.
         Like the name a lot, way more imaginative than "wisps updated" here :)
+        &nbsp;
 
     - Original [Will-o'-the-wisps](https://mods.factorio.com/mod/Will-o-the-wisps) mod and its [forum thread](https://forums.factorio.com/viewtopic.php?f=93&t=41514).
 
         Was only maintained up to 0.14.x-0.15.x factorio releases by Betep3akata.
+        &nbsp;

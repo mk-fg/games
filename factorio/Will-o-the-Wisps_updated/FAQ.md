@@ -33,9 +33,11 @@ These interfaces are probably not well-tested, but relatively simple wrappers fo
 
     - `emit_once(entity [, range [, effectiveness]])`
 
-        Make wisps flee from UV light source and cause damage to them, in exactly same way as UV lamps in this mod do. Range defaults to UV lamps in the mod (configurable), and effectiveness to 1.0 (=100%).
+        Make wisps flee from UV light source and cause damage to them, in exactly same way as UV lamps in this mod do.
+        Range defaults to UV lamps in the mod (configurable), and effectiveness to 1.0 (=100%).
 
-        Can be used to make a custom UV-emitting effect on wisps in this mod, i.e. add this to a weapon, ammunition, any kind of event, etc. Should be easier to use emit_start() for just custom lamps.
+        Can be used to make a custom UV-emitting effect on wisps in this mod, i.e. add this to a weapon, ammunition, any kind of event, etc.
+        Should be easier to use emit_start() for just custom lamps.
         &nbsp;
 
 - `wisps.control` - misc interfaces to interact with wisp entities from this mod.

@@ -613,7 +613,7 @@ local tasks_entities = {
 		local effect, control  = 1, e.get_control_behavior()
 		if control and control.valid and control.disabled then return end
 		if uv.en_hi then -- always non-nil for third-party UV lights
-			if uv.en_hi ~= true and uv.en_hi ~= 0 then
+			if uv.en_hi ~= 0 then
 				if uv.en_hi == uv.en_lo then effect = e.energy > uv.en_hi and 1 or 0
 				else effect = math.min(1, (e.energy - uv.en_lo) / (uv.en_hi - uv.en_lo)) end
 			end
@@ -967,7 +967,7 @@ end
 remote.add_interface('wisps.uv', {
 	emit_start = function(e, range, en_hi, en_lo)
 		if not InitState.configured then return end
-		uv_light_init(e, range, en_hi or true, math.max(en_hi or 0, en_lo or 0)) end,
+		uv_light_init(e, range, en_hi or 0, math.max(en_hi or 0, en_lo or 0)) end,
 	emit_stop = function(e_or_uid)
 		if not InitState.configured then return end
 		local set, uid = UVLights
