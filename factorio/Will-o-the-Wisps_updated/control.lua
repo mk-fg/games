@@ -493,7 +493,8 @@ local tasks_monolithic = {
 		-- If there's a group in the area already, just join that one
 		local leader = true
 		for _, e2 in ipairs(units_near) do
-			if not e2.unit_group or e2.force ~= e.force then goto skip end
+			if not e2.unit_group or not e2.unit_group.valid
+				or e2.force ~= e.force then goto skip end
 			leader = false
 			e2.unit_group.add_member(e)
 			break
