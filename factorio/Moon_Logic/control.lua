@@ -209,7 +209,7 @@ local sandbox_env_base = {
 		upper = string.upper },
 	table = {
 		concat = table.concat, insert = table.insert, remove = table.remove,
-		sort = table.sort, pack = table.pack, unpack = table.unpack, },
+		sort = table.sort, pack = table.pack, unpack = table.unpack },
 	math = {
 		abs = math.abs, acos = math.acos, asin = math.asin,
 		atan = math.atan, atan2 = math.atan2, ceil = math.ceil, cos = math.cos,
@@ -222,8 +222,8 @@ local sandbox_env_base = {
 	bit32 = {
 		arshift = bit32.arshift, band = bit32.band, bnot = bit32.bnot,
 		bor = bit32.bor, btest = bit32.btest, bxor = bit32.bxor,
-		extract = bit32.extract, replace = bit32.replace , lrotate = bit32.lrotate ,
-		lshift = bit32.lshift , rrotate = bit32.rrotate , rshift = bit32.rshift }
+		extract = bit32.extract, replace = bit32.replace, lrotate = bit32.lrotate,
+		lshift = bit32.lshift, rrotate = bit32.rrotate, rshift = bit32.rshift }
 }
 
 
