@@ -231,9 +231,10 @@ local sandbox_env_base = {
 
 local mlc_err_sig = {type='virtual', name='mlc-error'}
 
-local function mlc_update_output(mlc, output)
+local function mlc_update_output(mlc, output_raw)
 	-- Sets signal outputs on invisible mlc-core combinators connected to visible outputs
-	local signals, errors = {red={}, green={}}, {}
+	local signals, errors, output = {red={}, green={}}, {}, {}
+	for k, v in pairs(output_raw) do output[tostring(k)] = v end
 
 	local sig_err, sig, st, err, pre, pre_label = tc(output)
 	for _, k in ipairs{false, 'red', 'green'} do
@@ -624,12 +625,14 @@ local function update_signals_in_guis()
 		end end end
 
 		-- Remaining invalid signals and errors
+		local n = 0 -- to dedup bogus non-string signal keys that have same string repr
 		for sig, val in pairs(mlc_out_err) do
 			cb, val = pcall(serpent.line, val, {compact=true, nohuge=false})
 			if not cb then val = '<err>' end
 			if val:len() > 8 then val = val:sub(1, 8)..'+' end
-			gui_flow.add{ type='label', name='out/err-'..sig,
+			gui_flow.add{ type='label', name=('out/err-%d-%s'):format(n, sig),
 				caption=('[color=#ce9f7f][out-invalid] %s = %s[/color]'):format(sig, val) }
+			n = n + 1
 		end
 		gui_t.mlc_errors.caption = format_mlc_err_msg(mlc) or ''
 	::skip:: end
