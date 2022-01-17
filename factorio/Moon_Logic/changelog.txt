@@ -1,5 +1,11 @@
 
 ---------------------------------------------------------------------------------------------------
+Version: 0.0.75
+Date: 2022-01-17
+  Bugfixes:
+    - Fix GUI signal-printer panel stopping on zero-value signals in output table bug, introduced in 0.0.66.
+
+---------------------------------------------------------------------------------------------------
 Version: 0.0.74
 Date: 2022-01-16
   Bugfixes:

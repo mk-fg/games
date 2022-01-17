@@ -600,7 +600,7 @@ local function update_signals_in_guis()
 			cb = cb.get_control_behavior()
 			for _, cbs in pairs(cb.parameters or {}) do
 				sig, label = cbs.signal.name, conf.get_wire_label(k)
-				if not sig then goto cb_slot_skip end
+				if not sig then goto cb_slots_end end
 				mlc_out_err[sig],
 					mlc_out_err[('%s/%s'):format(k, sig)],
 					mlc_out_err[('%s/%s'):format(label, sig)] = nil
@@ -608,10 +608,10 @@ local function update_signals_in_guis()
 				mlc_out_err[sig],
 					mlc_out_err[('%s/%s'):format(k, sig)],
 					mlc_out_err[('%s/%s'):format(label, sig)] = nil
-				if cbs.count == 0 then goto cb_slot_skip end
-				if not mlc_out[sig] then mlc_out_idx[#mlc_out_idx+1], mlc_out[sig] = sig, {} end
-				mlc_out[sig][k] = cbs.count
-		end ::cb_slot_skip:: end
+				if cbs.count ~= 0 then
+					if not mlc_out[sig] then mlc_out_idx[#mlc_out_idx+1], mlc_out[sig] = sig, {} end
+					mlc_out[sig][k] = cbs.count end
+		end ::cb_slots_end:: end
 		table.sort(mlc_out_idx)
 		for val, k in pairs(mlc_out_idx) do
 			val, sig, label = mlc_out[k], global.signals[k].name, signal_icon_tag(k)
