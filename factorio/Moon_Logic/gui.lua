@@ -80,10 +80,13 @@ local function help_window_toggle(pn, toggle_on)
 end
 
 
-local function vars_window_update(player, uid)
+local function vars_window_update(player, uid, pause_update)
 	local gui = player.gui.screen['mlc-vars']
 	if not gui then return end
-	gui.caption = ('Moon Logic Environment Variables [%s]'):format(uid)
+	local gui_paused = gui.caption:match(' %-%- .+$')
+	if pause_update ~= nil then gui_paused = pause_update end -- explicit pause/unpause
+	if gui_paused and pause_update == nil then return end -- ignore calls from mlc updates
+	gui.caption = ('Moon Logic Environment Variables [%s]%s'):format(uid, gui_paused and ' -- PAUSED' or '')
 	local mlc, vars_box = global.combinators[uid], gui['mlc-vars-scroll']['mlc-vars-box']
 	if not mlc then vars_box.text = '--- [color=#911818]Moon Logic Combinator is Offline[/color] ---'
 	else
@@ -100,14 +103,14 @@ local function vars_window_update(player, uid)
 	end
 end
 
-local function vars_window_switch_or_toggle(pn, uid, toggle_on)
+local function vars_window_switch_or_toggle(pn, uid, paused, toggle_on)
 	-- Switches variables-window to specified combinator or toggles it on/off
 	local player, gui_k = game.players[pn], 'vars.'..pn
 	local gui_exists = player.gui.screen['mlc-vars']
 	if gui_exists then
-		if toggle_on == nil and global.guis_player[gui_k] ~= uid then
+		if toggle_on or (toggle_on == nil and global.guis_player[gui_k] ~= uid) then
 			global.guis_player[gui_k] = uid
-			return vars_window_update(player, uid)
+			return vars_window_update(player, uid, paused)
 		elseif not toggle_on then return gui_exists.destroy() end
 	elseif toggle_on == false then return end -- force off toggle
 
@@ -123,7 +126,7 @@ local function vars_window_switch_or_toggle(pn, uid, toggle_on)
 	tb.style.width = conf.gui_vars_line_px
 	tb.read_only, tb.selectable, tb.word_wrap = true, false, true
 	gui.add{type='button', name='mlc-vars-close', caption='Close'}
-	vars_window_update(player, uid)
+	vars_window_update(player, uid, paused)
 end
 
 
@@ -251,6 +254,7 @@ local function create_gui(player, entity)
 	top_btns_add('mlc-help', 'Toggle quick reference window')
 	top_btns_add( 'mlc-vars',
 		'Toggle environment window for this combinator [[color=#e69100]Ctrl-F[/color]].\n'..
+		'Shift + click - open/update paused window.\n'..
 		'Right-click - clear all lua environment variables on it.\n'..
 		'Shift + right-click - clear "out" outputs-table.' )
 
@@ -430,7 +434,7 @@ function guis.on_gui_click(ev)
 				for k, _ in pairs(mlc.vars) do mlc.vars[k] = nil end
 				vars_window_update(game.players[ev.player_index], uid)
 			end
-		else vars_window_switch_or_toggle(ev.player_index, uid) end
+		else vars_window_switch_or_toggle(ev.player_index, uid, ev.shift, ev.shift or nil) end
 
 	elseif preset_n then
 		if ev.button == defines.mouse_button_type.left then
@@ -487,7 +491,7 @@ function guis.vars_window_toggle(pn, toggle_on)
 	local uid, gui_t = find_gui{element=gui}
 	if not uid then uid = global.guis_player['vars.'..pn] end
 	if not uid then return end
-	vars_window_switch_or_toggle(pn, uid, toggle_on)
+	vars_window_switch_or_toggle(pn, uid, nil, toggle_on)
 end
 
 return guis
