@@ -80,13 +80,26 @@ local function help_window_toggle(pn, toggle_on)
 end
 
 
+local function vars_window_uid(gui)
+	if not gui then return end
+	while gui.name ~= 'mlc-vars' do gui = gui.parent end
+	local uid = gui.caption:match('%[(%d+)%]')
+	return uid and tonumber(uid)
+end
+
 local function vars_window_update(player, uid, pause_update)
 	local gui = player.gui.screen['mlc-vars']
 	if not gui then return end
 	local gui_paused = gui.caption:match(' %-%- .+$')
 	if pause_update ~= nil then gui_paused = pause_update end -- explicit pause/unpause
 	if gui_paused and pause_update == nil then return end -- ignore calls from mlc updates
-	gui.caption = ('Moon Logic Environment Variables [%s]%s'):format(uid, gui_paused and ' -- PAUSED' or '')
+	local gui_st_old, gui_st = gui.caption,
+		('Moon Logic Environment Variables [%s]%s'):format(uid, gui_paused and ' -- PAUSED' or '')
+	if gui_st ~= gui_st_old then
+		gui.caption, gui_st = gui_st, gui.children[2].children[2]
+		gui_st.style = gui_paused and 'green_button' or 'button'
+		gui_st.caption = gui_paused and 'Unpause' or 'Pause'
+	end
 	local mlc, vars_box = global.combinators[uid], gui['mlc-vars-scroll']['mlc-vars-box']
 	if not mlc then vars_box.text = '--- [color=#911818]Moon Logic Combinator is Offline[/color] ---'
 	else
@@ -125,7 +138,9 @@ local function vars_window_switch_or_toggle(pn, uid, paused, toggle_on)
 	local tb = scroll.add{type='text-box', name='mlc-vars-box', text=''}
 	tb.style.width = conf.gui_vars_line_px
 	tb.read_only, tb.selectable, tb.word_wrap = true, false, true
-	gui.add{type='button', name='mlc-vars-close', caption='Close'}
+	local btns = gui.add{type='flow', name='mlc-vars-btns', direction='horizontal'}
+	btns.add{type='button', name='mlc-vars-close', caption='Close'}
+	btns.add{type='button', name='mlc-vars-pause', caption='Pause'}
 	vars_window_update(player, uid, paused)
 end
 
@@ -399,9 +414,15 @@ end
 
 function guis.on_gui_click(ev)
 	local el = ev.element
-	-- Separate "help" and "vars" windows, tracked separately from main guis
-	if el.name == 'mlc-help-close' then return el.parent.destroy() end
-	if el.name == 'mlc-vars-close' then return el.parent.destroy() end
+
+	-- Separate "help" and "vars" windows, not tracked in globals, unlike main MLC guis
+	if el.name == 'mlc-help-close' then return el.parent.destroy()
+	elseif el.name == 'mlc-vars-close' then
+		return (el.parent.parent or el.parent).destroy()
+	elseif el.name == 'mlc-vars-pause' then
+		local uid = vars_window_uid(el)
+		return uid and vars_window_switch_or_toggle(
+			ev.player_index, uid, el.style.name ~= 'green_button', true ) end
 
 	local uid, gui_t = find_gui(ev)
 	if not uid then return end
