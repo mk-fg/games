@@ -84,8 +84,7 @@ end
 local function vars_window_uid(gui)
 	if not gui then return end
 	while gui.name ~= 'mlc-vars' do gui = gui.parent end
-	local uid = gui.caption:match('%[(%d+)%]')
-	return uid and tonumber(uid)
+	return tonumber(gui.caption:match('%[(%d+)%]'))
 end
 
 local function vars_window_update(player, uid, pause_update)
@@ -422,9 +421,8 @@ function guis.on_gui_click(ev)
 	elseif el.name == 'mlc-vars-close' then
 		return (el.parent.parent or el.parent).destroy()
 	elseif el.name == 'mlc-vars-pause' then
-		local uid = vars_window_uid(el)
-		return uid and vars_window_switch_or_toggle(
-			ev.player_index, uid, el.style.name ~= 'green_button', true ) end
+		return vars_window_switch_or_toggle( ev.player_index,
+			vars_window_uid(el), el.style.name ~= 'green_button', true ) end
 
 	local uid, gui_t = find_gui(ev)
 	if not uid then return end
