@@ -1,5 +1,11 @@
 
 ---------------------------------------------------------------------------------------------------
+Version: 0.0.78
+Date: 2022-03-11
+  Features:
+    - Skip printing vars prefixed by "__" in variables window, to intentionally unclutter it that way.
+
+---------------------------------------------------------------------------------------------------
 Version: 0.0.77
 Date: 2022-03-10
   Features:

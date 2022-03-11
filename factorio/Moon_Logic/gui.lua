@@ -43,6 +43,7 @@ local function help_window_toggle(pn, toggle_on)
 		'  [color=#ffe6c0]ota_update_from_uid[/color] (uint) -- copy code from another combinator with this uid.',
 		'    Reset after code runs, ignored if MLC with that uid (number in a window header) does not exist.',
 		'    Note that only code is updated, while persistent lua environment and outputs stay the same.',
+		'  any vars with "__" prefix, e.g. __big_data -- work as normal, but won\'t clutter variables window.',
 		' ',
 		'Factorio APIs available, aside from general Lua stuff:',
 		'  [color=#ffe6c0]game.tick[/color] -- read-only int for factorio game tick, to measure time intervals.',
@@ -105,13 +106,14 @@ local function vars_window_update(player, uid, pause_update)
 	else
 		local text, esc, vs, c = '', function(s) return tostring(s):gsub('%[', '[ ') end
 		for k, v in pairs(mlc.vars) do
+			if k:match('^__') then goto skip end
 			if text ~= '' then text = text..'\n' end
 			vs = serpent.line(v, conf.gui_vars_serpent_opts)
 			if vs:len() > conf.gui_vars_line_len_max
 			then vs = serpent.block(v, conf.gui_vars_serpent_opts)
 			elseif vs:len() > conf.gui_vars_line_len_max * 0.6 then vs = '\n  '..vs end
 			text = text..('[color=#520007][font=default-bold]%s[/font][/color] = %s'):format(esc(k), esc(vs))
-		end
+		::skip:: end
 		vars_box.text = text
 	end
 end
