@@ -29,6 +29,7 @@ These interfaces are probably not well-tested, but relatively simple wrappers fo
         Unregister entity or unit_number (as in entity.unit_number) from known UV-light sources.
 
         This does not need to be called for removed or destroyed entities, as they're "forgotten" by this mod automatically, only if you want for existing in-game entities to stop having this effect.
+        Exception can be use-cases where mod creates and destroys a lot of transient entities (e.g. every couple ticks), in which case calling this can help with in-time garbage collection of these (to "forget" about them quickly), but using emit_once() for such short-lived things might be an even better idea.
         &nbsp;
 
     - `emit_once(entity [, range [, effectiveness]])`
