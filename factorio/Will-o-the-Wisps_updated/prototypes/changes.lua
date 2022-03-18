@@ -86,7 +86,8 @@ function changes.update_tech_recipes()
 	end
 	add_tech_unlock('solar-energy', 'UV-lamp')
 	add_tech_unlock('defender', 'wisp-drone-blue-capsule')
-	add_tech_unlock('deadlock-solar-energy-1', 'UV-lamp') -- industrial revolution mod
+	add_tech_unlock('deadlock-solar-energy-1', 'UV-lamp') -- industrial revolution mod - old
+	add_tech_unlock('ir2-solar-energy-1', 'UV-lamp') -- industrial revolution mod - more recent
 end
 
 
