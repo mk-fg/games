@@ -421,6 +421,7 @@ local function mlc_remove(uid, keep_entities, to_be_mined)
 		local mlc = out_wire_clear_mlc(global.combinators[uid] or {})
 		if not to_be_mined and mlc.e and mlc.e.valid then mlc.e.destroy() end
 	end
+	if CombinatorEnv[uid].on_remove then CombinatorEnv[uid].on_remove(uid) end
 	Combinators[uid], CombinatorEnv[uid], global.combinators[uid], global.guis[uid] = nil
 end
 
