@@ -101,6 +101,15 @@ local function vars_window_update(player, uid, pause_update)
 		gui_st.caption = gui_paused and 'Unpause' or 'Pause'
 	end
 	local mlc, vars_box = global.combinators[uid], gui['mlc-vars-scroll']['mlc-vars-box']
+	if gui_paused and vars_box.read_only then
+		vars_box.selectable, vars_box.read_only = true, false
+		vars_box.tooltip =
+			'Text is editable for selection/copying while paused,\n'..
+			'but changing it will not update the environment.'
+	elseif not gui_paused and not vars_box.read_only then
+		vars_box.selectable, vars_box.read_only, vars_box.tooltip = false, true, ''
+	end
+
 	if not mlc then vars_box.text = '--- [color=#911818]Moon Logic Combinator is Offline[/color] ---'
 	else
 		local text, esc, vs, c = '', function(s) return tostring(s):gsub('%[', '[ ') end
@@ -141,7 +150,9 @@ local function vars_window_switch_or_toggle(pn, uid, paused, toggle_on)
 	tb.read_only, tb.selectable, tb.word_wrap = true, false, true
 	local btns = gui.add{type='flow', name='mlc-vars-btns', direction='horizontal'}
 	btns.add{type='button', name='mlc-vars-close', caption='Close'}
-	btns.add{type='button', name='mlc-vars-pause', caption='Pause'}
+	btns.add{ type='button', name='mlc-vars-pause', caption='Pause',
+		tooltip='Pausing updates also makes text editable,'..
+			' so that Ctrl-A/Ctrl-C can be used there, but editing it will not change the environment.' }
 	vars_window_update(player, uid, paused)
 end
 
