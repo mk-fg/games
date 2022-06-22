@@ -211,6 +211,9 @@ Huge thanks to [ixu](https://mods.factorio.com/user/ixu) and [completion](https:
 ## Links
 
 
+- [Frequently Asked Questions (FAQ) page](https://mods.factorio.com/mod/Moon_Logic/faq) has more info on this mod.
+&nbsp;
+
 - Nice and useful Circuit Network extensions:
 
     - [Switch Button](https://mods.factorio.com/mod/Switch_Button-1_0) - On/Off switch with configurable signal.

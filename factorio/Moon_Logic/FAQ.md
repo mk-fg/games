@@ -57,6 +57,22 @@ You can use secret "_api" value within sandbox environment to implement somethin
 
 ----------
 
+## Using many combinators from this mod or running a lot of code on those makes game slow
+
+For most simple tasks, I'd suggest using stock signal combinators instead - they are very fast, can do a lot already, and it's fun to build logic out of them.
+Maybe simply replacing multiple Moon Logic combinators with one is an option? Wire signals can be aggregated and translated using arithmetic combinators.
+
+Then there's a "delay" value, which can often be set to something really high, as it's rare that lua combinator code needs to run on every single game tick.
+Note that it doesn't have to be constant, and only sets delay until the next run.
+Using "irq" value on these combinators is another way to simply run stuff less often, and only when needed.
+
+When there's just too much code, it can also be benchmarked using e.g. `/measured-command remote.call('mlc', 'run', 1234, 1000)` [console command](https://wiki.factorio.com/Console#Scripting_and_cheat_commands), which will run code on uid=1234 combinator 1000 times (default is to run code once, if last number is not specified) and print precise time that it took to run it.
+Should be possible to isolate slow parts of the code this way, and either optimize or run them less often too.
+
+Factorio's built-in [Debug Mode](https://wiki.factorio.com/Debug_mode) can also be used to identify performance issues with mods in general, especially if it's unclear which mod might be the problem.
+
+----------
+
 ## Access full factorio modding API and things like prototype parameters there
 
 There's an undocumented and DANGEROUS "_api" value - see ["Can I somehow import code form other lua-controllers?"](https://mods.factorio.com/mod/Moon_Logic/discussion/5fd812fd203f61023cd1fba0) or ["Access item information"](https://mods.factorio.com/mod/Moon_Logic/discussion/5f55071254dbb0ecb39e6908) threads for a basic gist of it. That hack provides access to most of the factorio modding api, which is well-documented at https://lua-api.factorio.com/latest/

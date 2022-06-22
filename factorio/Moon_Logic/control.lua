@@ -892,6 +892,26 @@ script.on_event('mlc-open-gui', function(ev)
 end)
 
 
+-- ----- Remote Interface for /measured-command benchmarking -----
+-- Usage: /measured-command remote.call('mlc', 'run', 1234, 100)
+
+local remote_err = function(msg, ...) for n, p in pairs(game.players)
+	do p.print(('Moon-Logic remote-call error: '..msg):format(...), {1,1,0}) end end
+remote.add_interface('mlc', {run = function(uid_raw, count)
+	local uid = tonumber(uid_raw)
+	local mlc, mlc_env = global.combinators[uid], Combinators[uid]
+	if not mlc or not mlc_env then
+		return remote_err('cannot find combinator with uid=%s', uid_raw) end
+	local err_n, st, err, err_last = 0
+	for n = 1, tonumber(count) or 1 do
+		st, err = pcall(mlc_env._func)
+		if not st then err_n, err_last = err_n + 1, err or '[unspecified lua error]' end
+	end
+	if err_n > 0 then remote_err( '%d/%d run(s)'..
+		' raised error(s), last one: %s', err_n, count, err ) end
+end})
+
+
 -- ----- Init -----
 
 local strict_mode = false
