@@ -302,11 +302,9 @@ local function create_gui(player, entity)
 		elc(top_btns, {type='button', name='mlc-preset-'..n, caption=n, direction='horizontal'}),
 		global.presets[n] ) end
 
-	-- MT column-1: code text-box
-	elc(mt_left, { type='scroll-pane',
-		name='mlc-code-scroll', direction='vertical' }, {maximal_height=max_height})
-	elc( el, {type='text-box', name='mlc-code', text=mlc.code or ''},
-		{vertically_stretchable=true, width=800, minimal_height=300} )
+	-- MT column-1: code textbox
+	elc( mt_left, {type='text-box', name='mlc-code', text=mlc.code or ''},
+		{maximal_height=max_height, width=800, minimal_height=300} )
 	el.text = code_error_highlight(el.text, mlc_err)
 
 	-- MT column-1: error bar at the bottom
