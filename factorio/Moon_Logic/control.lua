@@ -94,11 +94,13 @@ local function cn_wire_signals(e, wire_type, canon)
 	local res, cn, k = {}, e.get_or_create_control_behavior()
 		.get_circuit_network(wire_type, defines.circuit_connector_id.combinator_input)
 	for _, sig in pairs(cn and cn.signals or {}) do
+		-- Check for name=nil SignalIDs (dunno what these are), and items w/ flag=hidden
+		if global.signals_short[sig.signal.name] == nil then goto skip end
 		if canon then k = cn_sig_str(sig.signal)
 		else k = global.signals_short[sig.signal.name]
 			and sig.signal.name or cn_sig_str(sig.signal) end
 		res[k] = sig.count
-	end
+	::skip:: end
 	return res
 end
 
