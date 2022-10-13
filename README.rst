@@ -17,6 +17,12 @@ Likely to be out of date to a various degree for most games/mods that get update
 .. contents::
   :backlinks: none
 
+Repository URLs:
+
+- https://github.com/mk-fg/games
+- https://codeberg.org/mk-fg/games
+- https://fraggod.net/code/git/games
+
 
 `Stellaris`_
 ------------
