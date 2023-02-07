@@ -1,7 +1,15 @@
 
 ---------------------------------------------------------------------------------------------------
+Version: 0.0.19
+Date: 2023-02-07
+  Changes:
+    - Limit scan range by default to not go out of game map bounds with high R-signal.
+  Features:
+    - Add settings for default/max scan ranges and for whether to scan for non-unit entities.
+
+---------------------------------------------------------------------------------------------------
 Version: 0.0.18
-Date: 2021-xx-xx
+Date: 2021-07-14
   Internals:
     - Cleanup factorio-1.0 compatibility code.
 

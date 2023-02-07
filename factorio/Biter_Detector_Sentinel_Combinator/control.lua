@@ -16,10 +16,10 @@ local SentinelSet, Ticks
 
 local utils = {
 
-	distance = function(p1, p2)
-		return ((p1.x - p2.x)^2 + (p1.y - p2.y)^2)^0.5 end,
-	area = function(p, r)
-		return {{p.x - r, p.y - r}, {p.x + r, p.y + r}} end,
+	-- Min/max map positions: 2^15 * 32 - going beyond these can cause game crash
+	-- "Error Chunk.cpp:701: Trying to make chunk at unreasonable position [-32773, -32773]"
+	distance = function(p1, p2) return ((p1.x - p2.x)^2 + (p1.y - p2.y)^2)^0.5 end,
+	area = function(p, r) return {{p.x - r, p.y - r}, {p.x + r, p.y + r}} end,
 
 	t = function(s, value)
 		-- Makes padded table from other table keys or a string of keys
@@ -165,7 +165,9 @@ local function update_sentinel_signal(s)
 		if sig == conf.sig_alarm_test and p.count ~= 0 then alarm_test = true end
 	end end
 	-- Checks, defaults, fallbacks
-	if (range or 0) == 0 then range = conf.default_scan_range end -- not set via any signals
+	if (range or 0) == 0 -- not set via any signals
+		then range = conf.default_scan_range
+		else range = math.min(range, conf.max_scan_range) end
 	if range < 1 then return end -- R<=0 - can be disabled from circuit network that way
 
 	-- Simplier enable/disable operation for Sentinel Alarm
@@ -187,9 +189,12 @@ local function update_sentinel_signal(s)
 	-- Full scan/count operation for Sentinel Combinator
 
 	-- Run surface scan and count known/other biter entities (force=enemy)
-	local stats, total = {}, 0
-	local biters = s.p.surface.find_units{
-		area=utils.area(s.p.position, range), force='enemy', condition='same' }
+	local stats, total, biters = {}, 0
+	if not conf.scan_other
+		then biters = s.p.surface.find_units{
+			area=utils.area(s.p.position, range), force='enemy', condition='same' }
+		else biters = s.p.surface.find_entities_filtered{
+			position=s.p.position, radius=range, force='enemy' } end
 	for _, e in ipairs(biters) do
 		if not e.valid then goto skip end
 		sig = ('virtual.%s'):format('signal-bds-'..e.name)

@@ -13,11 +13,15 @@ conf.ticks_update_steps = 10
 -- nil - disabled, should be unnecessary.
 conf.ticks_between_rescan = nil
 
--- Radius in which to locate closest radar.
+-- Radius in which to locate closest radar (tiles).
 conf.radar_radius = 8
 
--- Radius in which to scan for biters by default.
+-- Radius in which to scan for biters by default (tiles).
 conf.default_scan_range = 32
+conf.max_scan_range = 32 * 32
+
+-- Whether to use slower "find_entities" scan to detect spawners and worms.
+conf.scan_other = false
 
 -- Signal to emit for total number of biters.
 conf.sig_biter_total = 'virtual.signal-bds-total'
@@ -36,6 +40,8 @@ conf.sig_alarm_test = 'virtual.signal-T'
 function conf.update_from_settings()
 	conf.ticks_between_updates = settings.startup['bds-signal-update-interval'].value
 	conf.ticks_update_steps = settings.startup['bds-signal-update-steps'].value
+	for _, k in ipairs{'default-scan-range', 'max-scan-range', 'scan-other'}
+		do conf[k:gsub('-', '_')] = settings.startup['bds-'..k].value end
 end
 
 return conf
