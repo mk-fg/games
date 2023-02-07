@@ -38,7 +38,7 @@ Note that even with extremely high range set, detection should only work for map
 
 Both detectors can be built after unlocking Circuit Network technology, located next to Programmable Speaker on the crafting grid, have their own icons/sprites.
 
-Mod settings allow to change update intervals and some workload parameters.
+Mod Settings (under Startup tab) allow to configure default scan range (if not overidden by circuit network signal), scan range limit, and some other performance-related parameters.
 
 &nbsp;
 

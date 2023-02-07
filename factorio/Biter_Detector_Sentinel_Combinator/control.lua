@@ -197,7 +197,7 @@ local function update_sentinel_signal(s)
 			position=s.p.position, radius=range, force='enemy' } end
 	for _, e in ipairs(biters) do
 		if not e.valid then goto skip end
-		sig = ('virtual.%s'):format('signal-bds-'..e.name)
+		sig = 'virtual.signal-bds-'..e.name
 		if not BiterSignals[sig] then sig = conf.sig_biter_other end
 		stats[sig] = (stats[sig] or 0) + 1
 		total = total + 1
