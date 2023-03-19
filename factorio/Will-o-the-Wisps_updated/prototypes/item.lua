@@ -6,7 +6,7 @@ data:extend{
 		icon_size = 32,
 		subgroup = 'raw-material',
 		order = 'g[alien-flora-sample]',
-		stack_size = 500,
+		stack_size = 200,
 		default_request_amount = 10 },
 
 	{ type = 'item',
